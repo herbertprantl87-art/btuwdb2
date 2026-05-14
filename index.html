@@ -38,131 +38,124 @@
 </head>
 <body>
 <style>
-#btu-sidebar-trigger {position:fixed;left:0;top:0;width:18px;height:100%;z-index:9998;}
-#btu-sidebar {position:fixed;left:-300px;top:0;width:300px;height:100%;background:#fff;box-shadow:4px 0 24px rgba(0,0,0,0.18);z-index:9999;transition:left 0.22s ease;display:flex;flex-direction:column;overflow:hidden;}
-#btu-sidebar.open {left:0;}
-#btu-sidebar-header {background:linear-gradient(135deg,#c8102e,#e8294a);color:#fff;font-weight:700;font-size:15px;padding:16px 20px;flex-shrink:0;}
-#btu-sidebar-body {flex:1;overflow-y:auto;padding:8px 0;}
-.btu-section-title {font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;padding:12px 16px 4px;}
-.btu-filter-btn {display:block;width:100%;text-align:left;padding:9px 16px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#333;border-radius:0;transition:background 0.1s;}
-.btu-filter-btn:hover {background:#fff0f0;color:#c8102e;}
-.btu-filter-btn.active {background:#c8102e;color:#fff;font-weight:700;}
-.btu-divider {height:1px;background:#f0f0f0;margin:4px 0;}
-#btu-search-wrap {padding:10px 12px;border-bottom:1px solid #f0f0f0;flex-shrink:0;}
-#btu-search-wrap input {width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid #ddd;border-radius:20px;font-size:13px;outline:none;}
-#btu-search-wrap input:focus {border-color:#c8102e;}
+#btu-sidebar-trigger {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 100%;
+  z-index: 9998;
+}
+#btu-sidebar {
+  position: fixed;
+  left: -260px;
+  top: 0;
+  width: 260px;
+  height: 100%;
+  background: #fff;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+  z-index: 9999;
+  transition: left 0.22s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+}
+#btu-sidebar.open {
+  left: 0;
+}
+#btu-sidebar-header {
+  background: #c8102e;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 16px 20px;
+  letter-spacing: 0.5px;
+}
+.btu-cat-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.12s;
+  font-family: sans-serif;
+}
+.btu-cat-item:hover {
+  background: #fff0f0;
+  color: #c8102e;
+  font-weight: 600;
+}
+.btu-cat-item.active {
+  background: #c8102e;
+  color: #fff;
+  font-weight: 700;
+}
 </style>
 <div id="btu-sidebar-trigger"></div>
 <div id="btu-sidebar">
-  <div id="btu-sidebar-header">Menu</div>
-  <div id="btu-sidebar-body"></div>
+  <div id="btu-sidebar-header">Kategorien</div>
+  <div id="btu-cat-list"></div>
 </div>
 <script>
 (function(){
   var trigger = document.getElementById('btu-sidebar-trigger');
   var sidebar = document.getElementById('btu-sidebar');
-  var body = document.getElementById('btu-sidebar-body');
+  var open = false;
   var timer = null;
 
-  function open(){ sidebar.classList.add('open'); }
-  function close(){ sidebar.classList.remove('open'); }
+  function openSidebar(){ open=true; sidebar.classList.add('open'); }
+  function closeSidebar(){ open=false; sidebar.classList.remove('open'); }
 
-  trigger.addEventListener('mouseenter', open);
-  sidebar.addEventListener('mouseleave', function(){ timer=setTimeout(close,200); });
+  trigger.addEventListener('mouseenter', openSidebar);
+  sidebar.addEventListener('mouseleave', function(){ timer=setTimeout(closeSidebar, 200); });
   sidebar.addEventListener('mouseenter', function(){ clearTimeout(timer); });
-  trigger.addEventListener('mouseleave', function(){ timer=setTimeout(close,300); });
+  trigger.addEventListener('mouseleave', function(){ timer=setTimeout(closeSidebar, 200); });
 
-  function makeBtn(text, onClick, isActive) {
-    var btn = document.createElement('button');
-    btn.className = 'btu-filter-btn' + (isActive?' active':'');
-    btn.textContent = text;
-    btn.addEventListener('click', function(){ onClick(); setTimeout(buildMenu,100); });
-    return btn;
-  }
-
-  function buildMenu() {
-    body.innerHTML = '';
-
-    // SUCHE
-    var searchTitle = document.createElement('div');
-    searchTitle.className = 'btu-section-title';
-    searchTitle.textContent = 'Suche';
-    body.appendChild(searchTitle);
-
-    var searchWrap = document.createElement('div');
-    searchWrap.id = 'btu-search-wrap';
-    var input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'Produkt suchen...';
-    var realInput = document.querySelector('input[type="text"]');
-    if (realInput) {
-      input.value = realInput.value;
-      input.addEventListener('input', function(){ realInput.value = this.value; realInput.dispatchEvent(new Event('input', {bubbles:true})); });
-    }
-    searchWrap.appendChild(input);
-    body.appendChild(searchWrap);
-
-    // Sammle alle Buttons aus den ausgeblendeten Leisten
-    var allBtns = document.querySelectorAll('button');
-    
-    // FILTER-BUTTONS (Kundentyp, Diät-Filter etc.)
-    var filterBtns = [];
+  // Kategorien dynamisch befÃ¼llen wenn React geladen ist
+  function populateCats(){
+    var list = document.getElementById('btu-cat-list');
+    if(!list) return;
+    // Suche React-Fiber um an activeCategory zu kommen
+    var btns = document.querySelectorAll('button');
     var catBtns = [];
-    
-    allBtns.forEach(function(btn){
-      var fk = Object.keys(btn).find(function(k){ return k.startsWith('__reactFiber'); });
-      if (!fk) return;
-      var props = btn[fk] && btn[fk].memoizedProps;
-      if (!props || !props.onClick) return;
-      var onClickStr = props.onClick.toString();
-      var text = btn.textContent.trim();
-      if (!text || text.length > 40) return;
-      
-      if (onClickStr.includes('setActiveCategory')) {
-        catBtns.push({text: text, btn: btn, active: btn.style && (btn.style.background === 'rgb(200, 16, 46)' || btn.style.fontWeight === '700')});
-      } else if (onClickStr.includes('setDietFilter') || onClickStr.includes('setShowFavsOnly') || onClickStr.includes('showFavsOnly')) {
-        filterBtns.push({text: text, btn: btn, active: btn.style && btn.style.borderColor === 'rgb(200, 16, 46)'});
+    btns.forEach(function(b){
+      var fk = Object.keys(b).find(function(k){ return k.startsWith('__reactFiber'); });
+      if(!fk) return;
+      var props = b[fk] && b[fk].memoizedProps;
+      if(props && props.onClick && b.textContent.trim() === 'Alle') {
+        // gefunden - navigiere hoch zum Container mit allen Kategorien
       }
     });
-
-    // DIÄT FILTER SEKTION
-    if (filterBtns.length > 0) {
-      var div1 = document.createElement('div');
-      div1.className = 'btu-divider';
-      body.appendChild(div1);
-      var ft = document.createElement('div');
-      ft.className = 'btu-section-title';
-      ft.textContent = 'Filter';
-      body.appendChild(ft);
-      filterBtns.forEach(function(item){
-        var isActive = item.btn.style.borderColor === 'rgb(200, 16, 46)' || 
-                       item.btn.style.background === 'rgb(200, 16, 46)';
-        body.appendChild(makeBtn(item.text, function(){ item.btn.click(); close(); }, isActive));
+    // Einfacher: finde alle Buttons in der zweiten Scrollbar (Kategorie-Leiste)
+    var allCatBtns = [];
+    btns.forEach(function(b){
+      var fk = Object.keys(b).find(function(k){ return k.startsWith('__reactFiber'); });
+      if(!fk) return;
+      var fiber = b[fk];
+      var onClick = fiber && fiber.memoizedProps && fiber.memoizedProps.onClick;
+      if(onClick && onClick.toString().includes('setActiveCategory')) {
+        allCatBtns.push(b);
+      }
+    });
+    if(allCatBtns.length === 0) return;
+    list.innerHTML = '';
+    allCatBtns.forEach(function(btn){
+      var item = document.createElement('div');
+      item.className = 'btu-cat-item' + (btn.style.background === 'rgb(200, 16, 46)' ? ' active' : '');
+      item.textContent = btn.textContent.trim();
+      item.addEventListener('click', function(){
+        btn.click();
+        closeSidebar();
       });
-    }
-
-    // KATEGORIEN SEKTION
-    if (catBtns.length > 0) {
-      var div2 = document.createElement('div');
-      div2.className = 'btu-divider';
-      body.appendChild(div2);
-      var ct = document.createElement('div');
-      ct.className = 'btu-section-title';
-      ct.textContent = 'Kategorien';
-      body.appendChild(ct);
-      catBtns.forEach(function(item){
-        var isActive = item.btn.style.background === 'rgb(200, 16, 46)' ||
-                       item.btn.style.background === '#c8102e' ||
-                       item.btn.style.fontWeight === '700';
-        body.appendChild(makeBtn(item.text, function(){ item.btn.click(); close(); }, isActive));
-      });
-    }
+      list.appendChild(item);
+    });
   }
 
-  // Beim Oeffnen Menü aufbauen
-  trigger.addEventListener('mouseenter', function(){ setTimeout(buildMenu,50); });
-  // Einmal nach Load
-  setTimeout(buildMenu, 2000);
+  // Warte bis React gerendert hat, dann befÃ¼llen
+  setTimeout(populateCats, 1500);
+  // Und bei jedem Ã–ffnen aktualisieren
+  trigger.addEventListener('mouseenter', function(){ setTimeout(populateCats, 50); });
 })();
 </script>
 <script>
@@ -10502,7 +10495,6 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       position: "sticky",
       top: 88,
       zIndex: 99,
-      display: "none",
       boxShadow: "0 2px 8px rgba(0,0,0,0.06)"
     }
   }, /*#__PURE__*/React.createElement("div", {
