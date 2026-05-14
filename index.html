@@ -9513,6 +9513,7 @@ function BioTechDatabase() {
     setShowFavsOnly(false);
   };
   const [activeCategory, setActiveCategory] = React.useState("Alle");
+    const [showCatMenu, setShowCatMenu] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedId, setSelectedId] = React.useState(null);
   const [quizOpen, setQuizOpen] = React.useState(false);
@@ -10111,7 +10112,27 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       background: "#ddd",
       flexShrink: 0
     }
-  }), /*#__PURE__*/React.createElement("button", {
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {position:"relative",display:"inline-block"},
+    onMouseEnter: () => setShowCatMenu(true),
+    onMouseLeave: () => setShowCatMenu(false)
+  },
+    /*#__PURE__*/React.createElement("button", {
+      style: {fontSize:10,fontWeight:700,padding:"4px 11px",borderRadius:20,border:"1.5px solid "+(activeCategory!=="Alle"?"#c8102e":"#ddd"),background:activeCategory!=="Alle"?"#fff0f0":"#fff",color:activeCategory!=="Alle"?"#c8102e":"#333",cursor:"pointer",whiteSpace:"nowrap"}
+    }, "Kategorien ", activeCategory!=="Alle"?"("+activeCategory+")":"", " \u25BE"),
+    showCatMenu && /*#__PURE__*/React.createElement("div", {
+      style: {position:"absolute",top:"100%",left:0,zIndex:200,background:"#fff",borderRadius:10,boxShadow:"0 4px 20px rgba(0,0,0,0.15)",padding:8,minWidth:200,display:"flex",flexDirection:"column",gap:2}
+    },
+      ["Alle",...allCats].map(function(cat){
+        return /*#__PURE__*/React.createElement("button", {
+          key: cat,
+          onClick: function(){ setActiveCategory(cat); setShowCatMenu(false); },
+          style: {textAlign:"left",padding:"5px 10px",border:"none",borderRadius:6,background:activeCategory===cat?"#c8102e":"transparent",color:activeCategory===cat?"#fff":"#333",cursor:"pointer",fontSize:12,fontWeight:activeCategory===cat?700:400}
+        }, cat);
+      })
+    )
+  ),
+/*#__PURE__*/React.createElement("button", {
     onClick: () => setShowFavsOnly(v => !v),
     style: {
       fontSize: 10,
