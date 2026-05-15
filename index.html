@@ -6731,7 +6731,7 @@ function detectMode(q) {
 
 var GOAL_CAT_SCORES = {
   abnehmen:     { "Fettverbrenner":100,"L-Carnitin":85,"Gewichtsmanagement":90,"Pre-Workout":35,"Vitamine & Mineralien":20,"Riegel":30,"Riegel & Snacks":25 },
-  muskelaufbau: { "Protein":100,"Gainer & Masseaufbau":95,"Kreatin":90,"Aminosäuren":75,"Pre-Workout":55,"Testosteron-Booster":50,"Riegel":45,"Riegel & Snacks":40 },
+  muskelaufbau: { "Protein":100,"Kreatin":90,"Aminosäuren":75,"Pre-Workout":55,"Testosteron-Booster":50,"Riegel":45,"Riegel & Snacks":40 },
   kraft:        { "Kreatin":100,"Pre-Workout":85,"Protein":70,"Aminosäuren":55,"Testosteron-Booster":45 },
   energie:      { "Pre-Workout":100,"Kreatin":65,"Vitamine & Mineralien":50,"Kräuter & Pflanzenextrakte":45,"Aminosäuren":35 },
   regeneration: { "Aminosäuren":100,"Protein":80,"Kreatin":65,"Gelenke & Kollagen":55,"Kollagen":50,"Vitamine & Mineralien":45 },
@@ -10476,7 +10476,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       key: gk,
       goalKey: gk,
       color: combo.color,
-      filtered: PRODUCTS,
+      filtered: PRODUCTS.filter(p => !p.refOnly),
       lang: lang,
       onSelectId: id => setSelectedId(selectedId === id ? null : id)
     });
