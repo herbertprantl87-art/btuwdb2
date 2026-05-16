@@ -10938,38 +10938,7 @@ function ProductCard({
         padding: "1px 8px"
       }
     }, pl.label));
-  })(), searchMode && searchMode.mode === "goal" && !p.refOnly && (() => {
-    const sc = getGoalScore(p, searchMode.value);
-    return sc > 0 ? /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 4,
-        display: "flex",
-        alignItems: "center",
-        gap: 5
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        height: 4,
-        width: 80,
-        background: "#f0f0f0",
-        borderRadius: 2,
-        overflow: "hidden"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        height: "100%",
-        width: sc + "%",
-        background: sc > 70 ? "#16a34a" : sc > 40 ? "#d97706" : "#c8102e",
-        borderRadius: 2
-      }
-    })), /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 10,
-        color: "#aaa",
-        fontWeight: 600
-      }
-    }, sc, "%")) : null;
-  })()), /*#__PURE__*/React.createElement("div", {
+  })()()), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "right",
       flexShrink: 0,
@@ -10997,7 +10966,7 @@ function ProductCard({
       color: accent,
       lineHeight: 1
     }
-  }, p.proteinPercent), !isRef && (!searchMode || searchMode.mode !== "nutrient") && p.kcalPortion && p.kcalPortion !== "–" && p.kcalPortion !== 0 && /*#__PURE__*/React.createElement("div", {
+  }, p.proteinPercent), /*#__PURE__*/React.createElement("div",{style:{height:4,width:64,background:"#f0f0f0",borderRadius:2,overflow:"hidden",marginTop:2}},/*#__PURE__*/React.createElement("div",{style:{height:"100%",width:p.proteinPercent,background:accent,borderRadius:2}})), !isRef && (!searchMode || searchMode.mode !== "nutrient") && p.kcalPortion && p.kcalPortion !== "–" && p.kcalPortion !== 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 10,
       color: "#bbb",
