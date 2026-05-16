@@ -6749,6 +6749,8 @@ var GOAL_KEYWORDS = {
 };
 
 function getGoalScore(p, goal) {
+  const CAT_EXCLUDE={muskelaufbau:["Gainer & Masseaufbau"]};
+  if((CAT_EXCLUDE[goal]||[]).includes(p.category))return 0;
   let score = (GOAL_CAT_SCORES[goal] || {})[p.category] || 0;
   const allText = [p.name, p.subcategory, p.notes || "", ...(p.keyIngredients || []), p.flavors || ""].join(" ").toLowerCase();
   for (const kw of (GOAL_KEYWORDS[goal] || [])) {
