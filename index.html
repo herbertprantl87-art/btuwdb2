@@ -13848,7 +13848,7 @@ function ProduktberaterModal(props) {
 
           // ── Produkt-Karten ──────────────────────────────
           results.map(function(candidates, i) {
-            var p = candidates.filter(function(c){ return !dismissed[c.id] && !c.refOnly; })[0];
+            var p = candidates.filter(function(c){ return !dismissed[c.id]; })[0];
             if (!p) return null;
             var variants = getVariants(p.name);
             var selKey   = p.name;
@@ -13868,7 +13868,7 @@ function ProduktberaterModal(props) {
                 }, lang==='en'?'× Got it':'× Hab ich')
               ),
               CE('div',{style:{fontSize:11,color:'#888',marginBottom:6}}, p.category+(p.subcategory?' · '+p.subcategory:'')),
-              variants.length > 1
+              variants.length >= 1
                 ? CE('div',{style:{display:'flex',gap:6,flexWrap:'wrap',marginBottom:2}},
                     variants.map(function(v,vi){
                       var isSel = vi===selIdx;
