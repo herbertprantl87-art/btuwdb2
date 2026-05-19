@@ -13848,7 +13848,7 @@ function ProduktberaterModal(props) {
 
           // ── Produkt-Karten ──────────────────────────────
           results.map(function(candidates, i) {
-            var p = candidates.filter(function(c){ return !dismissed[c.id]; })[0];
+            var p = candidates.filter(function(c){ return !dismissed[c.id] && !c.refOnly; })[0];
             if (!p) return null;
             var variants = getVariants(p.name);
             var selKey   = p.name;
