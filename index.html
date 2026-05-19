@@ -13670,6 +13670,27 @@ function ProduktberaterModal(props) {
             })
           ),
 
+          CE('div',{style:{textAlign:'center',marginTop:8,marginBottom:2}},
+            CE('a',{
+              href:'https://shop.biotechusa.de',
+              target:'_blank',
+              rel:'noopener noreferrer',
+              style:{
+                display:'inline-block',
+                background:'#c8102e',
+                color:'#fff',
+                fontSize:12,
+                fontWeight:700,
+                padding:'8px 20px',
+                borderRadius:20,
+                textDecoration:'none',
+                letterSpacing:'0.5px'
+              }
+            },
+              lang==='en' ? '🛒 Order now at shop.biotechusa.de' : '🛒 Jetzt bestellen auf shop.biotechusa.de'
+            )
+          ),
+
           CE('div',{style:{display:'flex',gap:10,justifyContent:'center',marginTop:6}},
             CE('button',{onClick:handleRestart,style:{background:'#f0f0f0',border:'none',borderRadius:20,padding:'9px 20px',cursor:'pointer',fontFamily:PFONT,fontSize:12}},tDict.restart),
             CE('button',{onClick:onClose,style:{background:PRED,color:'#fff',border:'none',borderRadius:20,padding:'9px 22px',cursor:'pointer',fontFamily:PFONT,fontSize:12,fontWeight:700}},tDict.close)
