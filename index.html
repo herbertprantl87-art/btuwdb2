@@ -7436,7 +7436,7 @@ var PRODUCTS = [
     studies: [
       { title: "Whey Protein Isolate + MPS via AKT/mTOR", journal: "Nutrients 2025", doi: "10.3390/nu17162579", finding: "Natives Whey-Isolat steigert MPS signifikant post-workout.", url: "https://doi.org/10.3390/nu17162579" },
     ],
-  },
+  },,
 
 
   // ─── GROEssENVARIANTEN (refOnly) ──────────────────────────────────────────
@@ -13936,7 +13936,7 @@ function ProduktberaterModal(props) {
             }),
             CE('div',{style:{marginTop:10,fontWeight:700,fontSize:12,color:'#111',marginBottom:4}},'Produkt-Scores'),
             results.map(function(candidates,i){
-              var cur = candidates.filter(function(c){ return !dismissed[c.id]; })[0];
+              var cur = candidates.filter(function(c){ return !dismissed[c.id] && !c.refOnly; })[0];
               if (!cur) return null;
               return CE('div',{key:i,style:{display:'flex',justifyContent:'space-between',padding:'2px 0'}},
                 CE('span',{style:{fontSize:11,color:'#555'}},cur.name),
