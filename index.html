@@ -13712,6 +13712,7 @@ function ProduktberaterModal(props) {
     var wantsVegan    = allergies.indexOf('vegan')>=0;
 
     var filtered = products.filter(function(p) {
+      if (p.refOnly) return false;
       if (!allergies.length || allergies.indexOf('none') >= 0) return true;
       var ff = p.freeFrom || [];
       if (allergies.indexOf('vegan') >= 0 && !p.vegan) return false;
@@ -13936,7 +13937,7 @@ function ProduktberaterModal(props) {
             }),
             CE('div',{style:{marginTop:10,fontWeight:700,fontSize:12,color:'#111',marginBottom:4}},'Produkt-Scores'),
             results.map(function(candidates,i){
-              var cur = candidates.filter(function(c){ return !dismissed[c.id] && !c.refOnly; })[0];
+              var cur = candidates.filter(function(c){ return !dismissed[c.id]; })[0];
               if (!cur) return null;
               return CE('div',{key:i,style:{display:'flex',justifyContent:'space-between',padding:'2px 0'}},
                 CE('span',{style:{fontSize:11,color:'#555'}},cur.name),
