@@ -13851,8 +13851,13 @@ function ProduktberaterModal(props) {
             var p = candidates.filter(function(c){ return !dismissed[c.id]; })[0];
             if (!p) return null;
             var variants = getVariants(p.name);
+            // Filter out Sachet sizes in Berater - only show mid + large options
+            var noSachet = variants.filter(function(v){ return !/sachet/i.test(v.packageSize); });
+            if (noSachet.length >= 1) variants = noSachet;
             var selKey   = p.name;
             var selIdx   = selSize[selKey] !== undefined ? selSize[selKey] : 0;
+            // Reset selIdx if out of bounds after filter
+            if (selIdx >= variants.length) selIdx = 0;
 
             return CE('div',{key:i,style:CARD},
               CE('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}},
