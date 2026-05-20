@@ -55,12 +55,12 @@
     var tmr=setInterval(function(){cd--;var el=document.getElementById("btu-cd");if(el)el.textContent=cd;if(cd<=0){clearInterval(tmr);location.reload(true);}},1000);
   }
   function check(){
-    fetch("https://herbertprantl87-art.github.io/btuwdb/version.json?t="+Date.now())
+    fetch("https://herbertprantl87-art.github.io/btuwdb2/version.json?t="+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){if(d&&d.sha&&d.sha!==window.__BTU_BUILD)showToast();})
     .catch(function(){});
   }
-  setTimeout(function(){check();_iv=setInterval(check,3600000);},30000);
+  setTimeout(function(){check();_iv=setInterval(check,21600000);},30000);
 })();
 </script>
 <div id="root"></div>
