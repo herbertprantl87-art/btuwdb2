@@ -14863,43 +14863,55 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
 
 <style>
 @keyframes btu-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-.btu-tw{overflow:hidden;margin-top:4px;border-radius:3px}
-.btu-ti{display:inline-block;white-space:nowrap;font-size:9px;color:#bbb;font-family:sans-serif;animation:btu-scroll 22s linear infinite}
+.btu-tw{overflow:hidden;margin-top:5px}
+.btu-ti{display:inline-block;white-space:nowrap;font-size:9px;color:#bbb;animation:btu-scroll 22s linear infinite}
 </style>
 <script>
 (function(){
   var FM={};
   function buildMap(){
-    if(typeof PRODUCTS==='undefined') return;
+    if(typeof PRODUCTS==='undefined') return false;
     PRODUCTS.forEach(function(p){
-      if(p.flavors && p.flavors!=='–' && p.flavors!=='-' && !p.refOnly && !FM[p.name])
+      if(p.flavors&&p.flavors!=='–'&&p.flavors!=='-'&&!p.refOnly&&!FM[p.name])
         FM[p.name]=p.flavors;
     });
+    return true;
   }
   function inject(){
-    if(!Object.keys(FM).length) buildMap();
-    var btns=document.querySelectorAll('[style*="flex: 1 1 auto"]');
+    if(!Object.keys(FM).length&&!buildMap()) return;
+    // Find size buttons, get their grandparent (the card div)
+    var btns=document.querySelectorAll('button[style*="flex: 1 1 auto"]');
     btns.forEach(function(btn){
-      var card=btn.closest('[style*="border-radius"]');
+      var card=btn.parentElement&&btn.parentElement.parentElement;
       if(!card||card.dataset.btuDone) return;
-      var nameEl=card.querySelector('[style*="800"]');
-      if(!nameEl) return;
-      var name=nameEl.textContent.trim();
+      // Find product name: first child span/div with font-weight 700 or 800
+      var els=card.querySelectorAll('*');
+      var name='';
+      for(var i=0;i<els.length;i++){
+        var s=els[i].style;
+        if((s.fontWeight==='700'||s.fontWeight==='800')&&els[i].children.length===0){
+          name=els[i].textContent.trim();
+          break;
+        }
+      }
+      if(!name) return;
       var fl=FM[name];
       if(!fl) return;
-      if(card.querySelector('.btu-tw')) return;
       card.dataset.btuDone='1';
       var w=document.createElement('div'); w.className='btu-tw';
-      var i=document.createElement('div'); i.className='btu-ti';
-      i.textContent='Auch erhältlich in: '+fl+' ··· '+fl;
-      w.appendChild(i); card.appendChild(w);
+      var inner=document.createElement('div'); inner.className='btu-ti';
+      inner.textContent='Auch erhältlich in: '+fl+' ··· '+fl;
+      w.appendChild(inner);
+      card.appendChild(w);
     });
   }
   var obs=new MutationObserver(function(){try{inject();}catch(e){}});
   document.addEventListener('DOMContentLoaded',function(){
     obs.observe(document.body,{childList:true,subtree:true});
+    setTimeout(inject,500);
   });
 })();
-</script></body>
+</script>
+</body>
 </html>
  
