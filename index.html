@@ -13901,7 +13901,20 @@ function ProduktberaterModal(props) {
                   )
                 : CE('div',{style:{fontSize:13,fontWeight:700,color:PRED}},
                     p.price+'€'+(p.packageSize?' · '+p.packageSize:''))
-            );
+            ),
+            p.flavors && p.flavors !== '–' && p.flavors !== '-'
+              ? CE('div',{style:{overflow:'hidden',marginTop:3,position:'relative'}},
+                  CE('div',{style:{
+                    display:'inline-block',
+                    whiteSpace:'nowrap',
+                    fontSize:9,
+                    color:'#aaa',
+                    animation:'btu-ticker 20s linear infinite'
+                  }},
+                  '🌶️ Auch erhältlich in: '+p.flavors+' ··· '+p.flavors
+                ))
+              : null
+          );
           }),
 
           // ── Ihre Daten ───────────────────────────────────
