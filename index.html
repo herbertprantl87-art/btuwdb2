@@ -14861,6 +14861,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
 </script>
 
+
 <style>
 @keyframes btu-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .btu-tw{overflow:hidden;margin-top:5px}
@@ -14877,28 +14878,36 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
     });
     return true;
   }
+  function getName(card){
+    var els=card.querySelectorAll('*');
+    for(var i=0;i<els.length;i++){
+      var s=els[i].style;
+      if((s.fontWeight==='700'||s.fontWeight==='800')&&els[i].children.length===0){
+        var t=els[i].textContent.trim();
+        if(t) return t;
+      }
+    }
+    return '';
+  }
   function inject(){
     if(!Object.keys(FM).length&&!buildMap()) return;
-    // Find size buttons, get their grandparent (the card div)
     var btns=document.querySelectorAll('button[style*="flex: 1 1 auto"]');
     btns.forEach(function(btn){
       var card=btn.parentElement&&btn.parentElement.parentElement;
-      if(!card||card.dataset.btuDone) return;
-      // Find product name: first child span/div with font-weight 700 or 800
-      var els=card.querySelectorAll('*');
-      var name='';
-      for(var i=0;i<els.length;i++){
-        var s=els[i].style;
-        if((s.fontWeight==='700'||s.fontWeight==='800')&&els[i].children.length===0){
-          name=els[i].textContent.trim();
-          break;
-        }
-      }
+      if(!card) return;
+      var name=getName(card);
       if(!name) return;
       var fl=FM[name];
+      // Remove existing ticker if product changed
+      var existing=card.querySelector('.btu-tw');
+      if(existing){
+        if(existing.dataset.btuName===name) return; // already correct
+        existing.parentElement.removeChild(existing);
+        delete card.dataset.btuDone;
+      }
       if(!fl) return;
       card.dataset.btuDone='1';
-      var w=document.createElement('div'); w.className='btu-tw';
+      var w=document.createElement('div'); w.className='btu-tw'; w.dataset.btuName=name;
       var inner=document.createElement('div'); inner.className='btu-ti';
       inner.textContent='Auch erhältlich in: '+fl+' ··· '+fl;
       w.appendChild(inner);
