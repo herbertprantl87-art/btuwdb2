@@ -14970,7 +14970,7 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
     try{injectTotalBar();if(totalBar&&totalBar.parentElement)updateTotalBar();}catch(e){}
   });
   document.addEventListener('DOMContentLoaded',function(){
-    obs.observe(document.body,{childList:true,subtree:true,attributes:true});
+    obs.observe(document.body,{childList:true,subtree:true});
     setTimeout(injectTotalBar,800);
   });
 })();
