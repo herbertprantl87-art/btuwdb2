@@ -14912,6 +14912,69 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
   });
 })();
 </script>
+
+<style>
+#btu-total-bar{display:none;background:#fff8f0;border-bottom:1px solid #f0e0d0;padding:8px 14px;font-size:12px;color:#555;font-family:sans-serif}
+#btu-total-bar span{font-weight:800;color:#c8102e;font-size:13px}
+</style>
+<script>
+(function(){
+  var totalBar=null;
+  function calcTotal(){
+    var cards=document.querySelectorAll('button[style*="flex: 1 1 auto"]');
+    if(!cards.length) return null;
+    var cardSet=new Set();
+    cards.forEach(function(btn){cardSet.add(btn.parentElement&&btn.parentElement.parentElement);});
+    var total=0,count=0;
+    cardSet.forEach(function(card){
+      if(!card) return;
+      var allBtns=card.querySelectorAll('button[style*="flex: 1 1 auto"]');
+      var selBtn=null;
+      allBtns.forEach(function(b){if(b.style.border&&b.style.border.includes('rgb(34, 34, 34)'))selBtn=b;});
+      if(!selBtn) selBtn=allBtns[0];
+      if(!selBtn) return;
+      var priceEl=selBtn.querySelector('div:last-child');
+      if(!priceEl) return;
+      var price=parseFloat(priceEl.textContent.replace('\u20ac','').replace(',','.').trim());
+      if(!isNaN(price)&&price>0){total+=price;count++;}
+    });
+    return count>0?{total:total,count:count}:null;
+  }
+  function updateTotalBar(){
+    if(!totalBar) return;
+    var r=calcTotal();
+    if(r){
+      totalBar.style.display='block';
+      totalBar.innerHTML='\uD83D\uDCB0 Gesamtpaket ('+r.count+' Produkte): <span>\u2248 '+r.total.toFixed(2).replace('.',',')+' \u20ac</span>';
+    } else { totalBar.style.display='none'; }
+  }
+  function injectTotalBar(){
+    var spans=document.querySelectorAll('span');
+    var heading=null;
+    spans.forEach(function(s){
+      var t=s.textContent.trim();
+      if(t==='Ihre Empfehlungen'||t==='Your Recommendations') heading=s;
+    });
+    if(!heading) return;
+    var headerDiv=heading.parentElement;
+    if(!headerDiv) return;
+    var modalDiv=headerDiv.parentElement;
+    if(!modalDiv||modalDiv.querySelector('#btu-total-bar')) return;
+    totalBar=document.createElement('div');
+    totalBar.id='btu-total-bar';
+    if(headerDiv.nextSibling) modalDiv.insertBefore(totalBar,headerDiv.nextSibling);
+    else modalDiv.appendChild(totalBar);
+    updateTotalBar();
+  }
+  var obs=new MutationObserver(function(){
+    try{injectTotalBar();if(totalBar&&totalBar.parentElement)updateTotalBar();}catch(e){}
+  });
+  document.addEventListener('DOMContentLoaded',function(){
+    obs.observe(document.body,{childList:true,subtree:true,attributes:true});
+    setTimeout(injectTotalBar,800);
+  });
+})();
+</script>
 </body>
 </html>
  
