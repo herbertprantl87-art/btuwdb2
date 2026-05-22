@@ -15005,16 +15005,19 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
     });
     return count>0?{total:total,count:count}:null;
   }
+  function findHeading(){
+    var spans=document.querySelectorAll('span');
+    var h=null;
+    spans.forEach(function(s){
+      var t=s.textContent.trim();
+      if(t==='Ihre Empfehlungen'||t==='Your Recommendations'||t==='\u0412\u0430\u0448\u0438 \u0440\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u0438'||t==='\xd6nerileriniz'||t==='\u062a\u0648\u0635\u064a\u0430\u062a\u0643') h=s;
+    });
+    return h;
+  }
   function tick(){
     try{
-      // Inject bar if not present
+      var heading=findHeading();
       if(!document.getElementById('btu-total-bar')){
-        var spans=document.querySelectorAll('span');
-        var heading=null;
-        spans.forEach(function(s){
-          var t=s.textContent.trim();
-          if(t==='Ihre Empfehlungen'||t==='Your Recommendations'||t==='Ваши рекомендации'||t==='Önerileriniz'||t==='توصياتك') heading=s;
-        });
         if(heading&&heading.parentElement&&heading.parentElement.parentElement){
           var headerDiv=heading.parentElement;
           var modalDiv=headerDiv.parentElement;
@@ -15031,8 +15034,8 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
       if(r){
         totalBar.style.display='block';
         var hlang=heading?heading.textContent.trim():'';
-        var pkg=hlang==='Ваши рекомендации'?'Общий пакет':hlang==='Önerileriniz'?'Toplam Paket':hlang==='توصياتك'?'الحزمة الإجمالية':hlang==='Your Recommendations'?'Total Package':'Gesamtpaket';
-        var prods=hlang==='Ваши рекомендации'?'товара':hlang==='Önerileriniz'?'Ürün':hlang==='توصياتك'?'منتجات':hlang==='Your Recommendations'?'Products':'Produkte';
+        var pkg=hlang==='\u0412\u0430\u0448\u0438 \u0440\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u0438'?'\u041e\u0431\u0449\u0438\u0439 \u043f\u0430\u043a\u0435\u0442':hlang==='\xd6nerileriniz'?'Toplam Paket':hlang==='\u062a\u0648\u0635\u064a\u0627\u062a\u0643'?'\u0627\u0644\u062d\u0632\u0645\u0629 \u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a\u0629':hlang==='Your Recommendations'?'Total Package':'Gesamtpaket';
+        var prods=hlang==='\u0412\u0430\u0448\u0438 \u0440\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u0438'?'\u0442\u043e\u0432\u0430\u0440\u0430':hlang==='\xd6nerileriniz'?'\xdcr\xfcn':hlang==='\u062a\u0648\u0635\u064a\u0627\u062a\u0643'?'\u0645\u0646\u062a\u062c\u0627\u062a':hlang==='Your Recommendations'?'Products':'Produkte';
         totalBar.innerHTML='\uD83D\uDCB0 '+pkg+' ('+r.count+' '+prods+'): <span>\u2248 '+r.total.toFixed(2).replace('.',',')+' \u20ac</span>';
       } else { totalBar.style.display='none'; }
     }catch(e){}
