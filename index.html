@@ -14259,6 +14259,12 @@ function CartAnalyticsTab({FONT_SYS}) {
     ),
     loading && React.createElement('div',{style:{textAlign:'center',color:'#555',padding:'30px 0',fontSize:12}},'Lade...'),
     error && React.createElement('div',{style:{color:'#c8102e',fontSize:12,padding:'8px 0'}},error),
+    error && error.includes('404') && React.createElement('div',{style:{background:'#111',border:'1px solid #c8102e',borderRadius:8,padding:'12px',marginBottom:10}},
+      React.createElement('div',{style:{fontSize:11,fontWeight:700,color:'#c8102e',marginBottom:6}},'⚠️ Tabelle fehlt — einmalig anlegen:'),
+      React.createElement('pre',{style:{fontSize:9,color:'#aaa',overflowX:'auto',margin:0,lineHeight:1.5}},
+        'CREATE TABLE cart_events (\n  id bigserial primary key,\n  product_name text not null,\n  package_size text,\n  price numeric,\n  lang text,\n  created_at timestamptz default now()\n);\nALTER TABLE cart_events ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "anon insert" ON cart_events FOR INSERT TO anon WITH CHECK (true);\nCREATE POLICY "auth read" ON cart_events FOR SELECT TO authenticated USING (true);'
+      )
+    ),
     !loading && !error && data.length===0 && React.createElement('div',{style:{textAlign:'center',color:'#555',fontSize:12,padding:'30px 0'}},'Noch keine Daten'),
     !loading && !error && data.length>0 && React.createElement('div',null,
       data.slice(0,20).map(function(item,i){
