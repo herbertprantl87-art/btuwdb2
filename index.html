@@ -13909,8 +13909,7 @@ function ProduktberaterModal(props) {
           CE('button',{key:'tr',onClick:function(){setBeraterLang('tr');},style:{background:beraterLang==='tr'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='tr'?700:400}},'TR'),
           CE('button',{key:'ar',onClick:function(){setBeraterLang('ar');},style:{background:beraterLang==='ar'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='ar'?700:400}},'AR')
         ),
-        CE('div',{style:{position:'relative'}},
-        CE('div',{style:{padding:'14px 14px 80px'}},
+        CE('div',{style:{padding:'14px 14px 20px'}},
 
           // ── Produkt-Karten ──────────────────────────────
           results.map(function(candidates, i) {
