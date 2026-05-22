@@ -14914,6 +14914,7 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
 </script>
 
 
+
 <style>
 #btu-total-bar{display:none;background:#fff8f0;border-bottom:1px solid #f0e0d0;padding:8px 14px;font-size:12px;color:#555;font-family:sans-serif}
 #btu-total-bar span{font-weight:800;color:#c8102e;font-size:13px}
@@ -14922,44 +14923,47 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
 (function(){
   var totalBar=null;
   function calcTotal(){
-    var btns=document.querySelectorAll('button[style*="flex: 1 1 auto"]');
-    if(!btns.length) return null;
+    var cards=document.querySelectorAll('button[style*="flex: 1 1 auto"]');
+    if(!cards.length) return null;
     var cardSet=new Set();
-    btns.forEach(function(b){cardSet.add(b.parentElement&&b.parentElement.parentElement);});
+    cards.forEach(function(btn){cardSet.add(btn.parentElement&&btn.parentElement.parentElement);});
     var total=0,count=0;
     cardSet.forEach(function(card){
       if(!card) return;
-      var cb=card.querySelectorAll('button[style*="flex: 1 1 auto"]');
-      var sel=null;
-      cb.forEach(function(b){if(b.style.border&&b.style.border.indexOf('rgb(34, 34, 34)')>=0)sel=b;});
-      if(!sel) sel=cb[0];
-      if(!sel) return;
-      var pe=sel.querySelector('div:last-child');
-      if(!pe) return;
-      var p=parseFloat(pe.textContent.replace('\u20ac','').replace(',','.').trim());
-      if(!isNaN(p)&&p>0){total+=p;count++;}
+      var allBtns=card.querySelectorAll('button[style*="flex: 1 1 auto"]');
+      var selBtn=null;
+      allBtns.forEach(function(b){if(b.style.border&&b.style.border.includes('rgb(34, 34, 34)'))selBtn=b;});
+      if(!selBtn) selBtn=allBtns[0];
+      if(!selBtn) return;
+      var priceEl=selBtn.querySelector('div:last-child');
+      if(!priceEl) return;
+      var price=parseFloat(priceEl.textContent.replace('\u20ac','').replace(',','.').trim());
+      if(!isNaN(price)&&price>0){total+=price;count++;}
     });
     return count>0?{total:total,count:count}:null;
   }
   function tick(){
     try{
-      var spans=document.querySelectorAll('span');
-      var heading=null;
-      spans.forEach(function(s){
-        var t=s.textContent.trim();
-        if(t==='Ihre Empfehlungen'||t==='Your Recommendations') heading=s;
-      });
-      if(!heading){if(totalBar)totalBar.style.display='none';return;}
-      var hd=heading.parentElement;
-      if(!hd) return;
-      var md=hd.parentElement;
-      if(!md) return;
-      if(!totalBar||!md.contains(totalBar)){
-        totalBar=document.createElement('div');
-        totalBar.id='btu-total-bar';
-        if(hd.nextSibling) md.insertBefore(totalBar,hd.nextSibling);
-        else md.appendChild(totalBar);
+      // Inject bar if not present
+      if(!document.getElementById('btu-total-bar')){
+        var spans=document.querySelectorAll('span');
+        var heading=null;
+        spans.forEach(function(s){
+          var t=s.textContent.trim();
+          if(t==='Ihre Empfehlungen'||t==='Your Recommendations') heading=s;
+        });
+        if(heading&&heading.parentElement&&heading.parentElement.parentElement){
+          var headerDiv=heading.parentElement;
+          var modalDiv=headerDiv.parentElement;
+          totalBar=document.createElement('div');
+          totalBar.id='btu-total-bar';
+          if(headerDiv.nextSibling) modalDiv.insertBefore(totalBar,headerDiv.nextSibling);
+          else modalDiv.appendChild(totalBar);
+        }
+      } else {
+        totalBar=document.getElementById('btu-total-bar');
       }
+      if(!totalBar) return;
       var r=calcTotal();
       if(r){
         totalBar.style.display='block';
@@ -14967,7 +14971,7 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
       } else { totalBar.style.display='none'; }
     }catch(e){}
   }
-  setInterval(tick,500);
+  setInterval(tick, 1500);
 })();
 </script>
 </body>
