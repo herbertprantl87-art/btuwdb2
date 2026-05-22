@@ -10555,7 +10555,7 @@ var BERAT_LANG = {
     macros:"Makronährstoffe", protein:"Protein", carbs:"Kohlenhydrate", fats:"Fette",
     createAccount:"👤 Kundenkonto erstellen",
     male:"Männlich", female:"Weiblich", diverse:"Divers",
-    bmiUnder:"Untergewicht", bmiNormal:"Normalgewicht", bmiOver:"Übergewicht", bmiObese:"Adipositas"
+    bmiUnder:"Untergewicht", bmiNormal:"Normalgewicht", bmiOver:"Übergewicht", bmiObese:"Adipositas", produktScores:"Produkt-Scores"
   },
   en: { title:"Product Advisor", next:"Next", back:"Back", restart:"Restart", results:"Your Recommendations", close:"Close", step:"Question", of:"of", noResults:"No matching products found.", skip:"Skip",
     yourRecs:"Your Recommendations", gotIt:"I already have this", gotItBtn:"× Got it",
@@ -10565,7 +10565,7 @@ var BERAT_LANG = {
     macros:"Macronutrients", protein:"Protein", carbs:"Carbohydrates", fats:"Fats",
     createAccount:"👤 Create customer account",
     male:"Male", female:"Female", diverse:"Diverse",
-    bmiUnder:"Underweight", bmiNormal:"Normal weight", bmiOver:"Overweight", bmiObese:"Obese"
+    bmiUnder:"Underweight", bmiNormal:"Normal weight", bmiOver:"Overweight", bmiObese:"Obese", produktScores:"Product Scores"
   },
   ru: { title:"Советник по продуктам", next:"Далее", back:"Назад", restart:"Начать заново", results:"Ваши рекомендации", close:"Закрыть", step:"Вопрос", of:"из", noResults:"Подходящих продуктов не найдено.", skip:"Пропустить",
     yourRecs:"Ваши рекомендации", gotIt:"У меня уже есть", gotItBtn:"× Есть",
@@ -10575,7 +10575,7 @@ var BERAT_LANG = {
     macros:"Макронутриенты", protein:"Белок", carbs:"Углеводы", fats:"Жиры",
     createAccount:"👤 Создать аккаунт клиента",
     male:"Мужской", female:"Женский", diverse:"Другой",
-    bmiUnder:"Недостаточный вес", bmiNormal:"Нормальный вес", bmiOver:"Избыточный вес", bmiObese:"Ожирение"
+    bmiUnder:"Недостаточный вес", bmiNormal:"Нормальный вес", bmiOver:"Избыточный вес", bmiObese:"Ожирение", produktScores:"Оценки продуктов"
   },
   tr: { title:"Ürün Danışmanı", next:"İleri", back:"Geri", restart:"Yeniden başlat", results:"Önerileriniz", close:"Kapat", step:"Soru", of:"/", noResults:"Uygun ürün bulunamadı.", skip:"Atla",
     yourRecs:"Önerileriniz", gotIt:"Bu ürüne sahibim", gotItBtn:"× Var",
@@ -10585,7 +10585,7 @@ var BERAT_LANG = {
     macros:"Makro Besinler", protein:"Protein", carbs:"Karbonhidrat", fats:"Yağlar",
     createAccount:"👤 Müşteri hesabı oluştur",
     male:"Erkek", female:"Kadın", diverse:"Diğer",
-    bmiUnder:"Zayıf", bmiNormal:"Normal kilo", bmiOver:"Fazla kilolu", bmiObese:"Obez"
+    bmiUnder:"Zayıf", bmiNormal:"Normal kilo", bmiOver:"Fazla kilolu", bmiObese:"Obez", produktScores:"Ürün Puanları"
   },
   ar: { title:"مستشار المنتجات", next:"التالي", back:"السابق", restart:"إعادة البدء", results:"توصياتك", close:"إغلاق", step:"سؤال", of:"من", noResults:"لم يتم العثور على منتجات مناسبة.", skip:"تخطي",
     yourRecs:"توصياتك", gotIt:"لدي هذا بالفعل", gotItBtn:"× لديّ",
@@ -10595,7 +10595,7 @@ var BERAT_LANG = {
     macros:"المغذيات الكبرى", protein:"البروتين", carbs:"الكربوهيدرات", fats:"الدهون",
     createAccount:"👤 إنشاء حساب عميل",
     male:"ذكر", female:"أنثى", diverse:"آخر",
-    bmiUnder:"نقص الوزن", bmiNormal:"وزن طبيعي", bmiOver:"زيادة الوزن", bmiObese:"سمنة"
+    bmiUnder:"نقص الوزن", bmiNormal:"وزن طبيعي", bmiOver:"زيادة الوزن", bmiObese:"سمنة", produktScores:"نتائج المنتجات"
   }
 };
 </script>
@@ -13995,7 +13995,7 @@ function ProduktberaterModal(props) {
                 CE('span',{style:{fontSize:11,color:'#888'}},row[2])
               );
             }),
-            CE('div',{style:{marginTop:10,fontWeight:700,fontSize:12,color:'#111',marginBottom:4}},'Produkt-Scores'),
+            CE('div',{style:{marginTop:10,fontWeight:700,fontSize:12,color:'#111',marginBottom:4}},tDict.produktScores),
             results.map(function(candidates,i){
               var cur = candidates.filter(function(c){ return !dismissed[c.id] && !c.refOnly; })[0];
               if (!cur) return null;
@@ -15013,7 +15013,7 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
         var heading=null;
         spans.forEach(function(s){
           var t=s.textContent.trim();
-          if(t==='Ihre Empfehlungen'||t==='Your Recommendations') heading=s;
+          if(t==='Ihre Empfehlungen'||t==='Your Recommendations'||t==='Ваши рекомендации'||t==='Önerileriniz'||t==='توصياتك') heading=s;
         });
         if(heading&&heading.parentElement&&heading.parentElement.parentElement){
           var headerDiv=heading.parentElement;
@@ -15030,7 +15030,10 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
       var r=calcTotal();
       if(r){
         totalBar.style.display='block';
-        totalBar.innerHTML='\uD83D\uDCB0 Gesamtpaket ('+r.count+' Produkte): <span>\u2248 '+r.total.toFixed(2).replace('.',',')+' \u20ac</span>';
+        var hlang=heading?heading.textContent.trim():'';
+        var pkg=hlang==='Ваши рекомендации'?'Общий пакет':hlang==='Önerileriniz'?'Toplam Paket':hlang==='توصياتك'?'الحزمة الإجمالية':hlang==='Your Recommendations'?'Total Package':'Gesamtpaket';
+        var prods=hlang==='Ваши рекомендации'?'товара':hlang==='Önerileriniz'?'Ürün':hlang==='توصياتك'?'منتجات':hlang==='Your Recommendations'?'Products':'Produkte';
+        totalBar.innerHTML='\uD83D\uDCB0 '+pkg+' ('+r.count+' '+prods+'): <span>\u2248 '+r.total.toFixed(2).replace('.',',')+' \u20ac</span>';
       } else { totalBar.style.display='none'; }
     }catch(e){}
   }
