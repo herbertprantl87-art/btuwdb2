@@ -13890,15 +13890,13 @@ function ProduktberaterModal(props) {
       CE('div',{style:Object.assign({},MODAL,{direction:beraterLang==='ar'?'rtl':'ltr'})},
         CE('div',{style:HDR},
           CE('span',{style:{fontWeight:700,fontSize:15}},tDict.yourRecs),
-          CE('div',{style:{display:'flex',alignItems:'center',gap:6}},
-            CE('div',{style:{display:'flex',gap:3}},
-              [{code:'de',flag:'🇩🇪'},{code:'en',flag:'🇬🇧'},{code:'ru',flag:'🇷🇺'},{code:'tr',flag:'🇹🇷'},{code:'ar',flag:'🇸🇦'}].map(function(l){
-                return CE('button',{key:l.code,onClick:function(){setBeraterLang(l.code);},
-                  style:{background:beraterLang===l.code?'rgba(255,255,255,0.25)':'none',border:beraterLang===l.code?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 4px',cursor:'pointer',fontSize:14,lineHeight:1}
-                },l.flag);
-              })
-            ),
-            xBtn()
+          CE('div',{style:{display:'flex',alignItems:'center',gap:4}},
+              CE('button',{{key:'de',onClick:function(){{setBeraterLang('de');}},style:{{background:beraterLang==='de'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='de'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'DE'),
+              CE('button',{{key:'en',onClick:function(){{setBeraterLang('en');}},style:{{background:beraterLang==='en'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='en'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'EN'),
+              CE('button',{{key:'ru',onClick:function(){{setBeraterLang('ru');}},style:{{background:beraterLang==='ru'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='ru'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'RU'),
+              CE('button',{{key:'tr',onClick:function(){{setBeraterLang('tr');}},style:{{background:beraterLang==='tr'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='tr'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'TR'),
+              CE('button',{{key:'ar',onClick:function(){{setBeraterLang('ar');}},style:{{background:beraterLang==='ar'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='ar'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'AR'),
+              xBtn()
           )
         ),
         CE('div',{style:{padding:'14px 14px 20px'}},
@@ -14046,15 +14044,13 @@ function ProduktberaterModal(props) {
     },
       CE('div',{style:HDR},
         CE('span',{style:{fontWeight:700,fontSize:15}},tDict.title),
-        CE('div',{style:{display:'flex',alignItems:'center',gap:6}},
-          CE('div',{style:{display:'flex',gap:3}},
-            [{code:'de',flag:'🇩🇪'},{code:'en',flag:'🇬🇧'},{code:'ru',flag:'🇷🇺'},{code:'tr',flag:'🇹🇷'},{code:'ar',flag:'🇸🇦'}].map(function(l){
-              return CE('button',{key:l.code,onClick:function(){setBeraterLang(l.code);},
-                style:{background:beraterLang===l.code?'rgba(255,255,255,0.25)':'none',border:beraterLang===l.code?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 4px',cursor:'pointer',fontSize:14,lineHeight:1}
-              },l.flag);
-            })
-          ),
-          xBtn()
+        CE('div',{style:{display:'flex',alignItems:'center',gap:4}},
+              CE('button',{{key:'de',onClick:function(){{setBeraterLang('de');}},style:{{background:beraterLang==='de'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='de'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'DE'),
+              CE('button',{{key:'en',onClick:function(){{setBeraterLang('en');}},style:{{background:beraterLang==='en'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='en'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'EN'),
+              CE('button',{{key:'ru',onClick:function(){{setBeraterLang('ru');}},style:{{background:beraterLang==='ru'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='ru'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'RU'),
+              CE('button',{{key:'tr',onClick:function(){{setBeraterLang('tr');}},style:{{background:beraterLang==='tr'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='tr'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'TR'),
+              CE('button',{{key:'ar',onClick:function(){{setBeraterLang('ar');}},style:{{background:beraterLang==='ar'?'rgba(255,255,255,0.25)':'none',border:beraterLang==='ar'?'1px solid rgba(255,255,255,0.7)':'1px solid transparent',borderRadius:4,padding:'2px 5px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}}}},'AR'),
+              xBtn()
         )
       ),
       CE('div',{style:{height:4,background:'#f0f0f0'}},
