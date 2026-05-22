@@ -10555,7 +10555,7 @@ var BERAT_LANG = {
     macros:"Makronährstoffe", protein:"Protein", carbs:"Kohlenhydrate", fats:"Fette",
     createAccount:"👤 Kundenkonto erstellen",
     male:"Männlich", female:"Weiblich", diverse:"Divers",
-    bmiUnder:"Untergewicht", bmiNormal:"Normalgewicht", bmiOver:"Übergewicht", bmiObese:"Adipositas", produktScores:"Produkt-Scores"
+    bmiUnder:"Untergewicht", bmiNormal:"Normalgewicht", bmiOver:"Übergewicht", bmiObese:"Adipositas", produktScores:"Produkt-Scores", cartBtn:"🛒 +Warenkorb", cartInBtn:"✓ Im Warenkorb", cartTitle:"🛒 Warenkorb", cartBack:"← Zurück", cartEmpty:"🛒 Warenkorb ist leer", cartTotal:"Gesamt:"
   },
   en: { title:"Product Advisor", next:"Next", back:"Back", restart:"Restart", results:"Your Recommendations", close:"Close", step:"Question", of:"of", noResults:"No matching products found.", skip:"Skip",
     yourRecs:"Your Recommendations", gotIt:"I already have this", gotItBtn:"× Got it",
@@ -10565,7 +10565,7 @@ var BERAT_LANG = {
     macros:"Macronutrients", protein:"Protein", carbs:"Carbohydrates", fats:"Fats",
     createAccount:"👤 Create customer account",
     male:"Male", female:"Female", diverse:"Diverse",
-    bmiUnder:"Underweight", bmiNormal:"Normal weight", bmiOver:"Overweight", bmiObese:"Obese", produktScores:"Product Scores"
+    bmiUnder:"Underweight", bmiNormal:"Normal weight", bmiOver:"Overweight", bmiObese:"Obese", produktScores:"Product Scores", cartBtn:"🛒 +Cart", cartInBtn:"✓ In Cart", cartTitle:"🛒 Cart", cartBack:"← Back", cartEmpty:"🛒 Cart is empty", cartTotal:"Total:"
   },
   ru: { title:"Советник по продуктам", next:"Далее", back:"Назад", restart:"Начать заново", results:"Ваши рекомендации", close:"Закрыть", step:"Вопрос", of:"из", noResults:"Подходящих продуктов не найдено.", skip:"Пропустить",
     yourRecs:"Ваши рекомендации", gotIt:"У меня уже есть", gotItBtn:"× Есть",
@@ -10575,7 +10575,7 @@ var BERAT_LANG = {
     macros:"Макронутриенты", protein:"Белок", carbs:"Углеводы", fats:"Жиры",
     createAccount:"👤 Создать аккаунт клиента",
     male:"Мужской", female:"Женский", diverse:"Другой",
-    bmiUnder:"Недостаточный вес", bmiNormal:"Нормальный вес", bmiOver:"Избыточный вес", bmiObese:"Ожирение", produktScores:"Оценки продуктов"
+    bmiUnder:"Недостаточный вес", bmiNormal:"Нормальный вес", bmiOver:"Избыточный вес", bmiObese:"Ожирение", produktScores:"Оценки продуктов", cartBtn:"🛒 +Корзина", cartInBtn:"✓ В корзине", cartTitle:"🛒 Корзина", cartBack:"← Назад", cartEmpty:"🛒 Корзина пуста", cartTotal:"Итого:"
   },
   tr: { title:"Ürün Danışmanı", next:"İleri", back:"Geri", restart:"Yeniden başlat", results:"Önerileriniz", close:"Kapat", step:"Soru", of:"/", noResults:"Uygun ürün bulunamadı.", skip:"Atla",
     yourRecs:"Önerileriniz", gotIt:"Bu ürüne sahibim", gotItBtn:"× Var",
@@ -10585,7 +10585,7 @@ var BERAT_LANG = {
     macros:"Makro Besinler", protein:"Protein", carbs:"Karbonhidrat", fats:"Yağlar",
     createAccount:"👤 Müşteri hesabı oluştur",
     male:"Erkek", female:"Kadın", diverse:"Diğer",
-    bmiUnder:"Zayıf", bmiNormal:"Normal kilo", bmiOver:"Fazla kilolu", bmiObese:"Obez", produktScores:"Ürün Puanları"
+    bmiUnder:"Zayıf", bmiNormal:"Normal kilo", bmiOver:"Fazla kilolu", bmiObese:"Obez", produktScores:"Ürün Puanları", cartBtn:"🛒 +Sepet", cartInBtn:"✓ Sepette", cartTitle:"🛒 Sepet", cartBack:"← Geri", cartEmpty:"🛒 Sepet boş", cartTotal:"Toplam:"
   },
   ar: { title:"مستشار المنتجات", next:"التالي", back:"السابق", restart:"إعادة البدء", results:"توصياتك", close:"إغلاق", step:"سؤال", of:"من", noResults:"لم يتم العثور على منتجات مناسبة.", skip:"تخطي",
     yourRecs:"توصياتك", gotIt:"لدي هذا بالفعل", gotItBtn:"× لديّ",
@@ -10595,7 +10595,7 @@ var BERAT_LANG = {
     macros:"المغذيات الكبرى", protein:"البروتين", carbs:"الكربوهيدرات", fats:"الدهون",
     createAccount:"👤 إنشاء حساب عميل",
     male:"ذكر", female:"أنثى", diverse:"آخر",
-    bmiUnder:"نقص الوزن", bmiNormal:"وزن طبيعي", bmiOver:"زيادة الوزن", bmiObese:"سمنة", produktScores:"نتائج المنتجات"
+    bmiUnder:"نقص الوزن", bmiNormal:"وزن طبيعي", bmiOver:"زيادة الوزن", bmiObese:"سمنة", produktScores:"نتائج المنتجات", cartBtn:"🛒 +سلة", cartInBtn:"✓ في السلة", cartTitle:"🛒 سلة التسوق", cartBack:"← رجوع", cartEmpty:"🛒 السلة فارغة", cartTotal:"المجموع:"
   }
 };
 </script>
@@ -13667,6 +13667,8 @@ function ProduktberaterModal(props) {
   var sRes     = React.useState(null); var results = sRes[0];  var setResults = sRes[1];
   var sSelSize = React.useState({});   var selSize = sSelSize[0]; var setSelSize = sSelSize[1];
   var sDis  = React.useState({}); var dismissed = sDis[0]; var setDismissed = sDis[1];
+  var sCart = React.useState([]); var cart = sCart[0]; var setCart = sCart[1];
+  var sCartView = React.useState(false); var cartView = sCartView[0]; var setCartView = sCartView[1];
 
   var currentQ = BERAT_QUESTIONS[step];
   var total    = BERAT_QUESTIONS.length;
@@ -13890,7 +13892,15 @@ function ProduktberaterModal(props) {
       CE('div',{style:Object.assign({},MODAL,{direction:beraterLang==='ar'?'rtl':'ltr'})},
         CE('div',{style:HDR},
           CE('span',{style:{fontWeight:700,fontSize:15}},tDict.yourRecs),
-          xBtn()
+          CE('div',{style:{display:'flex',alignItems:'center',gap:8}},
+            cart.length>0 && CE('button',{
+              onClick:function(){setCartView(true);},
+              style:{background:'#fff',border:'none',borderRadius:20,padding:'4px 10px',cursor:'pointer',
+                     fontSize:12,fontWeight:700,color:'#c8102e',display:'flex',alignItems:'center',gap:4}
+            },'🛒 ',CE('span',{style:{background:'#c8102e',color:'#fff',borderRadius:10,
+              padding:'1px 6px',fontSize:11,fontWeight:800}},cart.length)),
+            xBtn()
+          )
         ),
         CE('div',{style:{background:'#a50024',display:'flex',justifyContent:'flex-end',gap:3,padding:'5px 14px'}},
           CE('button',{key:'de',onClick:function(){setBeraterLang('de');},style:{background:beraterLang==='de'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='de'?700:400}},'DE'),
@@ -13917,15 +13927,50 @@ function ProduktberaterModal(props) {
             return CE('div',{key:i,style:CARD},
               CE('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}},
                 CE('span',{style:{fontWeight:700,fontSize:14,color:'#111'}}, p.name),
-                CE('button',{
-                  onClick:function(){
-                    setDismissed(function(prev){
-                      var n={}; Object.keys(prev).forEach(function(k){n[k]=prev[k];}); n[p.id]=true; return n;
-                    });
-                  },
-                  title:tDict.gotIt,
-                  style:{background:'none',border:'1px solid #e0e0e0',borderRadius:6,padding:'2px 7px',cursor:'pointer',fontSize:11,color:'#999',whiteSpace:'nowrap',flexShrink:0}
-                }, tDict.gotItBtn)
+                CE('div',{style:{display:'flex',gap:4,flexShrink:0}},
+                  CE('button',{
+                    onClick:function(){
+                      var curSize = variants[selIdx];
+                      var key = p.name+'|'+(curSize?curSize.packageSize:'');
+                      var inCart = cart.some(function(ci){return ci.key===key;});
+                      if(inCart){
+                        setCart(function(prev){return prev.filter(function(ci){return ci.key!==key;});});
+                      } else {
+                        var item={key:key,name:p.name,packageSize:curSize?curSize.packageSize:(p.packageSize||''),price:curSize?curSize.price:p.price};
+                        setCart(function(prev){return prev.concat([item]);});
+                        // Log to Supabase anonymously
+                        try{
+                          fetch('https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/cart_events',{
+                            method:'POST',
+                            headers:{'apikey':'sb_publishable_z1V4LtNtbgve2XqpY04VaA_Fi7m01iz','Content-Type':'application/json','Prefer':'return=minimal'},
+                            body:JSON.stringify({product_name:p.name,package_size:curSize?curSize.packageSize:(p.packageSize||''),price:curSize?curSize.price:p.price,lang:beraterLang})
+                          }).catch(function(){});
+                        }catch(e){}
+                      }
+                    },
+                    style:{background:(function(){
+                      var key2=p.name+'|'+(variants[selIdx]?variants[selIdx].packageSize:'');
+                      return cart.some(function(ci){return ci.key===key2;})?'#c8102e':'none';
+                    })(),
+                    border:'1px solid #c8102e',borderRadius:6,padding:'2px 8px',cursor:'pointer',
+                    fontSize:12,color:(function(){
+                      var key3=p.name+'|'+(variants[selIdx]?variants[selIdx].packageSize:'');
+                      return cart.some(function(ci){return ci.key===key3;})?'#fff':'#c8102e';
+                    })(),fontWeight:700,whiteSpace:'nowrap'}
+                  },(function(){
+                    var key4=p.name+'|'+(variants[selIdx]?variants[selIdx].packageSize:'');
+                    return cart.some(function(ci){return ci.key===key4;})?tDict.cartInBtn:tDict.cartBtn;
+                  })()),
+                  CE('button',{
+                    onClick:function(){
+                      setDismissed(function(prev){
+                        var n={}; Object.keys(prev).forEach(function(k){n[k]=prev[k];}); n[p.id]=true; return n;
+                      });
+                    },
+                    title:tDict.gotIt,
+                    style:{background:'none',border:'1px solid #e0e0e0',borderRadius:6,padding:'2px 7px',cursor:'pointer',fontSize:11,color:'#999',whiteSpace:'nowrap'}
+                  }, tDict.gotItBtn)
+                )
               ),
               CE('div',{style:{fontSize:11,color:'#888',marginBottom:6}}, p.category+(p.subcategory?' · '+p.subcategory:'')),
               variants.length >= 1
@@ -14036,6 +14081,61 @@ function ProduktberaterModal(props) {
     );
   }
 
+  // ── CART VIEW ──────────────────────────────────────────────
+  if (cartView) {
+    var cartTotal = cart.reduce(function(sum,ci){ return sum + (parseFloat(ci.price)||0); }, 0);
+    return CE('div',{style:OVERLAY,onClick:function(e){if(e.target===e.currentTarget){setCartView(false);}}},
+      CE('div',{style:Object.assign({},MODAL,{direction:beraterLang==='ar'?'rtl':'ltr'})},
+        CE('div',{style:HDR},
+          CE('span',{style:{fontWeight:700,fontSize:15}},tDict.cartTitle),
+          CE('button',{onClick:function(){setCartView(false);},
+            style:{background:'rgba(255,255,255,0.15)',border:'none',borderRadius:6,
+                   padding:'4px 10px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:700}
+          },tDict.cartBack)
+        ),
+        CE('div',{style:{background:'#a50024',display:'flex',justifyContent:'flex-end',gap:3,padding:'5px 14px'}},
+          CE('button',{key:'de',onClick:function(){setBeraterLang('de');},style:{background:beraterLang==='de'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='de'?700:400}},'DE'),
+          CE('button',{key:'en',onClick:function(){setBeraterLang('en');},style:{background:beraterLang==='en'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='en'?700:400}},'EN'),
+          CE('button',{key:'ru',onClick:function(){setBeraterLang('ru');},style:{background:beraterLang==='ru'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='ru'?700:400}},'RU'),
+          CE('button',{key:'tr',onClick:function(){setBeraterLang('tr');},style:{background:beraterLang==='tr'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='tr'?700:400}},'TR'),
+          CE('button',{key:'ar',onClick:function(){setBeraterLang('ar');},style:{background:beraterLang==='ar'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='ar'?700:400}},'AR')
+        ),
+        CE('div',{style:{padding:'14px',overflowY:'auto',maxHeight:'70vh'}},
+          cart.length === 0
+            ? CE('div',{style:{textAlign:'center',color:'#aaa',padding:'40px 0',fontSize:14}},
+                tDict.cartEmpty)
+            : CE('div',null,
+                cart.map(function(ci,idx){
+                  return CE('div',{key:idx,style:{display:'flex',justifyContent:'space-between',
+                    alignItems:'center',padding:'10px 12px',marginBottom:6,
+                    background:'#fafafa',borderRadius:8,border:'1px solid #eee'}},
+                    CE('div',null,
+                      CE('div',{style:{fontWeight:700,fontSize:13,color:'#111'}},ci.name),
+                      CE('div',{style:{fontSize:11,color:'#888',marginTop:2}},ci.packageSize||'')
+                    ),
+                    CE('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                      CE('span',{style:{fontWeight:700,fontSize:14,color:'#c8102e'}},
+                        (parseFloat(ci.price)||0).toFixed(2).replace('.',',')+'€'),
+                      CE('button',{
+                        onClick:function(){setCart(function(prev){return prev.filter(function(x,i){return i!==idx;});});},
+                        style:{background:'none',border:'none',cursor:'pointer',fontSize:16,color:'#ccc',padding:'0 2px'}
+                      },'×')
+                    )
+                  );
+                }),
+                CE('div',{style:{marginTop:16,padding:'12px 14px',background:'#fff8f0',
+                  border:'1px solid #f0dece',borderRadius:8,display:'flex',
+                  justifyContent:'space-between',alignItems:'center'}},
+                  CE('span',{style:{fontWeight:700,fontSize:13,color:'#555'}},tDict.cartTotal),
+                  CE('span',{style:{fontWeight:800,fontSize:18,color:'#c8102e'}},
+                    cartTotal.toFixed(2).replace('.',',')+'€')
+                )
+              )
+        )
+      )
+    );
+  }
+
   // ── QUIZ VIEW ─────────────────────────────────────────────
   var progress = (step / total) * 100;
 
@@ -14098,6 +14198,85 @@ function ProduktberaterModal(props) {
           }, step < total-1 ? tDict.next : tDict.results)
         )
       )
+    )
+  );
+}
+
+
+function CartAnalyticsTab({FONT_SYS}) {
+  var sData = React.useState([]); var data = sData[0]; var setData = sData[1];
+  var sLoading = React.useState(true); var loading = sLoading[0]; var setLoading = sLoading[1];
+  var sError = React.useState(null); var error = sError[0]; var setError = sError[1];
+  var sDays = React.useState(30); var days = sDays[0]; var setDays = sDays[1];
+
+  React.useEffect(function(){
+    setLoading(true); setError(null);
+    var since = new Date(Date.now() - days*24*60*60*1000).toISOString();
+    fetch('https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/cart_events?select=product_name,package_size,price&created_at=gte.'+encodeURIComponent(since)+'&order=created_at.desc&limit=1000',{
+      headers:{'apikey':'sb_publishable_z1V4LtNtbgve2XqpY04VaA_Fi7m01iz','Content-Type':'application/json'}
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      // Aggregate by product_name + package_size
+      var agg = {};
+      (Array.isArray(rows)?rows:[]).forEach(function(r){
+        var key = r.product_name + '|' + (r.package_size||'');
+        if(!agg[key]) agg[key]={name:r.product_name,size:r.package_size||'',count:0,revenue:0};
+        agg[key].count++;
+        agg[key].revenue += parseFloat(r.price)||0;
+      });
+      var list = Object.values(agg).sort(function(a,b){return b.count-a.count;});
+      setData(list);
+      setLoading(false);
+    })
+    .catch(function(e){ setError('Fehler beim Laden'); setLoading(false); });
+  }, [days]);
+
+  var totalAdds = data.reduce(function(s,d){return s+d.count;},0);
+
+  return React.createElement('div',{style:{padding:'14px 16px'}},
+    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
+      React.createElement('div',{style:{fontSize:10,fontWeight:800,color:'#3a3a3a',textTransform:'uppercase',letterSpacing:1.2}},'Warenkorb-Analyse'),
+      React.createElement('select',{
+        value:days,
+        onChange:function(e){setDays(parseInt(e.target.value));},
+        style:{fontSize:11,background:'#111',color:'#888',border:'1px solid #222',borderRadius:6,padding:'3px 6px',cursor:'pointer',fontFamily:FONT_SYS}
+      },
+        React.createElement('option',{value:7},'7 Tage'),
+        React.createElement('option',{value:30},'30 Tage'),
+        React.createElement('option',{value:90},'90 Tage')
+      )
+    ),
+    React.createElement('div',{style:{display:'flex',gap:8,marginBottom:12}},
+      React.createElement('div',{style:{flex:1,background:'#111',borderRadius:8,padding:'10px 12px',border:'1px solid #222',textAlign:'center'}},
+        React.createElement('div',{style:{fontSize:20,fontWeight:800,color:'#c8102e'}},totalAdds),
+        React.createElement('div',{style:{fontSize:9,color:'#555',marginTop:2,textTransform:'uppercase',letterSpacing:1}},'Übrige Hinzufügungen')
+      ),
+      React.createElement('div',{style:{flex:1,background:'#111',borderRadius:8,padding:'10px 12px',border:'1px solid #222',textAlign:'center'}},
+        React.createElement('div',{style:{fontSize:20,fontWeight:800,color:'#c8102e'}},data.length),
+        React.createElement('div',{style:{fontSize:9,color:'#555',marginTop:2,textTransform:'uppercase',letterSpacing:1}},'Produkte')
+      )
+    ),
+    loading && React.createElement('div',{style:{textAlign:'center',color:'#555',padding:'30px 0',fontSize:12}},'Lade...'),
+    error && React.createElement('div',{style:{color:'#c8102e',fontSize:12,padding:'8px 0'}},error),
+    !loading && !error && data.length===0 && React.createElement('div',{style:{textAlign:'center',color:'#555',fontSize:12,padding:'30px 0'}},'Noch keine Daten'),
+    !loading && !error && data.length>0 && React.createElement('div',null,
+      data.slice(0,20).map(function(item,i){
+        var maxCount = data[0].count;
+        var pct = Math.round((item.count/maxCount)*100);
+        return React.createElement('div',{key:i,style:{marginBottom:8,background:'#111',borderRadius:7,padding:'8px 10px',border:'1px solid #1a1a1a'}},
+          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:4}},
+            React.createElement('div',null,
+              React.createElement('span',{style:{fontWeight:700,fontSize:12,color:'#e0e0e0'}},item.name),
+              item.size && React.createElement('span',{style:{fontSize:10,color:'#555',marginLeft:6}},item.size)
+            ),
+            React.createElement('span',{style:{fontWeight:800,fontSize:13,color:'#c8102e'}},item.count+'x')
+          ),
+          React.createElement('div',{style:{height:4,background:'#222',borderRadius:2,overflow:'hidden'}},
+            React.createElement('div',{style:{height:'100%',width:pct+'%',background:'#c8102e',borderRadius:2,transition:'width .3s'}})
+          )
+        );
+      })
     )
   );
 }
@@ -14418,13 +14597,13 @@ function AdminPanel({
       // Tab switcher
       React.createElement("div", { style:{ padding:"10px 20px", borderBottom:"1px solid #1a1a1a",
           display:"flex", gap:4, flexShrink:0 } },
-        ["users","editor"].map(t2=>
+        ["users","editor","cart"].map(t2=>
           React.createElement("button", { key:t2, onClick:()=>{setTab(t2);setEditingId(null);},
             style:{ flex:1, padding:"8px 0", borderRadius:8, fontWeight:700, fontSize:11,
                     fontFamily:FONT_SYS, cursor:"pointer", border:"none",
                     background:tab===t2?"#c8102e":"#1a1a1a",
                     color:tab===t2?"#fff":"#555", transition:"all .15s" } },
-            t2==="users"?"👥 Nutzer":"✏️ Produkte"
+            t2==="users"?"👥 Nutzer":t2==="editor"?"✏️ Produkte":"🛒 Warenkorb"
           )
         )
       ),
@@ -14860,6 +15039,9 @@ function AdminPanel({
           )
         )
       ),
+
+      // ── WARENKORB ANALYSE TAB ──
+      tab==="cart" && React.createElement(CartAnalyticsTab, {FONT_SYS: FONT_SYS}),
 
       // Footer
       React.createElement("div", { style:{ padding:"12px 20px", borderTop:"1px solid #1a1a1a",
