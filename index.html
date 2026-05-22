@@ -13909,7 +13909,8 @@ function ProduktberaterModal(props) {
           CE('button',{key:'tr',onClick:function(){setBeraterLang('tr');},style:{background:beraterLang==='tr'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='tr'?700:400}},'TR'),
           CE('button',{key:'ar',onClick:function(){setBeraterLang('ar');},style:{background:beraterLang==='ar'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='ar'?700:400}},'AR')
         ),
-        CE('div',{style:{padding:'14px 14px 20px'}},
+        CE('div',{style:{position:'relative'}},
+        CE('div',{style:{padding:'14px 14px 80px'}},
 
           // ── Produkt-Karten ──────────────────────────────
           results.map(function(candidates, i) {
@@ -14072,6 +14073,20 @@ function ProduktberaterModal(props) {
             )
           ),
 
+          cart.length > 0 && CE('div',{
+            style:{background:'#fff8f0',border:'1px solid #f0dece',borderRadius:8,
+                   padding:'10px 14px',display:'flex',alignItems:'center',
+                   justifyContent:'space-between',marginBottom:10}
+          },
+            CE('span',{style:{fontSize:12,color:'#555',fontWeight:600}},
+              '🛒 '+cart.length+' Produkt'+(cart.length!==1?'e':'')+' im Warenkorb'
+            ),
+            CE('button',{
+              onClick:function(){setCartView(true);},
+              style:{background:'#c8102e',color:'#fff',border:'none',borderRadius:8,
+                     padding:'8px 16px',fontSize:13,fontWeight:700,cursor:'pointer'}
+            },'Warenkorb anzeigen →')
+          ),
           CE('div',{style:{display:'flex',gap:10,justifyContent:'center',marginTop:6}},
             CE('button',{onClick:handleRestart,style:{background:'#f0f0f0',border:'none',borderRadius:20,padding:'9px 20px',cursor:'pointer',fontFamily:PFONT,fontSize:12}},tDict.restart),
             CE('button',{onClick:onClose,style:{background:PRED,color:'#fff',border:'none',borderRadius:20,padding:'9px 22px',cursor:'pointer',fontFamily:PFONT,fontSize:12,fontWeight:700}},tDict.close)
