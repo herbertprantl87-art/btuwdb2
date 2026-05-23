@@ -10478,7 +10478,7 @@ function getProductTx(lang, product) {
 
 // Hook: gibt übersetzte Produktfelder zurück (synchron, kein Loading-State mehr)
 function useProductTx(lang, product) {
-  return React.useMemo(() => getProductTx(lang, product), [lang, product?.id]);
+  return React.useMemo(() => getProductTx(lang, product), [lang, (product && product.id)]);
 }
 
 // ── Einfache UI-Strings übersetzen ───────────────────────────────────────────
@@ -10665,12 +10665,12 @@ function BioTechDatabase() {
     try {
       localStorage.setItem("btu_lang", code);
     } catch {}
-    const isRtl = LANGUAGES.find(l => l.code === code)?.rtl;
+    const isRtl = (LANGUAGES.find(l => l.code === code) || {}).rtl;
     document.documentElement.dir = isRtl ? "rtl" : "ltr";
   };
   // Apply RTL on mount
   React.useEffect(() => {
-    const isRtl = LANGUAGES.find(l => l.code === lang)?.rtl;
+    const isRtl = (LANGUAGES.find(l => l.code === lang) || {}).rtl;
     document.documentElement.dir = isRtl ? "rtl" : "ltr";
   }, []);
 
@@ -10728,6 +10728,11 @@ function BioTechDatabase() {
   const [loginError, setLoginError] = React.useState("");
 
   async function sha256hex(str) {
+    if (!crypto || !crypto.subtle) {
+      // Fallback for very old browsers: simple hash (not cryptographic, for legacy only)
+      var h = 0; for (var i = 0; i < str.length; i++) { h = Math.imul(31, h) + str.charCodeAt(i) | 0; }
+      return Math.abs(h).toString(16).padStart(8, "0").repeat(8);
+    }
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
   }
@@ -11149,7 +11154,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       alignItems: "center",
       gap: 4
     }
-  }, LANGUAGES.find(l => l.code === lang)?.flag || "🌐", /*#__PURE__*/React.createElement("span", {
+  }, (LANGUAGES.find(l => l.code === lang) || {}).flag || "🌐", /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 10,
       opacity: 0.7
@@ -11416,9 +11421,9 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       gap: 4,
       boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
     }
-  }, "\uD83C\uDFAF ", activeProfile ? /*#__PURE__*/React.createElement(React.Fragment, null, PROFILES.find(p => p.goalKey === activeProfile)?.emoji, " ", /*#__PURE__*/React.createElement(Tx, {
+  }, "\uD83C\uDFAF ", activeProfile ? /*#__PURE__*/React.createElement(React.Fragment, null, (PROFILES.find(p => p.goalKey === activeProfile) || {}).emoji, " ", /*#__PURE__*/React.createElement(Tx, {
     lang: lang,
-    text: PROFILES.find(p => p.goalKey === activeProfile)?.label
+    text: (PROFILES.find(p => p.goalKey === activeProfile) || {}).label
   })) : t.customerType, /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 10,
@@ -12300,7 +12305,7 @@ function ProductCard({
       fontWeight: 600,
       letterSpacing: 0.5
     }
-  }, searchMode.value === "carbs" ? t.carbsShort?.replace(" ↓", "") : searchMode.value === "protein" ? t.proteinShort?.replace(" ↓", "") : searchMode.value === "fat" ? t.fatShort?.replace(" ↓", "") : "KCAL")), !isRef && (!searchMode || searchMode.mode !== "nutrient") && p.proteinPercent !== "–" && p.proteinPercent && /*#__PURE__*/React.createElement("div", {
+  }, searchMode.value === "carbs" ? (t.carbsShort || "").replace(" ↓", "") : searchMode.value === "protein" ? (t.proteinShort || "").replace(" ↓", "") : searchMode.value === "fat" ? (t.fatShort || "").replace(" ↓", "") : "KCAL")), !isRef && (!searchMode || searchMode.mode !== "nutrient") && p.proteinPercent !== "–" && p.proteinPercent && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
       fontWeight: 800,
@@ -12431,7 +12436,7 @@ function ProductCard({
     }),
     color: refColor
   }, p.studies.map((s, i) => {
-    const ts = ptx?.studies?.[i] || {};
+    const ts = (ptx && ptx.studies && ptx.studies[i]) || {};
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
@@ -12611,7 +12616,7 @@ function ProductCard({
     label: t.studies,
     color: accent
   }, p.studies.map((s, i) => {
-    const ts = ptx?.studies?.[i] || {};
+    const ts = (ptx && ptx.studies && ptx.studies[i]) || {};
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
@@ -12697,7 +12702,7 @@ function ProductCard({
       borderRadius: "0 0 8px 8px",
       overflow: "hidden"
     }
-  }, (ptx?.objections || OBJECTIONS[p.id]).map((obj, i) => /*#__PURE__*/React.createElement("div", {
+  }, ((ptx && ptx.objections) || OBJECTIONS[p.id]).map((obj, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
       padding: "10px 12px",
@@ -15110,7 +15115,7 @@ function AdminPanel({
                               marginBottom:6, border:hasOv(p.id)?"1px solid #2a1e00":"1px solid #1e1e1e" }},
                       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:isEd?12:0}},
                         React.createElement("div",{style:{display:"flex",alignItems:"center",gap:7}},
-                          React.createElement("span",{style:{fontWeight:700,color:"#e0e0e0",fontSize:13}},(overrides[p.id]?.name)||p.name),
+                          React.createElement("span",{style:{fontWeight:700,color:"#e0e0e0",fontSize:13}},((overrides[p.id] && overrides[p.id].name))||p.name),
                           React.createElement("span",{style:{fontSize:10,color:"#333"}},p.category),
                           hasOv(p.id)&&React.createElement("span",{style:{fontSize:10,color:"#fbbf24",background:"#1a1200",borderRadius:4,padding:"1px 5px"}},"●")
                         ),
