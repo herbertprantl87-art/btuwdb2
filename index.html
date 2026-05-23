@@ -10710,9 +10710,24 @@ function BioTechDatabase() {
     if (pw !== pw2) { setLoginError("Passwörter stimmen nicht überein"); return; }
     setLoginLoading(true);
     setLoginError("");
-    const hash = await sha256hex(pw);
-    await SB.upsert("app_config", { key: "auth_user__" + username, value: { hash } });
-    finishLogin(username);
+    try {
+      const hash = await sha256hex(pw);
+      const res = await fetch("https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/app_config", {
+        method: "POST",
+        headers: {
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE",
+          "Content-Type": "application/json",
+          "Prefer": "resolution=merge-duplicates,return=minimal"
+        },
+        body: JSON.stringify({ key: "auth_user__" + username, value: { hash } })
+      });
+      if (!res.ok) throw new Error("Supabase error " + res.status);
+      finishLogin(username);
+    } catch(e) {
+      setLoginLoading(false);
+      setLoginError("Verbindungsfehler — bitte nochmal versuchen.");
+    }
   };
 
   const doPasswordLogin = async () => {
