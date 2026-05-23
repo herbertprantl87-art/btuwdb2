@@ -34,6 +34,50 @@
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
+
+    /* ── iOS momentum scroll ── */
+    #root, .btu-main-scroll {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Nutritional grid: 4 cols desktop, 2 cols mobile ── */
+    .btu-nutrient-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    /* ── Mobile: max 480px ── */
+    @media (max-width: 480px) {
+      .btu-nutrient-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      /* Minimum readable font size */
+      body { font-size: 14px; }
+      /* Better tap highlight */
+      button, [role="button"] {
+        -webkit-tap-highlight-color: rgba(200,16,46,0.15);
+      }
+      /* Prevent text zoom on input focus (iOS) */
+      input, textarea, select {
+        font-size: 16px !important;
+      }
+      /* Sidebar: full width on very small screens */
+      #btu-s {
+        width: 100% !important;
+        left: -100% !important;
+      }
+      #btu-s.on {
+        left: 0 !important;
+      }
+    }
+
+    /* ── Tablet: 481-768px ── */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .btu-nutrient-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
   </style>
 </head>
 <body>
@@ -11068,7 +11112,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
   }, "USA")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: FONT,
-      fontSize: 8,
+      fontSize: 10,
       color: "rgba(255,255,255,0.6)",
       letterSpacing: 1.8,
       textTransform: "uppercase",
@@ -11107,7 +11151,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     }
   }, LANGUAGES.find(l => l.code === lang)?.flag || "🌐", /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 8,
+      fontSize: 10,
       opacity: 0.7
     }
   }, showLangMenu ? "▲" : "▼")), showLangMenu && /*#__PURE__*/React.createElement("div", {
@@ -11126,7 +11170,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "8px 12px 6px",
-      fontSize: 9,
+      fontSize: 10,
       fontWeight: 700,
       color: "#bbb",
       letterSpacing: 1.2,
@@ -11222,7 +11266,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     }
   }, user.first, " ", user.last), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 9,
+      fontSize: 10,
       color: "rgba(255,255,255,0.6)",
       fontWeight: 600
     }
@@ -11238,7 +11282,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     }
   }, PRODUCTS.filter(p => !p.refOnly).length, " ", t.products), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 9,
+      fontSize: 10,
       color: "rgba(255,255,255,0.55)"
     }
   }, CATEGORIES.length - 1, " ", t.categories)))), /*#__PURE__*/React.createElement("div", {
@@ -11377,7 +11421,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     text: PROFILES.find(p => p.goalKey === activeProfile)?.label
   })) : t.customerType, /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 8,
+      fontSize: 10,
       opacity: 0.5
     }
   }, showProfiles ? "▲" : "▼")), /*#__PURE__*/React.createElement("div", {
@@ -11558,7 +11602,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 9,
+      fontSize: 10,
       fontWeight: 700,
       color: "#bbb",
       letterSpacing: 1.2,
@@ -11704,6 +11748,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     onLeave: () => setAdminMode(false),
     productCount: PRODUCTS.filter(p => !p.refOnly).length
   }), /*#__PURE__*/React.createElement("div", {
+    className: "btu-main-scroll",
     style: {
       maxWidth: 800,
       margin: "0 auto",
@@ -12249,7 +12294,7 @@ function ProductCard({
     }
   }, searchMode.value === "carbs" ? p.carbsPortion || "–" : searchMode.value === "protein" ? p.proteinPortion || "–" : searchMode.value === "fat" ? p.fatPortion || "–" : p.kcalPortion || "–"), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 9,
+      fontSize: 10,
       color: "#bbb",
       marginTop: 1,
       fontWeight: 600,
@@ -12431,11 +12476,7 @@ function ProductCard({
     label: `${t.perPortion} (${p.portionSize})`,
     color: accent
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(4,1fr)",
-      gap: 8
-    }
+    className: "btu-nutrient-grid"
   }, [{
     label: t.kcal,
     value: p.kcalPortion
@@ -12465,7 +12506,7 @@ function ProductCard({
     }
   }, n.value), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 9,
+      fontSize: 10,
       color: "#aaa",
       marginTop: 2,
       fontWeight: 600,
@@ -12967,7 +13008,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: FONT,
-      fontSize: 9,
+      fontSize: 10,
       fontWeight: 800,
       color: color,
       letterSpacing: 1.5,
@@ -14307,18 +14348,18 @@ function CartAnalyticsTab({FONT_SYS}) {
     React.createElement('div',{style:{display:'flex',gap:8,marginBottom:12}},
       React.createElement('div',{style:{flex:1,background:'#111',borderRadius:8,padding:'10px 12px',border:'1px solid #222',textAlign:'center'}},
         React.createElement('div',{style:{fontSize:20,fontWeight:800,color:'#c8102e'}},totalAdds),
-        React.createElement('div',{style:{fontSize:9,color:'#555',marginTop:2,textTransform:'uppercase',letterSpacing:1}},'Übrige Hinzufügungen')
+        React.createElement('div',{style:{fontSize:10,color:'#555',marginTop:2,textTransform:'uppercase',letterSpacing:1}},'Übrige Hinzufügungen')
       ),
       React.createElement('div',{style:{flex:1,background:'#111',borderRadius:8,padding:'10px 12px',border:'1px solid #222',textAlign:'center'}},
         React.createElement('div',{style:{fontSize:20,fontWeight:800,color:'#c8102e'}},data.length),
-        React.createElement('div',{style:{fontSize:9,color:'#555',marginTop:2,textTransform:'uppercase',letterSpacing:1}},'Produkte')
+        React.createElement('div',{style:{fontSize:10,color:'#555',marginTop:2,textTransform:'uppercase',letterSpacing:1}},'Produkte')
       )
     ),
     loading && React.createElement('div',{style:{textAlign:'center',color:'#555',padding:'30px 0',fontSize:12}},'Lade...'),
     error && React.createElement('div',{style:{color:'#c8102e',fontSize:12,padding:'8px 0'}},error),
     error && error.includes('404') && React.createElement('div',{style:{background:'#111',border:'1px solid #c8102e',borderRadius:8,padding:'12px',marginBottom:10}},
       React.createElement('div',{style:{fontSize:11,fontWeight:700,color:'#c8102e',marginBottom:6}},'⚠️ Tabelle fehlt — einmalig anlegen:'),
-      React.createElement('pre',{style:{fontSize:9,color:'#aaa',overflowX:'auto',margin:0,lineHeight:1.5}},
+      React.createElement('pre',{style:{fontSize:10,color:'#aaa',overflowX:'auto',margin:0,lineHeight:1.5}},
         'CREATE TABLE cart_events (\n  id bigserial primary key,\n  product_name text not null,\n  package_size text,\n  price numeric,\n  lang text,\n  created_at timestamptz default now()\n);\nALTER TABLE cart_events ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "anon insert" ON cart_events FOR INSERT TO anon WITH CHECK (true);\nCREATE POLICY "auth read" ON cart_events FOR SELECT TO authenticated USING (true);'
       )
     ),
@@ -14616,7 +14657,7 @@ function AdminPanel({
   const INP = { background:"#1e1e1e", color:"#e0e0e0", border:"1px solid #2a2a2a", borderRadius:7,
                 padding:"7px 10px", fontSize:12, fontFamily:FONT_SYS, outline:"none",
                 width:"100%", boxSizing:"border-box" };
-  const LBL = { fontSize:9, fontWeight:700, color:"#4a4a4a", textTransform:"uppercase", letterSpacing:1.2, marginBottom:3 };
+  const LBL = { fontSize:10, fontWeight:700, color:"#4a4a4a", textTransform:"uppercase", letterSpacing:1.2, marginBottom:3 };
   const BTN = (bg,col="#fff") => ({ fontSize:11, fontWeight:700, padding:"6px 13px", background:bg,
                color:col, border:"none", borderRadius:8, cursor:"pointer", fontFamily:FONT_SYS,
                display:"inline-flex", alignItems:"center", gap:5, transition:"opacity .15s" });
@@ -14679,7 +14720,7 @@ function AdminPanel({
 
           // Create profile
           React.createElement("div", { style:{ padding:"14px 20px", borderBottom:"1px solid #161616" } },
-            React.createElement("div", { style:{ fontSize:9, fontWeight:800, color:"#3a3a3a",
+            React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#3a3a3a",
                 textTransform:"uppercase", letterSpacing:1.6, marginBottom:8 } }, "+ Neues Profil"),
             React.createElement("div", { style:{ display:"flex", gap:6 } },
               React.createElement("input", { placeholder:"Vorname", value:createFirst,
@@ -14696,7 +14737,7 @@ function AdminPanel({
           ),
 
           // User count
-          React.createElement("div", { style:{ padding:"10px 20px 6px", fontSize:9, fontWeight:800,
+          React.createElement("div", { style:{ padding:"10px 20px 6px", fontSize:10, fontWeight:800,
               color:"#3a3a3a", textTransform:"uppercase", letterSpacing:1.6,
               display:"flex", justifyContent:"space-between" } },
             React.createElement("span", null, users.length+" Nutzer"),
@@ -14751,7 +14792,7 @@ function AdminPanel({
 
                 // Quiz history
                 React.createElement("div", { style:{ marginBottom:16 } },
-                  React.createElement("div", { style:{ fontSize:9, fontWeight:800, color:"#c8102e",
+                  React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#c8102e",
                       letterSpacing:1.6, textTransform:"uppercase", marginBottom:10 } }, "🎓 Quiz-Verlauf"),
                   u.hist && u.hist.length > 0
                     ? React.createElement("table", { style:{ width:"100%", borderCollapse:"collapse", fontSize:11 } },
@@ -14759,7 +14800,7 @@ function AdminPanel({
                           React.createElement("tr", null,
                             ["Datum","Ergebnis","Fehler"].map(h=>
                               React.createElement("th", { key:h, style:{ textAlign:"left", color:"#333",
-                                  fontWeight:700, padding:"0 8px 6px 0", fontSize:9,
+                                  fontWeight:700, padding:"0 8px 6px 0", fontSize:10,
                                   textTransform:"uppercase", letterSpacing:1 } }, h)
                             )
                           )
@@ -14790,7 +14831,7 @@ function AdminPanel({
                            {l:"Gesamt",v:u.quiz.count+"×",c:"#555"}].map(item=>
                             React.createElement("div", { key:item.l, style:{ background:"#141414",
                                 border:"1px solid #1e1e1e", borderRadius:8, padding:"7px 12px" } },
-                              React.createElement("div",{style:{fontSize:9,color:"#333",textTransform:"uppercase",letterSpacing:1,marginBottom:2}},item.l),
+                              React.createElement("div",{style:{fontSize:10,color:"#333",textTransform:"uppercase",letterSpacing:1,marginBottom:2}},item.l),
                               React.createElement("div",{style:{fontSize:15,fontWeight:800,color:item.c}},item.v)
                             )
                           )
@@ -14800,7 +14841,7 @@ function AdminPanel({
 
                 // Favorites
                 React.createElement("div", { style:{ marginBottom:14 } },
-                  React.createElement("div", { style:{ fontSize:9, fontWeight:800, color:"#c8102e",
+                  React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#c8102e",
                       letterSpacing:1.6, textTransform:"uppercase", marginBottom:8 } },
                     "⭐ Favoriten ("+u.favs.length+")"),
                   u.favs.length===0
@@ -14817,7 +14858,7 @@ function AdminPanel({
                 // Edit form or action buttons
                 editingUserId === u.key
                   ? React.createElement("div", { style:{ background:"#141414", borderRadius:9, padding:"13px 14px", border:"1px solid #1e1e1e" } },
-                      React.createElement("div", { style:{ fontSize:9, fontWeight:800, color:"#60a5fa", letterSpacing:1.6, textTransform:"uppercase", marginBottom:10 } }, "✏️ Nutzer umbenennen"),
+                      React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#60a5fa", letterSpacing:1.6, textTransform:"uppercase", marginBottom:10 } }, "✏️ Nutzer umbenennen"),
                       React.createElement("div", { style:{ display:"flex", gap:6, marginBottom:8 } },
                         React.createElement("div", { style:{ flex:1 } },
                           React.createElement("div", { style:LBL }, "Vorname"),
@@ -14885,7 +14926,7 @@ function AdminPanel({
                           fontFamily:FONT_SYS, cursor:"pointer", textAlign:"left" }
                 }, "＋ Neues Produkt erstellen")
               : React.createElement("div", { style:{ background:"#0d1a2a", border:"1px solid #0f2a50", borderRadius:10, padding:"14px" } },
-                  React.createElement("div", { style:{ fontSize:9, fontWeight:800, color:"#60a5fa", letterSpacing:1.6, textTransform:"uppercase", marginBottom:12 } }, "📦 Neues Produkt"),
+                  React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#60a5fa", letterSpacing:1.6, textTransform:"uppercase", marginBottom:12 } }, "📦 Neues Produkt"),
 
                   // Name + Kategorie
                   React.createElement("div", { style:{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 } },
@@ -15003,7 +15044,7 @@ function AdminPanel({
 
           // ── Eigene Produkte Liste ──
           customProds.length>0 && React.createElement("div", { style:{ marginBottom:14 } },
-            React.createElement("div", { style:{ fontSize:9, fontWeight:800, color:"#3a3a3a",
+            React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#3a3a3a",
                 textTransform:"uppercase", letterSpacing:1.6, marginBottom:6 } },
               customProds.length+" eigene Produkt"+(customProds.length!==1?"e":"")),
             customProds.map(p=>
@@ -15019,7 +15060,7 @@ function AdminPanel({
                   )
                 ),
                 React.createElement("div", { style:{ display:"flex", gap:5, flexShrink:0 } },
-                  React.createElement("span", { style:{ fontSize:9, color:"#60a5fa", background:"#0a1a30",
+                  React.createElement("span", { style:{ fontSize:10, color:"#60a5fa", background:"#0a1a30",
                       borderRadius:4, padding:"1px 6px", fontWeight:700, alignSelf:"center" } }, "CUSTOM"),
                   React.createElement("button", { onClick:()=>deleteCustomProduct(p.id,p.name),
                     style:{ fontSize:10, fontWeight:700, padding:"4px 9px", background:"transparent",
@@ -15032,7 +15073,7 @@ function AdminPanel({
 
           // ── Suche & Bearbeiten ──
           React.createElement("div", { style:{ borderTop:"1px solid #1a1a1a", paddingTop:12 } },
-            React.createElement("div", { style:{ fontSize:9, fontWeight:800, color:"#3a3a3a",
+            React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#3a3a3a",
                 textTransform:"uppercase", letterSpacing:1.6, marginBottom:8 } }, "✏️ Bestehende Produkte bearbeiten"),
             React.createElement("div", { style:{ display:"flex", gap:8, marginBottom:12, alignItems:"center" } },
               React.createElement("input", { placeholder:"🔍 Produkt suchen…", value:edSearch,
@@ -15044,7 +15085,7 @@ function AdminPanel({
             Object.keys(overrides).length>0 && React.createElement("div", { style:{
                 marginBottom:12, padding:"9px 12px", background:"#141000",
                 border:"1px solid #2a2000", borderRadius:9 } },
-              React.createElement("div",{style:{fontSize:9,color:"#fbbf24",fontWeight:800,marginBottom:6}},
+              React.createElement("div",{style:{fontSize:10,color:"#fbbf24",fontWeight:800,marginBottom:6}},
                 "⚠️ "+Object.keys(overrides).length+" aktive Änderung"+(Object.keys(overrides).length!==1?"en":"")),
               React.createElement("div",{style:{display:"flex",gap:4,flexWrap:"wrap"}},
                 Object.keys(overrides).map(pid=>{
@@ -15070,8 +15111,8 @@ function AdminPanel({
                       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:isEd?12:0}},
                         React.createElement("div",{style:{display:"flex",alignItems:"center",gap:7}},
                           React.createElement("span",{style:{fontWeight:700,color:"#e0e0e0",fontSize:13}},(overrides[p.id]?.name)||p.name),
-                          React.createElement("span",{style:{fontSize:9,color:"#333"}},p.category),
-                          hasOv(p.id)&&React.createElement("span",{style:{fontSize:9,color:"#fbbf24",background:"#1a1200",borderRadius:4,padding:"1px 5px"}},"●")
+                          React.createElement("span",{style:{fontSize:10,color:"#333"}},p.category),
+                          hasOv(p.id)&&React.createElement("span",{style:{fontSize:10,color:"#fbbf24",background:"#1a1200",borderRadius:4,padding:"1px 5px"}},"●")
                         ),
                         React.createElement("div",{style:{display:"flex",gap:5}},
                           !isEd&&React.createElement("button",{onClick:()=>startEdit(p),
@@ -15175,7 +15216,7 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
 <style>
 @keyframes btu-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .btu-tw{overflow:hidden;margin-top:5px}
-.btu-ti{display:inline-block;white-space:nowrap;font-size:9px;color:#bbb;animation:btu-scroll 22s linear infinite}
+.btu-ti{display:inline-block;white-space:nowrap;font-size:10px;color:#bbb;animation:btu-scroll 22s linear infinite}
 </style>
 <script>
 (function(){
