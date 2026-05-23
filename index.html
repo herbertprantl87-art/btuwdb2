@@ -14830,6 +14830,17 @@ function AdminPanel({
                                 cursor:"pointer", fontFamily:FONT_SYS }
                       }, "✏️ Umbenennen"),
                       React.createElement("button", {
+                        onClick:()=>{
+                          if(!window.confirm('Passwort von "'+u.displayName+'" zurücksetzen? Der Nutzer muss beim nächsten Login ein neues Passwort festlegen.')) return;
+                          SB.del("app_config","key=eq."+encodeURIComponent("auth_user__"+u.key)).then(()=>{
+                            window.alert('Passwort von "'+u.displayName+'" wurde zurückgesetzt.');
+                          });
+                        },
+                        style:{ fontSize:11, fontWeight:700, padding:"7px 14px", background:"transparent",
+                                color:"#fbbf24", border:"1px solid #2a1e00", borderRadius:8,
+                                cursor:"pointer", fontFamily:FONT_SYS }
+                      }, "🔑 Passwort reset"),
+                      React.createElement("button", {
                         onClick:()=>deleteUser(u.key,u.displayName),
                         style:{ fontSize:11, fontWeight:700, padding:"7px 14px", background:"transparent",
                                 color:"#f87171", border:"1px solid #2a1010", borderRadius:8,
