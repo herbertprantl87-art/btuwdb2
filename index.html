@@ -10777,6 +10777,11 @@ function BioTechDatabase() {
     setUser(null);
     setFavorites([]);
     setShowFavsOnly(false);
+    setNotesText("");
+    setSelectedId(null);
+    setLoginStep("username");
+    setLoginInput({ username: "", password: "", password2: "" });
+    setLoginError("");
   };
   const [activeCategory, setActiveCategory] = React.useState("Alle");
   const [searchQuery, setSearchQuery] = React.useState("");
