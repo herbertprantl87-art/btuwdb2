@@ -12138,8 +12138,8 @@ function ProductCard({
   // Load full product translation when opened
   const ptx = useProductTx(lang, p); // Sync translation: always translate, no API needed
 
-  const txArr = (field, fallback) => lang === "de" ? fallback : ptx?.[field] || fallback;
-  const txStr = (field, fallback) => lang === "de" ? fallback : ptx?.[field] || fallback;
+  const txArr = (field, fallback) => lang === "de" ? fallback : (ptx && ptx[field]) || fallback;
+  const txStr = (field, fallback) => lang === "de" ? fallback : (ptx && ptx[field]) || fallback;
   return /*#__PURE__*/React.createElement("div", {
     onClick: onToggle,
     style: {
@@ -14495,6 +14495,7 @@ function AdminPanel({
   },[]);
 
   const deleteUser = (key, name) => {
+    if (user && user.key === key) { window.alert("Du kannst dein eigenes Profil nicht löschen."); return; }
     if (!window.confirm('Profil "'+name+'" wirklich löschen?')) return;
     // Supabase (cascade deletes favorites + quiz_results)
     SB.del("profiles", "id=eq." + encodeURIComponent(key));
