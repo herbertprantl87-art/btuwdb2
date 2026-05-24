@@ -10802,6 +10802,11 @@ function BioTechDatabase() {
     try { localStorage.setItem("btu_user", JSON.stringify(u)); } catch {}
     setUser(u);
     setLoginLoading(false);
+    // Restore favorites instantly from localStorage, then sync Supabase
+    try {
+      const localFavs = JSON.parse(localStorage.getItem("btu_favs_" + username) || "[]");
+      if (localFavs.length) setFavorites(localFavs);
+    } catch {}
     SB.upsert("profiles", { id: username, first_name: username, last_name: "" });
     SB.get("favorites?profile_id=eq." + username + "&select=product_ids").then(rows => {
       if (rows && rows[0] && Array.isArray(rows[0].product_ids)) {
@@ -10886,7 +10891,14 @@ function BioTechDatabase() {
     window.addEventListener("btu_stack_fav_change", handler);
     return () => window.removeEventListener("btu_stack_fav_change", handler);
   }, []);
-  React.useEffect(function(){if(!user||!user.key)return;fetch('https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/notes?user_key=eq.'+encodeURIComponent(user.key)+'&select=content',{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE'}}).then(function(r){return r.json();}).then(function(d){if(d&&d[0]&&d[0].content){var _r=d[0].content;var _l=localStorage.getItem('btu_notes_'+user.key)||localStorage.getItem('btu_notes')||'';if(_r&&_r!==_l){localStorage.setItem('btu_notes_'+user.key,_r);setNotesText(_r);}}}).catch(function(){});},[user]);
+  React.useEffect(function(){
+    if(!user||!user.key)return;
+    // Always load from localStorage first (instant restore after logout/login)
+    var _local = localStorage.getItem('btu_notes_'+user.key)||localStorage.getItem('btu_notes')||'';
+    setNotesText(_local);
+    // Then sync from Supabase (may override if newer)
+    fetch('https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/notes?user_key=eq.'+encodeURIComponent(user.key)+'&select=content',{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE'}}).then(function(r){return r.json();}).then(function(d){if(d&&d[0]&&d[0].content){var _r=d[0].content;localStorage.setItem('btu_notes_'+user.key,_r);setNotesText(_r);}}).catch(function(){});
+  },[user]);
   const [activeProfile, setActiveProfile] = React.useState(null); // goalKey or null
 
   const searchMode = React.useMemo(() => {
