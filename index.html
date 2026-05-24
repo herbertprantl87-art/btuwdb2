@@ -7856,7 +7856,8 @@ var CATEGORIES = [
   "Kollagen",
   "Vitamine & Mineralien",
   "Testosteron-Booster",
-  "Fettverbrenner",
+  "Ausdauer & Energie",
+  "Healthy Lifestyle",
   "Süßungsmittel",
   "Kräuter & Pflanzenextrakte",
   "Shaker & Zubehör",
@@ -7876,6 +7877,8 @@ var CAT_COLORS = {
   "L-Carnitin":            "#e879f9",
   "Pre-Workout":           "#f97316",
   "Fettverbrenner":        "#ef4444",
+  "Ausdauer & Energie": "#06b6d4",
+  "Healthy Lifestyle": "#84cc16",
   "Gelenke & Kollagen":    "#fb923c",
   "Kollagen":              "#ec4899",
   "Vitamine & Mineralien": "#60a5fa",
@@ -7937,12 +7940,12 @@ function detectMode(q) {
 }
 
 var GOAL_CAT_SCORES = {
-  abnehmen:     { "Fettverbrenner":100,"L-Carnitin":85,"Fettverbrenner":90,"Pre-Workout":35,"Vitamine & Mineralien":20,"Riegel":30,"Riegel & Snacks":25 },
+  abnehmen:     { "Fettverbrenner":100,"L-Carnitin":85,"Healthy Lifestyle":40,"Pre-Workout":35,"Vitamine & Mineralien":20,"Riegel":30,"Riegel & Snacks":25 },
   muskelaufbau: { "Protein":100,"Kreatin":90,"Aminosäuren":75,"Pre-Workout":55,"Testosteron-Booster":50,"Riegel":45,"Riegel & Snacks":40 },
   kraft:        { "Kreatin":100,"Pre-Workout":85,"Protein":70,"Aminosäuren":55,"Testosteron-Booster":45 },
   energie:      { "Pre-Workout":100,"Kreatin":65,"Vitamine & Mineralien":50,"Kräuter & Pflanzenextrakte":45,"Aminosäuren":35 },
   regeneration: { "Aminosäuren":100,"Protein":80,"Kreatin":65,"Gelenke & Kollagen":55,"Kollagen":50,"Vitamine & Mineralien":45 },
-  ausdauer:     { "Pre-Workout":85,"L-Carnitin":80,"Gainer & Masseaufbau":65,"Vitamine & Mineralien":55,"Kreatin":40 },
+  ausdauer:     { "Pre-Workout":85,"L-Carnitin":80,"Ausdauer & Energie":95,"Gainer & Masseaufbau":65,"Vitamine & Mineralien":55,"Kreatin":40 },
   gelenke:      { "Gelenke & Kollagen":100,"Kollagen":90,"Vitamine & Mineralien":45,"Kräuter & Pflanzenextrakte":40 },
   schlaf:       { "Vitamine & Mineralien":75,"Kräuter & Pflanzenextrakte":80,"Testosteron-Booster":40 },
   immunsystem:  { "Vitamine & Mineralien":100,"Kräuter & Pflanzenextrakte":80,"Kollagen":35 },
@@ -10581,13 +10584,15 @@ var BERAT_CAT_MAP = {
   "L-Carnitin":            ["Metabolite"],
   "Pre-Workout":           ["Pre-Workout"],
   "Fettverbrenner":        ["Weight Management","Plant Extract"],
-  "Fettverbrenner":    ["Weight Management"],
   "Gainer & Masseaufbau":  ["Weight Management for Weight Gain","Carbohydrates"],
   "Gelenke & Kollagen":    ["Joint Supplement","Joint & Beauty Supplement"],
   "Kollagen":              ["Joint & Beauty Supplement"],
   "Vitamine & Mineralien": ["Vitamins","Minerals","Vitamins and Minerals","Multivitamins"],
   "Testosteron-Booster":   ["Hormone Optimizer"],
-  "Riegel":                ["Food"]
+  "Ausdauer & Energie":    ["Energy","Carbohydrates","Endurance"],
+  "Healthy Lifestyle":     ["Food","Nutrition"],
+  "Riegel":                ["Food"],
+  "Riegel & Snacks":       ["Food","Nutrition"]
 };
 
 var BERAT_LANG = {
@@ -10658,7 +10663,7 @@ function BioTechDatabase() {
   // Beim Start immer Deutsch
   const [lang, setLang] = React.useState("de");
   const [showLangMenu, setShowLangMenu] = React.useState(false);
-  const t = T[lang] || T["de"];
+  const t = Object.assign({}, T["de"], T[lang] || {});
   const changeLang = code => {
     setLang(code);
     setShowLangMenu(false);
@@ -10826,6 +10831,8 @@ function BioTechDatabase() {
   const doLogout = () => {
     try {
       sessionStorage.removeItem("btu_session");
+      sessionStorage.removeItem("btu_lastGoal");
+      sessionStorage.removeItem("btu_lastCat");
       localStorage.removeItem("btu_user");
     } catch {}
     setUser(null);
@@ -12799,7 +12806,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     ...s,
     product: PRODUCTS.find(p => p.id === s.id)
   })).filter(s => s.product);
-  const t = T[lang] || T["de"];
+  const t = Object.assign({}, T["de"], T[lang] || {});
 
   // ── Stack-Favoriten State ──────────────────────────────────────────
   const [stackFavs, setStackFavs] = React.useState(() => {
@@ -15287,7 +15294,7 @@ root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
         else if(t==='Önerileriniz') activeLang='tr';
         else if(t==='توصياتك') activeLang='ar';
       });
-      var tickerLabel={de:'Auch erfältlich in: ',en:'Also available in: ',ru:'Также доступно в: ',tr:'Ayrıca mevcut: ',ar:'متوفر أيضاً في: '};
+      var tickerLabel={de:'Auch erfältlich in: ',en:'Also available in: ',hu:'Szintén előrhető: ',ru:'Также доступно в: ',tr:'Ayrıca mevcut: ',ar:'متوفر أيضاً في: '};
       var lbl=tickerLabel[activeLang]||tickerLabel.de;
       inner.textContent=lbl+fl+' ··· '+fl;
       w.appendChild(inner);
