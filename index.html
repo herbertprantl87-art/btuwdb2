@@ -10935,10 +10935,16 @@ function BioTechDatabase() {
     const fullFilter = p => catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p);
     if (!q && !activeProfile) return PRODUCTS.filter(fullFilter);
     if (activeProfile && !q) {
-      return PRODUCTS.filter(p => !p.refOnly && catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p)).map(p => ({
+      const scored = PRODUCTS.filter(p => !p.refOnly && catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p)).map(p => ({
         p,
         score: getGoalScore(p, activeProfile)
-      })).filter(x => x.score > 0).sort((a, b) => b.score - a.score).map(x => x.p);
+      }));
+      // When a specific category is selected, show ALL products in it (sorted by score)
+      // When "Alle" is selected, hide products with score 0
+      if (activeCategory !== "Alle") {
+        return scored.sort((a, b) => b.score - a.score).map(x => x.p);
+      }
+      return scored.filter(x => x.score > 0).sort((a, b) => b.score - a.score).map(x => x.p);
     }
     const mode = detectMode(q);
     if (mode.mode === "nutrient") {
