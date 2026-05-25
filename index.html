@@ -86,7 +86,7 @@
 (function(){
   window.__BTU_BUILD="b7066641";
   var _iv=null,_s=false;
-  function showToast(){if(_s)return;_s=true;
+  function showToast(){if(_s)return;_s=true;localStorage.setItem("btu_toast_ts",Date.now());
     var t=document.createElement("div");
     t.style.cssText="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:14px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:99999;display:flex;align-items:center;gap:12px;font-family:sans-serif;font-size:14px;min-width:300px;";
     var cd=10;
@@ -101,7 +101,12 @@
   function check(){
     fetch("https://herbertprantl87-art.github.io/btuwdb2/version.json?t="+Date.now())
     .then(function(r){return r.json();})
-    .then(function(d){if(d&&d.sha&&d.sha!==window.__BTU_BUILD)showToast();})
+    .then(function(d){
+      if(d&&d.sha&&d.sha!==window.__BTU_BUILD){
+        var last=parseInt(localStorage.getItem("btu_toast_ts")||"0",10);
+        if(Date.now()-last>=10800000){showToast();}
+      }
+    })
     .catch(function(){});
   }
   setTimeout(function(){check();_iv=setInterval(check,21600000);},30000);
