@@ -10958,6 +10958,7 @@ function BioTechDatabase() {
     if (!q) return null;
     return detectMode(q);
   }, [searchQuery, activeProfile]);
+  const [customTick, setCustomTick] = React.useState(0);
   const filtered = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const catFilter = p => activeCategory === "Alle" || p.category === activeCategory;
@@ -11067,7 +11068,7 @@ function BioTechDatabase() {
       const bScore = b.name.toLowerCase().startsWith(ql) ? 0 : b.name.toLowerCase().includes(ql) ? 1 : 2;
       return aScore - bScore;
     });
-  }, [activeCategory, searchQuery, showFavsOnly, favorites, activeProfile, dietFilter, priceFilter]);
+  }, [activeCategory, searchQuery, showFavsOnly, favorites, activeProfile, dietFilter, priceFilter, customTick]);
   const accentFor = cat => CAT_COLORS[cat] || "#c8102e";
   const isRefCat = cat => cat && cat.startsWith("⚠️");
   // ── DRAG SCROLL UTILITY ─────────────────────────────────
@@ -11805,6 +11806,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     lang: lang,
     FONT: FONT,
     FONT_COND: FONT_COND,
+    onCustomTick: () => setCustomTick(function(n){ return n+1; }),
     onDeleteAll: () => {
       try {
         Object.keys(localStorage).filter(k => k.startsWith("btu_")).forEach(k => localStorage.removeItem(k));
@@ -14521,7 +14523,7 @@ function CartAnalyticsTab({FONT_SYS}) {
 
   
 function AdminPanel({
-  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser
+  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser, onCustomTick
 }) {
   const [tab, setTab]               = React.useState("users");
   const [users, setUsers]           = React.useState([]);
@@ -14720,7 +14722,7 @@ function AdminPanel({
       setNewProd(EMPTY_PROD);
       setNewProdOpen(false);
       setNewProdMsg("✓ "+name+" hinzugefügt.");
-      setCustomTick(n=>n+1);
+      if(onCustomTick) onCustomTick();
       setTimeout(()=>setNewProdMsg(""),3000);
     } catch { setNewProdMsg("Fehler beim Speichern."); }
   };
@@ -14735,7 +14737,7 @@ function AdminPanel({
       const idx = PRODUCTS.findIndex(p=>p.id===id);
       if (idx>-1) PRODUCTS.splice(idx,1);
       setCustomProds(next);
-      setCustomTick(n=>n+1);
+      if(onCustomTick) onCustomTick();
     } catch {}
   };
 
