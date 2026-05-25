@@ -15362,8 +15362,56 @@ function BSection({
     }
   }), label), children);
 }
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error: error };
+  }
+  componentDidCatch(error, info) {
+    console.error("[BTUWDB] ErrorBoundary:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      var msg = this.state.error ? this.state.error.message : "Unbekannter Fehler";
+      return React.createElement("div", {
+        style: {
+          display: "flex", flexDirection: "column", alignItems: "center",
+          justifyContent: "center", minHeight: "60vh", fontFamily: "'Barlow',sans-serif",
+          padding: "40px 20px", textAlign: "center"
+        }
+      },
+        React.createElement("div", {
+          style: {
+            background: "#fff3f3", border: "2px solid #c8102e", borderRadius: 12,
+            padding: "32px 40px", maxWidth: 480
+          }
+        },
+          React.createElement("div", { style: { fontSize: 40, marginBottom: 12 } }, "⚠️"),
+          React.createElement("div", {
+            style: { fontSize: 18, fontWeight: 700, color: "#c8102e", marginBottom: 8 }
+          }, "Ein Fehler ist aufgetreten"),
+          React.createElement("div", {
+            style: { fontSize: 13, color: "#666", marginBottom: 20, wordBreak: "break-word" }
+          }, msg),
+          React.createElement("button", {
+            onClick: function(){ window.location.reload(); },
+            style: {
+              background: "#c8102e", color: "#fff", border: "none", borderRadius: 8,
+              padding: "10px 28px", fontSize: 14, fontWeight: 700, cursor: "pointer"
+            }
+          }, "Seite neu laden")
+        )
+      );
+    }
+    return this.props.children;
+  }
+}
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(/*#__PURE__*/React.createElement(BioTechDatabase, null));
+root.render(/*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/React.createElement(BioTechDatabase, null)));
 </script>
 
 
