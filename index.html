@@ -11067,7 +11067,7 @@ function BioTechDatabase() {
       const bScore = b.name.toLowerCase().startsWith(ql) ? 0 : b.name.toLowerCase().includes(ql) ? 1 : 2;
       return aScore - bScore;
     });
-  }, [activeCategory, searchQuery, showFavsOnly, favorites, activeProfile, dietFilter, priceFilter, customTick]);
+  }, [activeCategory, searchQuery, showFavsOnly, favorites, activeProfile, dietFilter, priceFilter, customProds]);
   const accentFor = cat => CAT_COLORS[cat] || "#c8102e";
   const isRefCat = cat => cat && cat.startsWith("⚠️");
   // ── DRAG SCROLL UTILITY ─────────────────────────────────
