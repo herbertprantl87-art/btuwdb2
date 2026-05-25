@@ -10692,11 +10692,11 @@ function BioTechDatabase() {
     const isRtl = (LANGUAGES.find(l => l.code === code) || {}).rtl;
     document.documentElement.dir = isRtl ? "rtl" : "ltr";
   };
-  // Apply RTL on mount
+  // Apply RTL on mount and lang change
   React.useEffect(() => {
     const isRtl = (LANGUAGES.find(l => l.code === lang) || {}).rtl;
     document.documentElement.dir = isRtl ? "rtl" : "ltr";
-  }, []);
+  }, [lang]);
 
   // Close language dropdown on outside click
   React.useEffect(() => {
@@ -10968,7 +10968,7 @@ function BioTechDatabase() {
       if (dietFilter === "halal") return p.halal === "ja";
       if (dietFilter === "laktosefrei") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("laktose")>=0||v.toLowerCase().indexOf("lactose")>=0;});
       if (dietFilter === "glutenfrei") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("gluten")>=0;});
-      if (dietFilter === "stimfrei") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("koffein")>=0||v.toLowerCase().indexOf("caffeine")>=0;});
+      if (dietFilter === "stimfrei") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("koffein")>=0||v.toLowerCase().indexOf("caffeine")>=0||v.toLowerCase().indexOf("stimulanz")>=0;});
       if (dietFilter === "diabetiker") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("zucker")>=0||v.toLowerCase().indexOf("sugar")>=0;});
       return true;
     };
@@ -13947,7 +13947,7 @@ function ProduktberaterModal(props) {
       if (allergies.indexOf('vegan') >= 0 && !p.vegan) return false;
       if (allergies.indexOf('lactose') >= 0 && ff.indexOf('Laktose') < 0 && !p.vegan) return false;
       if (allergies.indexOf('gluten') >= 0 && ff.indexOf('Gluten') < 0) return false;
-      if (allergies.indexOf('nuts') >= 0 && ff.indexOf('Nüsse') < 0) return false;
+      if (allergies.indexOf('nuts') >= 0 && !ff.some(function(v){return v.toLowerCase().indexOf('nuss')>=0||v.toLowerCase().indexOf('nuts')>=0;})) return false;
       if (allergies.indexOf('egg') >= 0 && ff.indexOf('Ei') < 0) return false;
       return true;
     });
@@ -13959,6 +13959,10 @@ function ProduktberaterModal(props) {
         BERAT_RULES.forEach(function(rule) {
           if (rule.answerId===aid && rule.targetType==='category' && cats.indexOf(rule.targetValue)>=0)
             score += rule.weight;
+          if (rule.answerId===aid && rule.targetType==='goal') {
+            var allText=[p.name,p.subcategory||'',p.notes||'',...(p.keyIngredients||[])].join(' ').toLowerCase();
+            if(allText.indexOf(rule.targetValue.toLowerCase())>=0) score+=rule.weight;
+          }
         });
       });
 
