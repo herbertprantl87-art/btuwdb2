@@ -8200,6 +8200,22 @@ var PROFILES = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════
+//  GEBIETE – Regionen & Rollen
+// ═══════════════════════════════════════════════════════════════════════
+var GEBIETE = [
+  { value: "Alle Gebiete",   label: "Alle Gebiete – Richard",  role: "superadmin" },
+  { value: "NRW/Hessen",     label: "NRW/Hessen – Herbert",    role: "superadmin" },
+  { value: "Bayern",         label: "Bayern – Roman",          role: "gebietsleiter" },
+  { value: "Berlin (Chris)", label: "Berlin (Chris)",          role: "gebietsleiter" },
+  { value: "Berlin (Alem)",  label: "Berlin (Alem)",           role: "gebietsleiter" },
+  { value: "Berlin (Sabi)",  label: "Berlin (Sabi)",           role: "gebietsleiter" },
+];
+function getRoleForGebiet(g) {
+  var entry = GEBIETE.find(function(e){ return e.value === g; });
+  return entry ? entry.role : "mitarbeiter";
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 //  EINWAND-DATENBANK (pro Produkt-ID)
 // ═══════════════════════════════════════════════════════════════════════
 var OBJECTIONS = {
@@ -10727,7 +10743,7 @@ function BioTechDatabase() {
       return null;
     }
   });
-  const [loginInput, setLoginInput] = React.useState({ username: "", password: "", password2: "" });
+  const [loginInput, setLoginInput] = React.useState({ username: "", password: "", password2: "", gebiet: "" });
   const [loginStep, setLoginStep] = React.useState("username"); // 'username' | 'register' | 'password'
   const [loginLoading, setLoginLoading] = React.useState(false);
   const [loginError, setLoginError] = React.useState("");
@@ -10747,8 +10763,14 @@ function BioTechDatabase() {
     if (!username) return;
     setLoginLoading(true);
     setLoginError("");
-    const rows = await SB.get("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value");
+    const [rows, profRows] = await Promise.all([
+      SB.get("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value"),
+      SB.get("profiles?id=eq." + encodeURIComponent(username) + "&select=gebiet,role")
+    ]);
     setLoginLoading(false);
+    if (profRows && profRows[0] && profRows[0].gebiet) {
+      setLoginInput(p => ({ ...p, gebiet: profRows[0].gebiet }));
+    }
     if (rows && rows[0]) {
       setLoginStep("password");
     } else {
@@ -10760,6 +10782,7 @@ function BioTechDatabase() {
     const username = loginInput.username.trim().toLowerCase();
     const pw = loginInput.password;
     const pw2 = loginInput.password2;
+    if (!loginInput.gebiet) { setLoginError("Bitte Gebiet auswählen"); return; }
     if (pw.length < 4) { setLoginError("Passwort mind. 4 Zeichen"); return; }
     if (pw !== pw2) { setLoginError("Passwörter stimmen nicht überein"); return; }
     setLoginLoading(true);
@@ -10777,7 +10800,7 @@ function BioTechDatabase() {
         body: JSON.stringify({ key: "auth_user__" + username, value: { hash } })
       });
       if (!res.ok) throw new Error("Supabase error " + res.status);
-      finishLogin(username);
+      finishLogin(username, loginInput.gebiet);
     } catch(e) {
       setLoginLoading(false);
       setLoginError("Verbindungsfehler — bitte nochmal versuchen.");
@@ -10798,11 +10821,12 @@ function BioTechDatabase() {
       setLoginError("Falsches Passwort");
       return;
     }
-    finishLogin(username);
+    finishLogin(username, loginInput.gebiet);
   };
 
-  const finishLogin = (username) => {
-    const u = { username, key: username, first: username, last: "" };
+  const finishLogin = (username, gebiet) => {
+    const role = getRoleForGebiet(gebiet || "");
+    const u = { username, key: username, first: username, last: "", gebiet: gebiet || "", role };
     try { sessionStorage.setItem("btu_session", JSON.stringify(u)); } catch {}
     try { localStorage.setItem("btu_user", JSON.stringify(u)); } catch {}
     setUser(u);
@@ -10812,7 +10836,7 @@ function BioTechDatabase() {
       const localFavs = JSON.parse(localStorage.getItem("btu_favs_" + username) || "[]");
       if (localFavs.length) setFavorites(localFavs);
     } catch {}
-    SB.upsert("profiles", { id: username, first_name: username, last_name: "" });
+    SB.upsert("profiles", { id: username, first_name: username, last_name: "", gebiet: gebiet || "", role });
     SB.get("favorites?profile_id=eq." + username + "&select=product_ids").then(rows => {
       if (rows && rows[0] && Array.isArray(rows[0].product_ids)) {
         const sbFavs = rows[0].product_ids;
@@ -10841,7 +10865,7 @@ function BioTechDatabase() {
     setNotesText("");
     setSelectedId(null);
     setLoginStep("username");
-    setLoginInput({ username: "", password: "", password2: "" });
+    setLoginInput({ username: "", password: "", password2: "", gebiet: "" });
     setLoginError("");
   };
   const [activeCategory, setActiveCategory] = React.useState("Alle");
@@ -11777,7 +11801,8 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       } catch (e) {}
     },
     onLeave: () => setAdminMode(false),
-    productCount: PRODUCTS.filter(p => !p.refOnly).length
+    productCount: PRODUCTS.filter(p => !p.refOnly).length,
+    currentUser: user
   }), /*#__PURE__*/React.createElement("div", {
     className: "btu-main-scroll",
     style: {
@@ -12001,6 +12026,20 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#555", marginBottom: 16, lineHeight: 1.5 } },
           "Hallo ", /*#__PURE__*/React.createElement("strong", null, loginInput.username.trim()),
           "! Erstmaliges Einloggen — bitte lege dein Passwort fest."),
+        /*#__PURE__*/React.createElement("select", {
+          value: loginInput.gebiet,
+          onChange: e => setLoginInput(p => ({ ...p, gebiet: e.target.value })),
+          style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
+                   border: "1.5px solid " + (loginInput.gebiet ? "#e0e0e0" : "#c8102e"),
+                   borderRadius: 8, fontSize: 13, fontFamily: FONT, outline: "none",
+                   marginBottom: 10, background: "#fff", color: loginInput.gebiet ? "#1a1a1a" : "#999",
+                   appearance: "none", WebkitAppearance: "none" }
+        },
+          /*#__PURE__*/React.createElement("option", { value: "" }, "— Gebiet auswählen —"),
+          GEBIETE.map(function(g) {
+            return /*#__PURE__*/React.createElement("option", { key: g.value, value: g.value }, g.label);
+          })
+        ),
         /*#__PURE__*/React.createElement("input", {
           type: "password", placeholder: "Passwort (mind. 4 Zeichen)",
           value: loginInput.password, autoFocus: true,
@@ -12036,9 +12075,14 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         )
       ),
       loginStep === "password" && /*#__PURE__*/React.createElement(React.Fragment, null,
-        /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#555", marginBottom: 16, lineHeight: 1.5 } },
+        /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, color: "#555", marginBottom: 12, lineHeight: 1.5 } },
           "Willkommen zurück, ", /*#__PURE__*/React.createElement("strong", null, loginInput.username.trim()),
           "! Bitte Passwort eingeben."),
+        loginInput.gebiet && /*#__PURE__*/React.createElement("div", {
+          style: { display: "inline-flex", alignItems: "center", gap: 6, background: "#fff0f0",
+                   border: "1px solid #f5c0c0", borderRadius: 6, padding: "5px 10px",
+                   fontSize: 12, color: "#c8102e", fontWeight: 600, marginBottom: 12 }
+        }, "📍 ", (GEBIETE.find(function(g){ return g.value === loginInput.gebiet; }) || {}).label || loginInput.gebiet),
         /*#__PURE__*/React.createElement("input", {
           type: "password", placeholder: "Passwort",
           value: loginInput.password, autoFocus: true,
@@ -14452,12 +14496,13 @@ function CartAnalyticsTab({FONT_SYS}) {
 
   
 function AdminPanel({
-  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount
+  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser
 }) {
   const [tab, setTab]               = React.useState("users");
   const [users, setUsers]           = React.useState([]);
   const [expandedUser, setExpanded] = React.useState(null);
   const [tick, setTick]             = React.useState(0);
+  const [userSearch, setUserSearch] = React.useState("");
   const [createFirst, setCreateFirst] = React.useState("");
   const [createLast,  setCreateLast]  = React.useState("");
   const [createMsg,   setCreateMsg]   = React.useState("");
@@ -14481,12 +14526,12 @@ function AdminPanel({
   const loadUsers = () => {
     // Primary: load from Supabase
     Promise.all([
-      SB.get("profiles?select=id,first_name,last_name&order=first_name"),
+      SB.get("profiles?select=id,first_name,last_name,gebiet,role&order=first_name"),
       SB.get("favorites?select=profile_id,product_ids"),
       SB.get("quiz_results?select=profile_id,best_pct,last_pct,count,history")
     ]).then(([profiles, favRows, quizRows]) => {
       if (profiles && profiles.length > 0) {
-        const list = profiles.map(p => {
+        var list = profiles.map(p => {
           const favRow  = favRows  && favRows.find(f => f.profile_id === p.id);
           const quizRow = quizRows && quizRows.find(q => q.profile_id === p.id);
           const favs = (favRow && Array.isArray(favRow.product_ids)) ? favRow.product_ids : [];
@@ -14494,8 +14539,12 @@ function AdminPanel({
           const hist = (quizRow && Array.isArray(quizRow.history)) ? quizRow.history : [];
           const fn = p.first_name || "";
           const ln = p.last_name  || "";
-          return { key: p.id, displayName: (fn + " " + ln).trim() || p.id, firstName: fn, lastName: ln, favs, quiz, hist };
+          return { key: p.id, displayName: (fn + " " + ln).trim() || p.id, firstName: fn, lastName: ln, favs, quiz, hist, gebiet: p.gebiet || "", role: p.role || "mitarbeiter" };
         });
+        // Gebiet-Filter: superadmin sieht alles, GL nur eigenes Gebiet
+        if (currentUser && currentUser.role !== "superadmin" && currentUser.gebiet) {
+          list = list.filter(u => u.gebiet === currentUser.gebiet);
+        }
         setUsers(list);
         return;
       }
@@ -14811,10 +14860,20 @@ function AdminPanel({
             React.createElement("span", { style:{color:"#2a2a2a"} }, users.filter(u=>u.quiz).length+" mit Quiz")
           ),
 
+          React.createElement("div", { style:{ padding:"8px 20px 10px" } },
+            React.createElement("input", {
+              type:"text", placeholder:"🔍 Mitarbeiter suchen...",
+              value:userSearch, onChange:e=>setUserSearch(e.target.value),
+              style:{ width:"100%", boxSizing:"border-box", padding:"8px 12px",
+                      background:"#141414", border:"1.5px solid #222", borderRadius:8,
+                      fontSize:12, color:"#e0e0e0", fontFamily:"inherit", outline:"none" }
+            })
+          ),
+
           users.length===0 && React.createElement("div", { style:{ padding:"32px 20px",
               textAlign:"center", color:"#333", fontSize:12 } }, "Noch keine Nutzer."),
 
-          users.map(u => {
+          users.filter(u => !userSearch || u.displayName.toLowerCase().includes(userSearch.toLowerCase()) || u.key.toLowerCase().includes(userSearch.toLowerCase())).map(u => {
             const isOpen = expandedUser===u.key;
             return React.createElement("div", { key:u.key,
               style:{ borderBottom:"1px solid #161616" } },
@@ -14837,7 +14896,7 @@ function AdminPanel({
                       marginBottom:4, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } },
                     u.displayName
                   ),
-                  React.createElement("div", { style:{ display:"flex", gap:6, alignItems:"center" } },
+                  React.createElement("div", { style:{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" } },
                     React.createElement("span", { style:{ fontSize:10, color:"#3a3a3a" } },
                       u.favs.length+" ⭐"),
                     u.quiz
@@ -14846,7 +14905,10 @@ function AdminPanel({
                             borderRadius:5, padding:"1px 6px" } },
                           "🎓 "+cap(u.quiz.best)+"% · "+u.quiz.count+"×"
                         )
-                      : React.createElement("span", { style:{ fontSize:10, color:"#2e2e2e" } }, "Kein Quiz")
+                      : React.createElement("span", { style:{ fontSize:10, color:"#2e2e2e" } }, "Kein Quiz"),
+                    u.gebiet && React.createElement("span", { style:{ fontSize:10, color:"#c8102e",
+                        background:"#1a0508", borderRadius:5, padding:"1px 6px", fontWeight:700 } },
+                      "📍 "+u.gebiet)
                   )
                 ),
                 React.createElement("span", { style:{ color:"#2a2a2a", fontSize:11,
