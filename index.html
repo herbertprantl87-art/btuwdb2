@@ -10671,7 +10671,7 @@ var BERAT_LANG = {
 <script>
 function BioTechDatabase() {
   // ── ADMIN PIN ──────────────────────────────────────────────────────
-  const ADMIN_PIN = "BTU2026";
+  const ADMIN_PIN_HASH = "7f7f606ef96bbd631b1a327c2d7d704dbb8f204f4ab05da293a04a8a3f0233bb";
   const [adminMode, setAdminMode] = React.useState(false);
   const [adminPinOpen, setAdminPinOpen] = React.useState(false);
   const [adminPinInput, setAdminPinInput] = React.useState("");
@@ -10726,8 +10726,8 @@ function BioTechDatabase() {
     }
     setTimeout(() => setBLogoClicks(0), 3000);
   };
-  const doAdminLogin = () => {
-    if (adminPinInput === ADMIN_PIN) {
+  const doAdminLogin = async () => {
+    if (await (async () => { const enc = new TextEncoder(); const buf = await crypto.subtle.digest("SHA-256", enc.encode(adminPinInput)); return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join(""); })() === ADMIN_PIN_HASH) {
       setAdminMode(true);
       setAdminPinOpen(false);
       setAdminPinInput("");
