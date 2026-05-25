@@ -10969,7 +10969,7 @@ function BioTechDatabase() {
       if (dietFilter === "laktosefrei") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("laktose")>=0||v.toLowerCase().indexOf("lactose")>=0;});
       if (dietFilter === "glutenfrei") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("gluten")>=0;});
       if (dietFilter === "stimfrei") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("koffein")>=0||v.toLowerCase().indexOf("caffeine")>=0||v.toLowerCase().indexOf("stimulanz")>=0;});
-      if (dietFilter === "diabetiker") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){return v.toLowerCase().indexOf("zucker")>=0||v.toLowerCase().indexOf("sugar")>=0;});
+      if (dietFilter === "diabetiker") return Array.isArray(p.freeFrom) && p.freeFrom.some(function(v){var lv=v.toLowerCase();return lv==="zucker"||lv==="zuckerzusatz"||lv.indexOf("kein zuckerzusatz")>=0||lv.indexOf("ohne zusatz")>=0||lv.indexOf("zuckerfrei")>=0||lv==="sugar"||lv==="no sugar added";});
       return true;
     };
     const priceFn = p => !priceFilter || p.priceRange === priceFilter;
@@ -11034,7 +11034,7 @@ function BioTechDatabase() {
       // "chrome" → findet "chrom", "selen" → findet "selen"ium, etc.
       const qWords = q.split(/[\s,;.()]+/).filter(w => w.length >= 2);
       const tTokens = t.split(/[\s,;.()\[\]/+→•\-]+/).filter(w => w.length >= 2);
-      if (qWords.length > 0 && qWords.every(qw => tTokens.some(tw => tw.startsWith(qw) || qw.startsWith(tw) && tw.length >= 3))) return true;
+      if (qWords.length > 0 && qWords.every(qw => tTokens.some(tw => (tw.startsWith(qw) || qw.startsWith(tw)) && tw.length >= 3))) return true;
 
       // ── 3) Numerisches Matching ─────────────────────────────────────
       // "21g" / "21 g" → findet Produkte mit ~21g Protein/Fett/KH pro Portion
@@ -11067,7 +11067,7 @@ function BioTechDatabase() {
       const bScore = b.name.toLowerCase().startsWith(ql) ? 0 : b.name.toLowerCase().includes(ql) ? 1 : 2;
       return aScore - bScore;
     });
-  }, [activeCategory, searchQuery, showFavsOnly, favorites, activeProfile, dietFilter, priceFilter]);
+  }, [activeCategory, searchQuery, showFavsOnly, favorites, activeProfile, dietFilter, priceFilter, customTick]);
   const accentFor = cat => CAT_COLORS[cat] || "#c8102e";
   const isRefCat = cat => cat && cat.startsWith("⚠️");
   // ── DRAG SCROLL UTILITY ─────────────────────────────────
