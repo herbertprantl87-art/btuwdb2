@@ -11232,7 +11232,9 @@ function BioTechDatabase() {
       return true;
     };
     const priceFn = p => !priceFilter || p.priceRange === priceFilter;
-    const fullFilter = p => !p.refOnly && catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p);
+    const isWadaCat = activeCategory.startsWith("\u26a0\ufe0f");
+    const refCheck = p => isWadaCat ? p.refOnly === true : !p.refOnly;
+    const fullFilter = p => refCheck(p) && catFilter(p) && favFilter(p) && (isWadaCat || (dietFn(p) && priceFn(p)));
     if (!q && !activeProfile) return PRODUCTS.filter(fullFilter);
     if (activeProfile && !q) {
       const scored = PRODUCTS.filter(p => !p.refOnly && catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p)).map(p => ({
