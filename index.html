@@ -15153,19 +15153,23 @@ function AdminPanel({
     return ()=>window.removeEventListener("keydown",h);
   },[]);
 
-  const deleteUser = (key, name) => {
-    if (user && user.key === key) { window.alert("Du kannst dein eigenes Profil nicht löschen."); return; }
+  const deleteUser = async (key, name) => {
+    if (currentUser && currentUser.key === key) { window.alert("Du kannst dein eigenes Profil nicht löschen."); return; }
     if (!window.confirm('Profil "'+name+'" wirklich löschen?')) return;
-    // Supabase (cascade deletes favorites + quiz_results)
-    SB.del("profiles", "id=eq." + encodeURIComponent(key));
-    // localStorage cleanup
     try {
-      Object.keys(localStorage).filter(k=>k.endsWith("_"+key)||k==="btu_quiz_"+key||k==="btu_favs_"+key||k==="btu_quiz_hist_"+key)
+      // Abhängige Einträge zuerst löschen, dann Profil
+      await SB.del("favorites",    "profile_id=eq." + encodeURIComponent(key));
+      await SB.del("quiz_results", "profile_id=eq." + encodeURIComponent(key));
+      await SB.del("profiles",     "id=eq."         + encodeURIComponent(key));
+      await SB.del("app_config",   "key=eq."        + encodeURIComponent("auth_user__" + key));
+      // localStorage cleanup
+      Object.keys(localStorage)
+        .filter(k=>k.endsWith("_"+key)||k==="btu_quiz_"+key||k==="btu_favs_"+key||k==="btu_quiz_hist_"+key)
         .forEach(k=>localStorage.removeItem(k));
       const cu=JSON.parse(localStorage.getItem("btu_user")||"null");
       if(cu&&cu.key===key) localStorage.removeItem("btu_user");
       setExpanded(null); loadUsers();
-    } catch {}
+    } catch(e) { window.alert("Löschen fehlgeschlagen — bitte nochmal versuchen."); }
   };
 
   const startEditUser = u => {
