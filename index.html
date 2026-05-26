@@ -14906,13 +14906,13 @@ function CartAnalyticsTab({FONT_SYS}) {
   React.useEffect(function(){
     setLoading(true); setError(null);
     var since = new Date(Date.now() - days*24*60*60*1000).toISOString();
-    fetch('https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/cart_events?select=product_name,package_size,price,username&created_at=gte.'+encodeURIComponent(since)+'&order=created_at.desc&limit=1000',{
-      headers:{'apikey':'sb_publishable_z1V4LtNtbgve2XqpY04VaA_Fi7m01iz','Content-Type':'application/json'}
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(rows){
-      var arr = Array.isArray(rows) ? rows : [];
-      // Aggregate by product
+    var cu = null;
+    try { cu = JSON.parse(sessionStorage.getItem('btu_session')||'null'); } catch(e){}
+    var isSA = !cu || cu.role === 'superadmin';
+    var APIKEY = 'sb_publishable_z1V4LtNtbgve2XqpY04VaA_Fi7m01iz';
+    var SB_BASE = 'https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/';
+
+    function processRows(arr) {
       var byProd = {};
       var byUser = {};
       arr.forEach(function(r){
@@ -14920,7 +14920,6 @@ function CartAnalyticsTab({FONT_SYS}) {
         if(!byProd[key]) byProd[key]={name:r.product_name,size:r.package_size||'',count:0,revenue:0};
         byProd[key].count++;
         byProd[key].revenue += parseFloat(r.price)||0;
-        // By user
         var u = r.username || 'anonym';
         if(!byUser[u]) byUser[u]={username:u,count:0,products:{}};
         byUser[u].count++;
@@ -14933,8 +14932,32 @@ function CartAnalyticsTab({FONT_SYS}) {
         total: arr.length
       });
       setLoading(false);
-    })
-    .catch(function(e){ setError('Fehler beim Laden'); setLoading(false); });
+    }
+
+    function fetchEvents(allowedNames) {
+      var url = SB_BASE+'cart_events?select=product_name,package_size,price,username&created_at=gte.'+encodeURIComponent(since)+'&order=created_at.desc&limit=1000';
+      fetch(url, {headers:{'apikey':APIKEY,'Content-Type':'application/json'}})
+      .then(function(r){ return r.json(); })
+      .then(function(rows){
+        var arr = Array.isArray(rows) ? rows : [];
+        if (allowedNames) arr = arr.filter(function(r){ return allowedNames.indexOf(r.username||'anonym') !== -1; });
+        processRows(arr);
+      })
+      .catch(function(e){ setError('Fehler beim Laden'); setLoading(false); });
+    }
+
+    if (isSA) {
+      fetchEvents(null);
+    } else {
+      fetch(SB_BASE+'profiles?select=id&gebiet=eq.'+encodeURIComponent(cu.gebiet||''), {headers:{'apikey':APIKEY,'Content-Type':'application/json'}})
+      .then(function(r){ return r.json(); })
+      .then(function(profiles){
+        var names = Array.isArray(profiles) ? profiles.map(function(p){ return p.id; }) : [];
+        if (cu.username && names.indexOf(cu.username) === -1) names.push(cu.username);
+        fetchEvents(names);
+      })
+      .catch(function(){ fetchEvents(null); });
+    }
   }, [days]);
 
   var products = data.products || [];
