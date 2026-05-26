@@ -13408,7 +13408,240 @@ function qTpl(tpl, vars) {
   // Simple template: replace {key} with vars[key]
   return tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] !== undefined ? vars[k] : "{" + k + "}");
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+//  PROTEIN QUIZ – STATISCHE FRAGEN (20 Fragen, Schulungskatalog 2026)
+// ═══════════════════════════════════════════════════════════════════════
+const PROTEIN_QUIZ_STATIC = [
+  {
+    question: "Wie viel Gramm Protein enthält ISO WHEY ZERO pro 100 g \u2013 und welche Besonderheit hat es bezüglich Laktose?",
+    options: [
+      { text: "78 g Protein \u2013 laktosefrei", correct: false },
+      { text: "84 g Protein \u2013 laktosereduziert (64% weniger als vergleichbare Produkte)", correct: true },
+      { text: "84 g Protein \u2013 enthält normale Laktosemenge", correct: false },
+      { text: "90 g Protein \u2013 laktosereduziert", correct: false }
+    ],
+    explanation: "ISO WHEY ZERO hat 84 g Protein/100 g und ist laktosereduziert \u2013 64% weniger Laktose als vergleichbare Produkte. Ideal für laktoseempfindliche Kunden, die auf Whey-Isolat nicht verzichten wollen.",
+    productName: "ISO Whey Zero"
+  },
+  {
+    question: "Welches Produkt ist NEU 2026 und schmeckt fruchtiger als ein klassischer Milchshake?",
+    options: [
+      { text: "ISO WHEY PLATINUM", correct: false },
+      { text: "JUICY ISOLATE", correct: false },
+      { text: "ISO WHEY CLEAR", correct: true },
+      { text: "PROTEIN POWER", correct: false }
+    ],
+    explanation: "ISO WHEY CLEAR ist NEU 2026 \u2013 ein fruchtiger Whey-Isolat-Drink der wie ein Sportdrink schmeckt, nicht cremig-milchig. Fettfrei, zuckerfrei, laktosefrei. Mit NUR Wasser zubereiten \u2013 kein Milch!",
+    productName: "ISO Whey Clear"
+  },
+  {
+    question: "Was ist der Hauptvorteil von ISO WHEY ZERO BLACK gegenüber ISO WHEY ZERO im Verkaufsgespräch?",
+    options: [
+      { text: "Es hat 18 Geschmäcke statt 4", correct: false },
+      { text: "Es enthält Kreatin (3 g), Zink und Niacin \u2013 der Kunde spart ein zweites Produkt", correct: true },
+      { text: "Es ist günstiger pro Portion", correct: false },
+      { text: "Es ist laktosefrei statt laktosereduziert", correct: false }
+    ],
+    explanation: "ISO WHEY ZERO BLACK enthält 90 g Protein/100 g PLUS 3 g Kreatin, Zink (Testosteronhaushalt) und Niacin. Kein separates Kreatin nötig = Kosteneinsparung. Das ist das stärkste Verkaufsargument gegenüber 'normalem' ISO WHEY ZERO.",
+    productName: "ISO Whey Zero Black"
+  },
+  {
+    question: "Ein Kunde fragt: 'Wann soll ich MICELLAR CASEIN einnehmen und warum?' \u2013 Was ist die richtige Antwort?",
+    options: [
+      { text: "Direkt nach dem Training \u2013 weil es schnell aufgenommen wird", correct: false },
+      { text: "Morgens \u2013 wegen des hohen Proteingehalts", correct: false },
+      { text: "Vor dem Schlafen \u2013 es verdaut 5\u20137 Stunden und verhindert Muskelabbau im Schlaf", correct: true },
+      { text: "Vor dem Training \u2013 für mehr Energie", correct: false }
+    ],
+    explanation: "Casein bildet im Magen ein Gel und wird über 5\u20137 Stunden freigesetzt. Das perfekte Nacht-Protein: verhindert katabolen Muskelabbau während des Schlafs. NICHT nach dem Training nehmen \u2013 dafür ist Whey besser geeignet.",
+    productName: "Micellar Casein"
+  },
+  {
+    question: "Für welchen Kunden ist BEEF PROTEIN die einzig wirklich sinnvolle Empfehlung?",
+    options: [
+      { text: "Für Veganer \u2013 Rindfleisch ist natürlicher als Molke", correct: false },
+      { text: "Für Kunden mit echter Milchallergie (IgE-vermittelt) \u2013 100% milchfrei, kein Casein, keine Whey-Proteine", correct: true },
+      { text: "Für Kunden die mehr Fett brauchen \u2013 Rindfleisch enthält mehr Fett", correct: false },
+      { text: "Für Senioren \u2013 leichter verdaulich als Whey", correct: false }
+    ],
+    explanation: "Wichtig: Laktoseintoleranz \u2260 Milchallergie. Laktosereduziertes Whey hilft bei Intoleranz. Bei echter Milchallergie (Immunreaktion auf Milchproteine) ist BEEF PROTEIN die einzige tierische Proteinalternative \u2013 100% milchfrei.",
+    productName: "Beef Protein"
+  },
+  {
+    question: "Was enthält WHEY SHAKE zusätzlich zum Protein, das andere reine Whey-Produkte nicht haben?",
+    options: [
+      { text: "Kreatin und Zink", correct: false },
+      { text: "Glucomannan und L-Carnitin", correct: false },
+      { text: "L-Glutamin (5,5%) und BCAAs (Leucin, Isoleucin, Valin)", correct: true },
+      { text: "Vitamin C und Eisenoxide", correct: false }
+    ],
+    explanation: "WHEY SHAKE enthält L-Glutamin (5,5%) für Regeneration und BCAAs (L-Leucin, L-Isoleucin, L-Valin) für Muskelproteinsynthese. Beides direkt im Produkt = kein separater Kauf. Cremige Textur, auch als Pudding zuzubereiten.",
+    productName: "Whey Shake"
+  },
+  {
+    question: "Welches Produkt hat den günstigsten Kilopreis im Sortiment und warum empfiehlst du es Stammkunden aktiv?",
+    options: [
+      { text: "ISO WHEY ZERO BLACK (1816 g) \u2013 wegen des hohen Proteingehalts", correct: false },
+      { text: "PROTEIN POWER (4000 g Eimer) \u2013 133 Portionen \u2248 9\u201310 Wochen Vorrat", correct: false },
+      { text: "100% PURE WHEY (4000 g) \u2013 142 Portionen \u2248 10 Wochen Vorrat", correct: true },
+      { text: "Beide D und C sind gleich günstig", correct: false }
+    ],
+    explanation: "100% PURE WHEY und PROTEIN POWER sind beide als 4 kg Eimer verfügbar. Der günstigste Kilopreis = stärkstes Argument für Vielnutzer. 100% PURE WHEY: 142 Portionen à 28 g = ca. 10 Wochen. Stammkunden-Bindung für über 2 Monate!",
+    productName: "100% Pure Whey"
+  },
+  {
+    question: "Warum ist VEGAN PROTEIN mit Erbse + Reis besser als ein Produkt aus nur einer Pflanzenquelle?",
+    options: [
+      { text: "Wegen des Geschmacks \u2013 Erbse allein schmeckt zu stark", correct: false },
+      { text: "Erbse ist reich an Lysin, aber arm an Methionin \u2013 Reisprotein ergänzt das fehlende Methionin \u2013 zusammen vollständiges Aminosäureprofil", correct: true },
+      { text: "Weil Reis günstiger ist als Erbse", correct: false },
+      { text: "Pflanzliche Kombinationen werden schneller aufgenommen", correct: false }
+    ],
+    explanation: "Proteinkomplementierung: Erbsenprotein hat ein limitierendes Aminosäureprofil (wenig Methionin). Reisprotein ergänzt genau das. Zusammen erreichen sie ein vollständiges Profil ähnlich tierischem Protein. Plus: Quinoa, Goji und Acai für Marketing.",
+    productName: "Vegan Protein"
+  },
+  {
+    question: "Was ist die EU-rechtlich zugelassene Aussage zu Glucomannan im DIET SHAKE \u2013 und was MUSS dabei betont werden?",
+    options: [
+      { text: "'Dieser Shake macht schlank' \u2013 keine besonderen Hinweise", correct: false },
+      { text: "'Glucomannan trägt zur Gewichtskontrolle bei' \u2013 mind. 250 ml Wasser VOR der Mahlzeit einnehmen", correct: true },
+      { text: "'Glucomannan ersetzt Sport' \u2013 täglich 2 Portionen nötig", correct: false },
+      { text: "'Glucomannan verbrennt Fett' \u2013 zusammen mit L-Carnitin", correct: false }
+    ],
+    explanation: "EFSA-zugelassene Aussage: Glucomannan trägt bei kalorienreduzierter Diät zur Gewichtskontrolle bei. PFLICHT: mind. 250 ml Wasser, 30 Min. VOR der Mahlzeit. Achtung: Ohne ausreichend Wasser besteht Quellgefahr im Hals! Immer betonen.",
+    productName: "Diet Shake"
+  },
+  {
+    question: "HYDRO WHEY ZERO vs. ISO WHEY ZERO: Was ist der entscheidende Unterschied, der das Timing beeinflusst?",
+    options: [
+      { text: "Hydro hat mehr Kalorien \u2013 daher besser für den Aufbau", correct: false },
+      { text: "Hydro Whey ist vorverdaut (hydrolysiert) \u2013 Aufnahme unter 30 Min. statt 1\u20132 Std. beim Isolat", correct: true },
+      { text: "Hydro Whey enthält Laktose \u2013 daher nicht für alle geeignet", correct: false },
+      { text: "Hydro Whey hat weniger Protein \u2013 dafür besserer Geschmack", correct: false }
+    ],
+    explanation: "Hydrolysat = enzymatisch aufgespaltenes Protein. Kürzere Peptidketten = ultra-schnelle Resorption (<30 Min.). Ideal für das direkte Post-Workout-Fenster. ISO WHEY ZERO braucht noch vollständige Verdauung (1\u20132 Std.). Für Profis und Wettkampfsportler ist Timing-Vorteil entscheidend.",
+    productName: "Hydro Whey Zero"
+  },
+  {
+    question: "ISO WHEY PLATINUM (NEU 2026) kombiniert Isolat + Konzentrat. Was ist die clevere Positionierung für den Einzelhandel?",
+    options: [
+      { text: "Es ist teurer als reines Isolat \u2013 für Premium-Kunden", correct: false },
+      { text: "Kleinste Portionsgröße (22,5 g) = niedrigster Einstiegspreis pro Serving \u2013 perfekt für Neukunden und Einsteiger", correct: true },
+      { text: "Es enthält kein Kreatin \u2013 deshalb für Ausdauersportler", correct: false },
+      { text: "Nur für Frauen geeignet \u2013 leichtere Formel", correct: false }
+    ],
+    explanation: "ISO WHEY PLATINUM ist strategisch als Einstiegsprodukt positioniert: 22,5 g = kleinste Portion = niedrigster Preis pro Serving im Isolat-Segment. Kreatin bereits enthalten. Upgrade-Pfad: nach 3 Monaten weiter zu ISO WHEY ZERO BLACK empfehlen.",
+    productName: "ISO Whey Platinum"
+  },
+  {
+    question: "Warum MUSS PROTEIN COFFEE mit maximal 60\u00b0C heißem Wasser zubereitet werden?",
+    options: [
+      { text: "Weil der Arabica-Kaffee bei höherer Temperatur bitter wird", correct: false },
+      { text: "Weil Whey-Protein ab ca. 70\u201380\u00b0C denaturiert \u2013 klumpt und löst sich schlecht", correct: true },
+      { text: "Weil der Shaker bei über 60\u00b0C schmilzt", correct: false },
+      { text: "Wegen des Koffeingehalts \u2013 Koffein wird bei Hitze abgebaut", correct: false }
+    ],
+    explanation: "Whey-Protein denaturiert ab ca. 70\u201380\u00b0C: Die Eiweißstruktur verändert sich irreversibel, das Pulver klumpt. Koffein bleibt bei dieser Temperatur stabil. Lösung: max. 60\u00b0C heißes Wasser oder kalt als Iced Coffee zubereiten.",
+    productName: "Protein Coffee"
+  },
+  {
+    question: "Welches Produkt empfiehlst du einem Kunden, der tagsüber kaum Zeit hat und Kaffee und Protein gleichzeitig braucht?",
+    options: [
+      { text: "ISO WHEY ZERO + separaten Espresso", correct: false },
+      { text: "PROTEIN COFFEE \u2013 echter Arabica-Kaffee (5,5%) + 21 g Protein pro Portion in einem", correct: true },
+      { text: "HYDRO WHEY ZERO \u2013 wegen schneller Aufnahme", correct: false },
+      { text: "100% PURE WHEY \u2013 wegen des guten Geschmacks", correct: false }
+    ],
+    explanation: "PROTEIN COFFEE: 74 mg Koffein (= 1 Espresso) + 70 g Protein/100 g in einem Produkt. Warm ODER kalt trinkbar. Keine Zeit für Shake UND Kaffee \u2013 das löst dieses Produkt elegant. Wichtig: nicht nach 14 Uhr, nicht für Schwangere/Kinder/Herzkranke.",
+    productName: "Protein Coffee"
+  },
+  {
+    question: "Ein Kunde kauft ISO WHEY ZERO für den Tag. Was empfiehlst du als Kreuz-Selling für maximale Muskelpflege?",
+    options: [
+      { text: "Einen zweiten Beutel ISO WHEY ZERO", correct: false },
+      { text: "MICELLAR CASEIN für die Nacht \u2013 Whey tagsüber + Casein nachts = 24h Versorgung", correct: true },
+      { text: "DIET SHAKE \u2013 wegen des Glucomannans", correct: false },
+      { text: "PROTEIN POWER \u2013 wegen des günstigeren Preises", correct: false }
+    ],
+    explanation: "Das klassische Profi-Duo: ISO WHEY ZERO nach dem Training (schnelle Aufnahme), MICELLAR CASEIN vor dem Schlafen (5\u20137 Stunden Freisetzung). Zusammen 24h Aminosäurenversorgung. Kaum ein informierter Kunde lehnt dieses Argument ab.",
+    productName: "ISO Whey Zero"
+  },
+  {
+    question: "JUICY ISOLATE enthält einen Zusatz, den andere Isolat-Produkte nicht haben. Was ist es und warum ist das ein Verkaufsargument?",
+    options: [
+      { text: "L-Carnitin \u2013 für den Fettstoffwechsel", correct: false },
+      { text: "Vitamin C (80 mg/Portion) \u2013 unterstützt das Immunsystem, doppelter Nutzen", correct: true },
+      { text: "Kreatin \u2013 für die Kraft", correct: false },
+      { text: "Glucomannan \u2013 für die Sättigung", correct: false }
+    ],
+    explanation: "JUICY ISOLATE enthält 80 mg Vitamin C pro Portion \u2013 das ist fast die empfohlene Tagesdosis. Doppelter Nutzen: Protein für Muskeln + Vitamin C für Immunsystem. Besonders für Frauen, Diätkunden und Ausdauersportler ein starkes Zusatzargument.",
+    productName: "Juicy Isolate"
+  },
+  {
+    question: "Welche zwei Produkte sind NEU in 2026 und sollten im Kundengespräch aktiv angesprochen werden?",
+    options: [
+      { text: "BEEF PROTEIN und VEGAN PROTEIN", correct: false },
+      { text: "ISO WHEY CLEAR und ISO WHEY PLATINUM", correct: true },
+      { text: "PROTEIN COFFEE und DIET SHAKE", correct: false },
+      { text: "HYDRO WHEY ZERO und MICELLAR CASEIN", correct: false }
+    ],
+    explanation: "ISO WHEY CLEAR (fruchtiger Isolat-Drink) und ISO WHEY PLATINUM (Isolat+Konzentrat Mix mit Kreatin) sind die beiden Neuheiten 2026. Neuprodukte aktiv ansprechen = Alleinstellungsmerkmal im Handel, zeigt Sortimentstiefe und zieht Stammkunden.",
+    productName: "ISO Whey Clear"
+  },
+  {
+    question: "Wie viele Portionen hat ein 1000 g Behälter WHEY SHAKE bei empfohlener Tagesdosis (2 × 25 g)?",
+    options: [
+      { text: "20 Tagesportionen (40 Einzelportionen)", correct: true },
+      { text: "40 Tagesportionen (80 Einzelportionen)", correct: false },
+      { text: "25 Tagesportionen", correct: false },
+      { text: "33 Tagesportionen", correct: false }
+    ],
+    explanation: "1000 g ÷ 25 g = 40 Einzelportionen. Bei empfohlener Tagesdosis von 2 × 25 g (= 50 g/Tag) reicht die Dose 20 Tage. Das ist wichtig für die Kauffrequenz im Einzelhandel \u2013 ca. alle 3 Wochen Nachkauf.",
+    productName: "Whey Shake"
+  },
+  {
+    question: "Warum empfiehlst du VEGAN PROTEIN in leicht höherer Menge als Whey-Protein?",
+    options: [
+      { text: "Weil es weniger Kalorien hat", correct: false },
+      { text: "Wegen der leicht geringeren biologischen Wertigkeit pflanzlicher Proteine \u2013 etwas mehr Menge nötig für gleiches Ergebnis", correct: true },
+      { text: "Weil es teurer ist", correct: false },
+      { text: "Weil Veganer grundsätzlich mehr essen", correct: false }
+    ],
+    explanation: "Pflanzliche Proteine haben eine etwas geringere biologische Wertigkeit und Bioverfügbarkeit als Whey. Die Erbse+Reis-Kombination verbessert das deutlich, aber ein leichter Unterschied bleibt. Empfehlung: 10\u201315% mehr Menge als bei Whey für optimale Versorgung.",
+    productName: "Vegan Protein"
+  },
+  {
+    question: "Was ist das beste Argument wenn ein Kunde sagt: 'Ich esse genug Fleisch, ich brauche kein Protein-Pulver'?",
+    options: [
+      { text: "'Das stimmt, Pulver ist nur für Anfänger.'", correct: false },
+      { text: "'Bei 80 kg Körpergewicht braucht ein Sportler bis zu 160 g Protein täglich \u2013 das sind ca. 800 g Hähnchenbrust. Ein Shake ist einfacher, günstiger und kalkulierbar.'", correct: true },
+      { text: "'Fleisch hat schlechtes Protein, Pulver ist besser.'", correct: false },
+      { text: "'Sie müssen Pulver nehmen, sonst wachsen die Muskeln nicht.'", correct: false }
+    ],
+    explanation: "Sachliches Rechenbeispiel schlägt Meinungen. 1,6\u20132 g Protein/kg Körpergewicht für Sportler. 80 kg = 128\u2013160 g Protein. 100 g Hähnchenbrust = ca. 23 g Protein \u2192 700 g+ täglich nötig. Ein Shake ergänzt praktisch, günstig und mit exakt bekanntem Gehalt.",
+    productName: "100% Pure Whey"
+  },
+  {
+    question: "Welches Protein ist NICHT geeignet für einen echten Veganer und warum?",
+    options: [
+      { text: "VEGAN PROTEIN \u2013 enthält Spuren von Milch", correct: false },
+      { text: "MICELLAR CASEIN \u2013 wird aus Milch gewonnen, 100% tierisch", correct: true },
+      { text: "BEEF PROTEIN \u2013 zu fettreich für Veganer", correct: false },
+      { text: "PROTEIN POWER \u2013 enthält Kreatin aus tierischen Quellen", correct: false }
+    ],
+    explanation: "MICELLAR CASEIN wird aus Kuhmilch gewonnen \u2013 100% tierisches Milchprotein. Für echte Veganer nicht geeignet. Häufiger Fehler im Beratungsgespräch: Casein als 'Nachtprotein für alle' empfehlen. Vegane Alternative: höhere VEGAN PROTEIN Menge abends.",
+    productName: "Micellar Casein"
+  }
+];
+
 function generateQuestions(catFilter, count, lang, t) {
+  // ── STATISCHE FRAGEN: Kategorie Protein ─────────────────────────────
+  if (catFilter === "Protein") {
+    const staticPool = shuffle([...PROTEIN_QUIZ_STATIC]);
+    return staticPool.slice(0, Math.min(count, PROTEIN_QUIZ_STATIC.length));
+  }
+
   const txCat = cat => translateFieldSync(cat, lang);
   const pool = PRODUCTS.filter(p => !p.refOnly && (catFilter === "Alle" || p.category === catFilter));
   if (pool.length < 4) return [];
