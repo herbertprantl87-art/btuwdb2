@@ -8185,19 +8185,31 @@ var PROFILES = [
 //  GEBIETE – Regionen & Rollen
 // ═══════════════════════════════════════════════════════════════════════
 var GEBIETE = [
-  // GL-only (superadmin) — nur sichtbar nach Triple-Click auf Logo
-  { value: "Alle Gebiete",         label: "Alle Gebiete – Richard", role: "superadmin",    glOnly: true  },
-  { value: "NRW/Hessen-Herbert",   label: "NRW/Hessen – Herbert",   role: "superadmin",    glOnly: true  },
+  // Superadmin — nur sichtbar nach Triple-Click auf Logo
+  { value: "Alle Gebiete",         label: "Alle Gebiete – Richard",  role: "superadmin",    glOnly: true  },
+  { value: "NRW/Hessen-Herbert",   label: "NRW/Hessen – Herbert",    role: "superadmin",    glOnly: true  },
+  // GL-Zugänge — nur sichtbar nach Triple-Click auf Logo
+  { value: "Bayern-Roman",         label: "Bayern – Roman",           role: "gebietsleiter", glOnly: true  },
+  { value: "Bayern-Szabolcs",      label: "Bayern – Szabolcs",        role: "gebietsleiter", glOnly: true  },
+  { value: "Berlin-Chris",         label: "Berlin – Chris",           role: "gebietsleiter", glOnly: true  },
+  { value: "Berlin-Alem",          label: "Berlin – Alem",            role: "gebietsleiter", glOnly: true  },
   // Mitarbeiter-Gebiete — immer sichtbar
-  { value: "NRW/Hessen",           label: "NRW/Hessen (Herbert)",   role: "gebietsleiter", glOnly: false },
-  { value: "Bayern",               label: "Bayern (Roman)",          role: "gebietsleiter", glOnly: false },
-  { value: "Berlin (Chris)",       label: "Berlin (Chris)",          role: "gebietsleiter", glOnly: false },
-  { value: "Berlin (Alem)",        label: "Berlin (Alem)",           role: "gebietsleiter", glOnly: false },
-  { value: "Berlin (Szabolcs)",    label: "Berlin (Szabolcs)",       role: "gebietsleiter", glOnly: false },
+  { value: "NRW/Hessen",           label: "NRW/Hessen",                role: "mitarbeiter",   glOnly: false },
+  { value: "Bayern",               label: "Bayern",                    role: "mitarbeiter",   glOnly: false },
+  { value: "Berlin",               label: "Berlin",                    role: "mitarbeiter",   glOnly: false },
 ];
 function getRoleForGebiet(g) {
   var entry = GEBIETE.find(function(e){ return e.value === g; });
   return entry ? entry.role : "mitarbeiter";
+}
+// Normalisiert Gebiet-Wert auf kanonische Region (für Daten-Filterung)
+function getGebietRegion(g) {
+  if (!g) return '';
+  if (g === 'Alle Gebiete') return null; // sieht alle Regionen
+  if (g.startsWith('NRW')) return 'NRW/Hessen';
+  if (g.startsWith('Bayern')) return 'Bayern';
+  if (g.startsWith('Berlin')) return 'Berlin';
+  return g;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -14949,14 +14961,19 @@ function CartAnalyticsTab({FONT_SYS}) {
     if (isSA) {
       fetchEvents(null);
     } else {
-      fetch(SB_BASE+'profiles?select=id&gebiet=eq.'+encodeURIComponent(cu.gebiet||''), {headers:{'apikey':APIKEY,'Content-Type':'application/json'}})
-      .then(function(r){ return r.json(); })
-      .then(function(profiles){
-        var names = Array.isArray(profiles) ? profiles.map(function(p){ return p.id; }) : [];
-        if (cu.username && names.indexOf(cu.username) === -1) names.push(cu.username);
-        fetchEvents(names);
-      })
-      .catch(function(){ fetchEvents(null); });
+      var region = getGebietRegion(cu.gebiet||'');
+      if (!region) { fetchEvents(null); }
+      else {
+        var rPrefix = region.indexOf('/') !== -1 ? region.split('/')[0] : region;
+        fetch(SB_BASE+'profiles?select=id&gebiet=ilike.'+encodeURIComponent(rPrefix+'%'), {headers:{'apikey':APIKEY,'Content-Type':'application/json'}})
+        .then(function(r){ return r.json(); })
+        .then(function(profiles){
+          var names = Array.isArray(profiles) ? profiles.map(function(p){ return p.id; }) : [];
+          if (cu.username && names.indexOf(cu.username) === -1) names.push(cu.username);
+          fetchEvents(names);
+        })
+        .catch(function(){ fetchEvents(null); });
+      }
     }
   }, [days]);
 
@@ -15084,9 +15101,10 @@ function AdminPanel({
           const ln = p.last_name  || "";
           return { key: p.id, displayName: (fn + " " + ln).trim() || p.id, firstName: fn, lastName: ln, favs, quiz, hist, gebiet: p.gebiet || "", role: p.role || "mitarbeiter" };
         });
-        // Gebiet-Filter: superadmin sieht alles, GL nur eigenes Gebiet
-        if (currentUser && currentUser.role !== "superadmin" && currentUser.gebiet) {
-          list = list.filter(u => u.gebiet === currentUser.gebiet);
+        // Gebiet-Filter: superadmin sieht alles, GL/MA nur eigene Region
+        if (currentUser && currentUser.role !== "superadmin") {
+          var myReg = getGebietRegion(currentUser.gebiet || "");
+          if (myReg) list = list.filter(u => getGebietRegion(u.gebiet) === myReg);
         }
         setUsers(list);
         return;
