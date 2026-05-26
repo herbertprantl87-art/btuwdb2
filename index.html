@@ -11232,7 +11232,7 @@ function BioTechDatabase() {
       return true;
     };
     const priceFn = p => !priceFilter || p.priceRange === priceFilter;
-    const fullFilter = p => catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p);
+    const fullFilter = p => !p.refOnly && catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p);
     if (!q && !activeProfile) return PRODUCTS.filter(fullFilter);
     if (activeProfile && !q) {
       const scored = PRODUCTS.filter(p => !p.refOnly && catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p)).map(p => ({
@@ -11277,7 +11277,7 @@ function BioTechDatabase() {
     // Alle Felder durchsuchen: Name, Kategorie, Zutaten, Notizen, Dosierung,
     // freeFrom, Nährwerte als Text, Studien, BCAA, Portionsgröße, etc.
     return PRODUCTS.filter(p => {
-      if (!catFilter(p)) return false;
+      if (p.refOnly || !catFilter(p)) return false;
       if (!favFilter(p)) return false;
       if (!dietFn(p)) return false;
       if (!priceFn(p)) return false;
