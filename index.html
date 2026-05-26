@@ -84,7 +84,7 @@
 <style>*[style*="sticky"]:first-of-type>*+*{display:none!important}*[style*="top: 88px"]{display:none!important}#btu-t{position:fixed;left:0;top:0;width:16px;height:100%;z-index:9998}#btu-s{position:fixed;left:-280px;top:0;width:280px;height:100%;background:#fff;box-shadow:4px 0 20px rgba(0,0,0,.2);z-index:9999;transition:left .2s ease;display:flex;flex-direction:column;overflow:hidden}#btu-s.on{left:0}#btu-sh{background:#c8102e;color:#fff;font-weight:700;font-size:14px;padding:14px 16px;flex-shrink:0}#btu-sb{flex:1;overflow-y:auto}.btu-sec{font-size:10px;font-weight:700;color:#999;letter-spacing:.8px;text-transform:uppercase;padding:10px 14px 3px}.btu-si{display:block;width:100%;text-align:left;padding:8px 14px;border:none;background:transparent;cursor:pointer;font-size:12px;color:#333;border-bottom:1px solid #f5f5f5}.btu-si:hover{background:#fff0f0;color:#c8102e}.btu-si.a{background:#c8102e;color:#fff;font-weight:700}#btu-sw{padding:8px 14px;border-bottom:1px solid #f0f0f0}#btu-sw input{width:100%;box-sizing:border-box;padding:6px 10px;border:1.5px solid #ddd;border-radius:16px;font-size:12px;outline:none}#btu-sw input:focus{border-color:#c8102e}</style><div id="btu-t"></div><div id="btu-s"><div id="btu-sh">Menu</div><div id="btu-sb"></div></div><script>!function(){var storedGoals=null;var lastGoal=sessionStorage.getItem("btu_lastGoal")||null;var lastCat=sessionStorage.getItem("btu_lastCat")||null;var nativeSetter=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"value").set;function showSidebar(){s.classList.add("on")}function hideSidebar(){s.classList.remove("on")}function getMainInp(){var inputs=document.querySelectorAll("input[type=text]");for(var x=0;x<inputs.length;x++){if(!b.contains(inputs[x]))return inputs[x];}return null;}function fireSearch(val){var real=getMainInp();if(!real)return;nativeSetter.call(real,val);real.dispatchEvent(new Event("input",{bubbles:true}));}function findKt(){var btns=document.querySelectorAll("button"),kt=null;[].forEach.call(btns,function(e){var fk=Object.keys(e).find(function(k){return k.indexOf("__reactFiber")===0});if(!fk)return;var p=e[fk]&&e[fk].memoizedProps;if(p&&p.onClick&&p.onClick.toString().indexOf("setShowProfiles")>=0)kt=e;});return kt;}function collectGoals(cb){var kt=findKt();if(!kt){setTimeout(function(){collectGoals(cb);},500);return;}kt.click();setTimeout(function(){var btns=document.querySelectorAll("button"),goals=[];[].forEach.call(btns,function(e){var fk=Object.keys(e).find(function(k){return k.indexOf("__reactFiber")===0});if(!fk)return;var p=e[fk]&&e[fk].memoizedProps;if(p&&p.title&&p.onClick&&p.onClick.toString().indexOf("setActiveProfile")>=0){var txt=e.textContent.trim().replace(/[APB]$/,"").trim();var h=p.onClick;var tv=p.title;goals.push({t:txt,title:tv,fn:function(f,v){return function(){f();lastGoal=v;lastCat=null;sessionStorage.setItem("btu_lastGoal",v);sessionStorage.removeItem("btu_lastCat");};}(h,tv)});}});kt.click();storedGoals=goals;if(cb)cb();},300);}function addBtn(label,handler,active){var el=document.createElement("button");el.className="btu-si"+(active?" a":"");el.textContent=label;el.addEventListener("click",function(){handler();hideSidebar();});b.appendChild(el);}function addSection(label,items){var d=document.createElement("div");d.className="btu-sec";d.textContent=label;b.appendChild(d);items.forEach(function(item){addBtn(item.t,item.fn,item.a);});}function rebuild(){b.innerHTML="";var sec=document.createElement("div");sec.className="btu-sec";sec.textContent="Suche";b.appendChild(sec);var wrap=document.createElement("div");wrap.id="btu-sw";var inp=document.createElement("input");inp.type="text";inp.placeholder="Produkt · Inhaltsstoff · Ziel...";var real=getMainInp();if(real)inp.value=real.value;inp.addEventListener("input",function(){fireSearch(this.value);});wrap.appendChild(inp);b.appendChild(wrap);if(storedGoals&&storedGoals.length){var goalItems=storedGoals.map(function(g){return{t:g.t,fn:g.fn,a:lastGoal===g.title};});addSection("Ziele",goalItems);}var filterItems=[];var btns=document.querySelectorAll("button");[].forEach.call(btns,function(e){var fk=Object.keys(e).find(function(k){return k.indexOf("__reactFiber")===0});if(!fk)return;var p=e[fk]&&e[fk].memoizedProps;if(!p||!p.onClick)return;var fn=p.onClick.toString();var red="rgb(200, 16, 46)";if(fn.indexOf("setDietFilter")>=0||fn.indexOf("setShowFavsOnly")>=0){var txt=e.textContent.trim();if(txt&&txt.length<=40){var h=p.onClick;filterItems.push({t:txt,fn:function(f){return function(){f();};}(h),a:e.style.borderColor===red||e.style.background===red});}}});if(filterItems.length)addSection("Filter",filterItems);var divs=document.querySelectorAll("div"),catDiv=null;[].forEach.call(divs,function(e){if(b.contains(e))return;try{if(window.getComputedStyle(e).overflowX==="auto"&&e.querySelectorAll("button").length>3)catDiv=e;}catch(ex){}});if(catDiv){var csec=document.createElement("div");csec.className="btu-sec";csec.textContent="Kategorien";b.appendChild(csec);var catBtns=catDiv.querySelectorAll("button");[].forEach.call(catBtns,function(e){var txt=e.textContent.trim();if(txt){var ce=e;var isActive=lastCat===txt;addBtn(txt,function(el,t){return function(){el.click();lastCat=t;lastGoal=null;sessionStorage.setItem("btu_lastCat",t);sessionStorage.removeItem("btu_lastGoal");};}(ce,txt),isActive);}});}}var i=document.getElementById("btu-t"),s=document.getElementById("btu-s"),b=document.getElementById("btu-sb"),timer=null;setTimeout(function(){collectGoals(function(){if(s.classList.contains("on"))rebuild();});},1500);i.addEventListener("mouseenter",function(){rebuild();showSidebar();});s.addEventListener("mouseleave",function(){timer=setTimeout(hideSidebar,200);});s.addEventListener("mouseenter",function(){clearTimeout(timer);});i.addEventListener("mouseleave",function(){timer=setTimeout(hideSidebar,300);});i.addEventListener("touchstart",function(e){e.preventDefault();rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}},{passive:false});document.addEventListener("touchstart",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});}();</script>
 <script>
 (function(){
-  window.__BTU_BUILD="b7066641";
+  window.__BTU_BUILD = "a6005dad";
   var _iv=null,_s=false;
   function showToast(){if(_s)return;_s=true;localStorage.setItem("btu_toast_ts",Date.now());
     var t=document.createElement("div");
@@ -534,7 +534,7 @@ var PRODUCTS = [
   },
   {
     id: 17,
-    price: 24.9, priceRange: "€",    name: "100% Instant L-Leucine", packageSize: "277 g",
+    price: 21.5, priceRange: "€",    name: "100% Instant L-Leucine", packageSize: "277 g",
     category: "Aminosäuren",
     subcategory: "L-Leucin Pulver (instant)",
     portionSize: "~5 g",
@@ -1023,7 +1023,7 @@ var PRODUCTS = [
   },
   {
     id: 34,
-    price: 24.9, priceRange: "€€",    name: "Collagen Pulver", packageSize: "300 g",
+    price: 31.9, priceRange: "€€",    name: "Collagen Pulver", packageSize: "300 g",
     category: "Kollagen",
     subcategory: "Kollagen + Hyaluronsäure (Pulver)",
     portionSize: "15 g",
@@ -2496,7 +2496,7 @@ var PRODUCTS = [
   },
   {
     id: 89,
-    price: 22.9, priceRange: "€€",    name: "Carbox", packageSize: "1000 g",
+    price: 14.9, priceRange: "€€",    name: "Carbox", packageSize: "1000 g",
     category: "Gainer & Masseaufbau",
     subcategory: "Reines KH-Getränkepulver (5 Kohlenhydratquellen, aromatisiert + neutral)",
     portionSize: "50 g",
@@ -2547,7 +2547,7 @@ var PRODUCTS = [
   // ─── MEHR PRE-WORKOUT ─────────────────────────────────────────────
   {
     id: 91,
-    price: 22.9, priceRange: "€€",    name: "Supernova", packageSize: "300 g",
+    price: 31.9, priceRange: "€€",    name: "Supernova", packageSize: "300 g",
     category: "Pre-Workout",
     subcategory: "All-in-One Pre-Workout (Arginin + Beta-Alanin + Kreatin + Koffein + Taurin)",
     portionSize: "9,4 g",
@@ -2663,7 +2663,7 @@ var PRODUCTS = [
   },
   {
     id: 95,
-    price: 22.9, priceRange: "€€",    name: "Thermo Drine Liquid", packageSize: "500 ml",
+    price: 24.5, priceRange: "€€",    name: "Thermo Drine Liquid", packageSize: "500 ml",
     category: "Fettverbrenner",
     subcategory: "Flüssiger Thermogenik-Booster (trinkfertig, 25 ml)",
     portionSize: "25 ml",
@@ -2838,7 +2838,7 @@ var PRODUCTS = [
   // ─── PROTEINAUFSTRICHE & SNACKS ───────────────────────────────────
   {
     id: 102,
-    price: 22.9, priceRange: "€€",    name: "Peanut Butter", packageSize: "400 g",
+    price: 10.9, priceRange: "€€",    name: "Peanut Butter", packageSize: "400 g",
     category: "Riegel & Snacks",
     subcategory: "Natürliche Erdnussbutter (100 % Erdnüsse, kein Palmöl)",
     portionSize: "32 g (2 EL)",
@@ -2915,7 +2915,7 @@ var PRODUCTS = [
   // ─── SÜSSUNGSMITTEL ───────────────────────────────────────────────
   {
     id: 105,
-    price: 22.9, priceRange: "€€",    name: "Zero Drops", packageSize: "50 ml",
+    price: 8.5, priceRange: "€€",    name: "Zero Drops", packageSize: "50 ml",
     category: "Süßungsmittel",
     subcategory: "Kalorienfreie Flüssig-Geschmackstropfen (Sucralose + Stevia)",
     portionSize: "3–5 Tropfen",
@@ -3011,7 +3011,7 @@ var PRODUCTS = [
   },
   {
     id: 216,
-    price: 2.1, priceRange: "€",    name: "Protein Bar (35 g)", packageSize: "1 Stk. (35 g)",
+    price: 1.7, priceRange: "€",    name: "Protein Bar (35 g)", packageSize: "1 Stk. (35 g)",
     category: "Riegel",
     subcategory: "Proteinriegel (Low Sugar, kompakt)",
     portionSize: "35 g (1 Riegel)",
@@ -3038,7 +3038,7 @@ var PRODUCTS = [
   },
   {
     id: 217,
-    price: 2.5, priceRange: "€",    name: "Protein Max", packageSize: "1 Stk. (45 g)",
+    price: 1.8, priceRange: "€",    name: "Protein Max", packageSize: "1 Stk. (45 g)",
     category: "Riegel",
     subcategory: "Proteinriegel (Kakao-Überzug, Dessert-Erlebnis)",
     portionSize: "45 g (1 Riegel)",
@@ -3069,7 +3069,7 @@ var PRODUCTS = [
   // ─── AMINOSÄUREN – ERGÄNZUNGEN ──────────────────────────────────
   {
     id: 218,
-    price: 14.9, priceRange: "€",    name: "BCAA Shot", packageSize: "60 ml (1 Ampulle)",
+    price: 3.1, priceRange: "€",    name: "BCAA Shot", packageSize: "60 ml (1 Ampulle)",
     category: "Aminosäuren",
     subcategory: "BCAA-Fertiggetränk (RTD-Ampulle)",
     portionSize: "60 ml",
@@ -3097,7 +3097,7 @@ var PRODUCTS = [
   },
   {
     id: 219,
-    price: 19.9, priceRange: "€",    name: "Liquid BCAA", packageSize: "1000 ml (33 Portionen)",
+    price: 29.9, priceRange: "€",    name: "Liquid BCAA", packageSize: "1000 ml (33 Portionen)",
     category: "Aminosäuren",
     subcategory: "Flüssige BCAAs mit AAKG, Lysin & Ornithin",
     portionSize: "30 ml (Tagesdosis: 60 ml = 2 Portionen)",
@@ -3127,7 +3127,7 @@ var PRODUCTS = [
   },
   {
     id: 220,
-    price: 18.9, priceRange: "€",    name: "Glutamine Peptide", packageSize: "180 Mega-Kapseln (20 Portionen)",
+    price: 27.9, priceRange: "€",    name: "Glutamine Peptide", packageSize: "180 Mega-Kapseln (20 Portionen)",
     category: "Aminosäuren",
     subcategory: "Glutaminpeptid-Kapseln",
     portionSize: "9 Kapseln",
@@ -3152,7 +3152,7 @@ var PRODUCTS = [
   },
   {
     id: 221,
-    price: 22.9, priceRange: "€",    name: "CA-HMB 3000", packageSize: "270 g (90 Portionen)",
+    price: 39.9, priceRange: "€",    name: "CA-HMB 3000", packageSize: "270 g (90 Portionen)",
     category: "Aminosäuren",
     subcategory: "HMB-Pulver (Calcium-Beta-Hydroxy-Beta-Methylbutyrat)",
     portionSize: "3 g",
@@ -3178,7 +3178,7 @@ var PRODUCTS = [
   },
   {
     id: 222,
-    price: 12.9, priceRange: "€",    name: "NAC", packageSize: "60 Tabletten (60 Portionen)",
+    price: 21.5, priceRange: "€",    name: "NAC", packageSize: "60 Tabletten (60 Portionen)",
     category: "Aminosäuren",
     subcategory: "N-Acetyl-L-Cystein (Antioxidans)",
     portionSize: "1 Tablette",
@@ -3205,7 +3205,7 @@ var PRODUCTS = [
   // ─── NITROX & PRE-WORKOUT – ERGÄNZUNGEN ─────────────────────────
   {
     id: 223,
-    price: 17.9, priceRange: "€",    name: "AAKG Shock", packageSize: "1000 ml (105 Portionen)",
+    price: 24.9, priceRange: "€",    name: "AAKG Shock", packageSize: "1000 ml (105 Portionen)",
     category: "Pre-Workout",
     subcategory: "Arginin-AKG-Fertiggetränk mit Magnesium",
     portionSize: "9,5 ml",
@@ -3233,7 +3233,7 @@ var PRODUCTS = [
   // ─── THERMOGENE & LIPOLYTIKA – ERGÄNZUNGEN ──────────────────────
   {
     id: 224,
-    price: 16.9, priceRange: "€",    name: "Thermo Shot", packageSize: "60 ml (2 Portionen)",
+    price: 3.2, priceRange: "€",    name: "Thermo Shot", packageSize: "60 ml (2 Portionen)",
     category: "Fettverbrenner",
     subcategory: "Thermogener Fertig-Shot (L-Carnitin + Pflanzenstoffkomplex)",
     portionSize: "30 ml",
@@ -3266,7 +3266,7 @@ var PRODUCTS = [
   },
   {
     id: 225,
-    price: 14.9, priceRange: "€",    name: "Desert", packageSize: "100 Kapseln (33 Portionen)",
+    price: 26.9, priceRange: "€",    name: "Desert", packageSize: "100 Kapseln (33 Portionen)",
     category: "Fettverbrenner",
     subcategory: "Diuretikum-Komplex (Pflanzenstoffe + Koffein + Magnesium)",
     portionSize: "2 Kapseln (2 × täglich)",
@@ -3293,7 +3293,7 @@ var PRODUCTS = [
   },
   {
     id: 226,
-    price: 13.9, priceRange: "€",    name: "Pyruvate", packageSize: "90 Kapseln (30 Portionen)",
+    price: 17.9, priceRange: "€",    name: "Pyruvate", packageSize: "90 Kapseln (30 Portionen)",
     category: "Fettverbrenner",
     subcategory: "Calcium-Pyruvat-Kapseln",
     portionSize: "3 Kapseln",
@@ -3316,7 +3316,7 @@ var PRODUCTS = [
   },
   {
     id: 227,
-    price: 8.9, priceRange: "€",    name: "Chromium Picolinate", packageSize: "60 Tabletten (60 Portionen)",
+    price: 12.9, priceRange: "€",    name: "Chromium Picolinate", packageSize: "60 Tabletten (60 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Chrom-Picolinat (200 µg = 500 % NRW)",
     portionSize: "1 Tablette",
@@ -3339,7 +3339,7 @@ var PRODUCTS = [
   },
   {
     id: 228,
-    price: 14.9, priceRange: "€",    name: "Glucomannan + Chromium", packageSize: "225 g (30 Portionen)",
+    price: 32.9, priceRange: "€",    name: "Glucomannan + Chromium", packageSize: "225 g (30 Portionen)",
     category: "Fettverbrenner",
     subcategory: "Pflanzlicher Ballaststoffkomplex mit Chrom (Pulver)",
     portionSize: "7,5 g (3 × 2,5 g täglich)",
@@ -3368,7 +3368,7 @@ var PRODUCTS = [
   // ─── L-CARNITIN – ERGÄNZUNGEN ────────────────────────────────────
   {
     id: 229,
-    price: 9.9, priceRange: "€",    name: "L-Carnitine Effervescent", packageSize: "20 Brausetabletten (20 Portionen)",
+    price: 6.7, priceRange: "€",    name: "L-Carnitine Effervescent", packageSize: "20 Brausetabletten (20 Portionen)",
     category: "L-Carnitin",
     subcategory: "L-Carnitin-Brausetabletten (335 mg / Tab.)",
     portionSize: "1 Brausetablette in 200 ml Wasser",
@@ -3393,7 +3393,7 @@ var PRODUCTS = [
   },
   {
     id: 230,
-    price: 18.9, priceRange: "€",    name: "L-Carnitine + Chrome Liquid", packageSize: "500 ml (33 Portionen)",
+    price: 22.5, priceRange: "€",    name: "L-Carnitine + Chrome Liquid", packageSize: "500 ml (33 Portionen)",
     category: "L-Carnitin",
     subcategory: "Flüssiges L-Carnitin mit Chrom & Vitamin B5",
     portionSize: "15 ml",
@@ -3420,7 +3420,7 @@ var PRODUCTS = [
   },
   {
     id: 231,
-    price: 14.9, priceRange: "€",    name: "L-Carnitine + Chrome Caps", packageSize: "60 Kapseln (30 Portionen)",
+    price: 17.9, priceRange: "€",    name: "L-Carnitine + Chrome Caps", packageSize: "60 Kapseln (30 Portionen)",
     category: "L-Carnitin",
     subcategory: "L-Carnitin + Chrom Kapseln",
     portionSize: "2 Kapseln",
@@ -3446,7 +3446,7 @@ var PRODUCTS = [
   // ─── GELENK & BINDEGEWEBE – ERGÄNZUNGEN ─────────────────────────
   {
     id: 232,
-    price: 19.9, priceRange: "€",    name: "Eggshell Membrane", packageSize: "60 Mega-Kapseln (60 Portionen)",
+    price: 29.9, priceRange: "€",    name: "Eggshell Membrane", packageSize: "60 Mega-Kapseln (60 Portionen)",
     category: "Gelenke & Kollagen",
     subcategory: "Eierschalenmembran-Kapseln mit Vitamin C",
     portionSize: "1 Kapsel",
@@ -3472,7 +3472,7 @@ var PRODUCTS = [
   },
   {
     id: 233,
-    price: 14.9, priceRange: "€",    name: "MSM Chondroitin Glucosamine", packageSize: "60 Tabletten (30 Portionen)",
+    price: 22.5, priceRange: "€",    name: "MSM Chondroitin Glucosamine", packageSize: "60 Tabletten (30 Portionen)",
     category: "Gelenke & Kollagen",
     subcategory: "Dreifach-Gelenkkomplex (MSM + Chondroitin + Glucosamin)",
     portionSize: "2 Tabletten",
@@ -3501,7 +3501,7 @@ var PRODUCTS = [
   // ─── TST BOOSTER – ERGÄNZUNGEN ───────────────────────────────────
   {
     id: 234,
-    price: 16.9, priceRange: "€",    name: "GH", packageSize: "120 Kapseln (30 Portionen)",
+    price: 24.5, priceRange: "€",    name: "GH", packageSize: "120 Kapseln (30 Portionen)",
     category: "Testosteron-Booster",
     subcategory: "L-Arginin/L-Ornithin/L-Lysin-Komplex (natürlicher GH-Support)",
     portionSize: "4 Kapseln",
@@ -3529,7 +3529,7 @@ var PRODUCTS = [
   },
   {
     id: 235,
-    price: 12.9, priceRange: "€",    name: "Panax Ginseng", packageSize: "60 Kapseln (60 Portionen)",
+    price: 17.9, priceRange: "€",    name: "Panax Ginseng", packageSize: "60 Kapseln (60 Portionen)",
     category: "Testosteron-Booster",
     subcategory: "Koreanischer Ginseng-Extrakt (75 mg / 60 mg Ginsenoside)",
     portionSize: "1 Kapsel",
@@ -3555,7 +3555,7 @@ var PRODUCTS = [
   },
   {
     id: 236,
-    price: 14.9, priceRange: "€",    name: "Saw Palmetto", packageSize: "60 Mega-Kapseln (30 Portionen)",
+    price: 21.5, priceRange: "€",    name: "Saw Palmetto", packageSize: "60 Mega-Kapseln (30 Portionen)",
     category: "Testosteron-Booster",
     subcategory: "Sägepalmen-Extrakt (710 mg / 82 % Fettsäuren)",
     portionSize: "2 Mega-Kapseln",
@@ -3660,7 +3660,7 @@ var PRODUCTS = [
   },
   {
     id: 240,
-    price: 9.9, priceRange: "€",    name: "One-A-Day Kids", packageSize: "90 Kautabletten (90 Portionen)",
+    price: 17.9, priceRange: "€",    name: "One-A-Day Kids", packageSize: "90 Kautabletten (90 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Multivitamin-Kautabletten für Kinder",
     portionSize: "1 Kautablette",
@@ -3684,7 +3684,7 @@ var PRODUCTS = [
   },
   {
     id: 241,
-    price: 12.9, priceRange: "€",    name: "Vitabolic", packageSize: "30 Tabletten (30 Portionen)",
+    price: 13.9, priceRange: "€",    name: "Vitabolic", packageSize: "30 Tabletten (30 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Multivitamin & Mineral (11 Vitamine, 7 Mineralien)",
     portionSize: "1 Tablette",
@@ -3710,7 +3710,7 @@ var PRODUCTS = [
   },
   {
     id: 242,
-    price: 10.9, priceRange: "€",    name: "Vitamin Complex", packageSize: "60 Kapseln (60 Portionen)",
+    price: 11.9, priceRange: "€",    name: "Vitamin Complex", packageSize: "60 Kapseln (60 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Vollständiger Multivitamin-Mineral-Komplex (Kapseln)",
     portionSize: "1 Kapsel",
@@ -3734,7 +3734,7 @@ var PRODUCTS = [
   },
   {
     id: 243,
-    price: 8.9, priceRange: "€",    name: "Vitamin C 500", packageSize: "120 Kautabletten (120 Portionen)",
+    price: 14.9, priceRange: "€",    name: "Vitamin C 500", packageSize: "120 Kautabletten (120 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Vitamin C Kautabletten (500 mg, 3 Geschmacksrichtungen)",
     portionSize: "1 Kautablette",
@@ -3757,7 +3757,7 @@ var PRODUCTS = [
   },
   {
     id: 244,
-    price: 5.9, priceRange: "€",    name: "Vitamin C Effervescent", packageSize: "20 Brausetabletten",
+    price: 6.9, priceRange: "€",    name: "Vitamin C Effervescent", packageSize: "20 Brausetabletten",
     category: "Vitamine & Mineralien",
     subcategory: "Vitamin C Brausetabletten (1000 mg)",
     portionSize: "1 Brausetablette in 200 ml Wasser",
@@ -3780,7 +3780,7 @@ var PRODUCTS = [
   },
   {
     id: 245,
-    price: 12.9, priceRange: "€",    name: "Magnesium+Chelate", packageSize: "60 Kapseln (60 Portionen)",
+    price: 11.9, priceRange: "€",    name: "Magnesium+Chelate", packageSize: "60 Kapseln (60 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Cheliertes Magnesium-Monopräparat (250 mg)",
     portionSize: "1 Kapsel",
@@ -3805,7 +3805,7 @@ var PRODUCTS = [
   },
   {
     id: 246,
-    price: 22.9, priceRange: "€€",    name: "Neuro", packageSize: "60 Kapseln (30 Portionen)",
+    price: 23.9, priceRange: "€€",    name: "Neuro", packageSize: "60 Kapseln (30 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Kognitiver Support-Komplex (Ginkgo, Bacopa, Rhodiola + B-Vitamine)",
     portionSize: "2 Kapseln",
@@ -3865,7 +3865,7 @@ var PRODUCTS = [
   },
   {
     id: 248,
-    price: 14.9, priceRange: "€",    name: "Valeriana Forte", packageSize: "60 Tabletten (20–30 Portionen)",
+    price: 19.5, priceRange: "€",    name: "Valeriana Forte", packageSize: "60 Tabletten (20–30 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Schlaf & Stressreduktion (Baldrian + Melisse + Hopfen + Rhodiola)",
     portionSize: "2–3 Tabletten",
@@ -3895,7 +3895,7 @@ var PRODUCTS = [
   },
   {
     id: 249,
-    price: 9.9, priceRange: "€",    name: "Vitamin E", packageSize: "100 Softgelkapseln (100 Portionen)",
+    price: 17.9, priceRange: "€",    name: "Vitamin E", packageSize: "100 Softgelkapseln (100 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Vitamin E Softgelkapseln (200 mg = 1667 % NRW)",
     portionSize: "1 Softgelkapsel",
@@ -3918,7 +3918,7 @@ var PRODUCTS = [
   },
   {
     id: 250,
-    price: 12.9, priceRange: "€",    name: "Night", packageSize: "60 Kapseln (30 Portionen)",
+    price: 21.5, priceRange: "€",    name: "Night", packageSize: "60 Kapseln (30 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Schlafunterstützung (L-Tryptophan + Sauerkirsche + Mutterkraut)",
     portionSize: "2 Kapseln",
@@ -3945,7 +3945,7 @@ var PRODUCTS = [
   },
   {
     id: 251,
-    price: 14.9, priceRange: "€",    name: "Q10 Coenzyme", packageSize: "60 Kapseln (60 Portionen)",
+    price: 23.5, priceRange: "€",    name: "Q10 Coenzyme", packageSize: "60 Kapseln (60 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Coenzym Q10 Monopräparat (100 mg)",
     portionSize: "1 Kapsel",
@@ -3970,7 +3970,7 @@ var PRODUCTS = [
   },
   {
     id: 252,
-    price: 18.9, priceRange: "€",    name: "H2O Q10", packageSize: "60 Kapseln (60 Portionen)",
+    price: 19.5, priceRange: "€",    name: "H2O Q10", packageSize: "60 Kapseln (60 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "CoQ10 + Antioxidantien-Komplex (Vit C, E, Beta-Carotin, Selen)",
     portionSize: "1 Kapsel",
@@ -4025,7 +4025,7 @@ var PRODUCTS = [
   },
   {
     id: 254,
-    price: 10.9, priceRange: "€",    name: "Pumpkin Seed Oil", packageSize: "60 Softgelkapseln (60 Portionen)",
+    price: 12.9, priceRange: "€",    name: "Pumpkin Seed Oil", packageSize: "60 Softgelkapseln (60 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Kürbiskernöl-Softgelkapseln (600 mg)",
     portionSize: "1 Softgelkapsel",
@@ -4048,7 +4048,7 @@ var PRODUCTS = [
   },
   {
     id: 255,
-    price: 19.9, priceRange: "€",    name: "Immune+Biotiq", packageSize: "36 Kapseln (18 Portionen)",
+    price: 25.5, priceRange: "€",    name: "Immune+Biotiq", packageSize: "36 Kapseln (18 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Probiotika + Immunstärkung Kombipack",
     portionSize: "1 Immune-Kapsel + 1 Biotiq-Kapsel",
@@ -4075,7 +4075,7 @@ var PRODUCTS = [
   },
   {
     id: 256,
-    price: 12.9, priceRange: "€",    name: "Biotiq C", packageSize: "36 Kapseln (36 Portionen)",
+    price: 28.9, priceRange: "€",    name: "Biotiq C", packageSize: "36 Kapseln (36 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Probiotika-Kapseln mit Vitamin C (10 Mrd. KBE)",
     portionSize: "1 Kapsel",
@@ -4099,7 +4099,7 @@ var PRODUCTS = [
   },
   {
     id: 257,
-    price: 10.9, priceRange: "€",    name: "Ginkgo Biloba", packageSize: "90 Tabletten (90 Portionen)",
+    price: 21.5, priceRange: "€",    name: "Ginkgo Biloba", packageSize: "90 Tabletten (90 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Ginkgo-Blatt-Extrakt-Tabletten (80 mg / 24 % Flavonolglykoside)",
     portionSize: "1 Tablette",
@@ -4126,7 +4126,7 @@ var PRODUCTS = [
   },
   {
     id: 258,
-    price: 14.9, priceRange: "€",    name: "Green Coffee", packageSize: "120 Kapseln (60 Portionen)",
+    price: 22.9, priceRange: "€",    name: "Green Coffee", packageSize: "120 Kapseln (60 Portionen)",
     category: "Fettverbrenner",
     subcategory: "Grüner Kaffee-Extrakt mit Chrom (1000 mg / 50 % Chlorogensäure)",
     portionSize: "2 Kapseln",
@@ -4153,7 +4153,7 @@ var PRODUCTS = [
   },
   {
     id: 259,
-    price: 12.9, priceRange: "€",    name: "Resveratrol", packageSize: "60 Kapseln (60 Portionen)",
+    price: 28.9, priceRange: "€",    name: "Resveratrol", packageSize: "60 Kapseln (60 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Trans-Resveratrol-Kapseln (150 mg)",
     portionSize: "1 Kapsel",
@@ -4178,7 +4178,7 @@ var PRODUCTS = [
   },
   {
     id: 260,
-    price: 8.9, priceRange: "€",    name: "Spirulina", packageSize: "100 Tabletten (12 Portionen)",
+    price: 10.5, priceRange: "€",    name: "Spirulina", packageSize: "100 Tabletten (12 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Spirulina-Algenpulver-Tabletten (1800 mg / 4 Tab.)",
     portionSize: "8 Tabletten (Tagesdosis 2 × 4 Tab.)",
@@ -4203,7 +4203,7 @@ var PRODUCTS = [
   },
   {
     id: 261,
-    price: 11.9, priceRange: "€",    name: "Cranberry Complex", packageSize: "60 Tabletten (30 Portionen)",
+    price: 23.9, priceRange: "€",    name: "Cranberry Complex", packageSize: "60 Tabletten (30 Portionen)",
     category: "Vitamine & Mineralien",
     subcategory: "Cranberry + Brennnessel + Vitamin C",
     portionSize: "2 Tabletten",
@@ -4230,7 +4230,7 @@ var PRODUCTS = [
   // ─── BEAUTY LINE – ERGÄNZUNGEN ────────────────────────────────────
   {
     id: 262,
-    price: 22.9, priceRange: "€€",    name: "Clear Collagen", packageSize: "308 g (28 Portionen)",
+    price: 31.9, priceRange: "€€",    name: "Clear Collagen", packageSize: "308 g (28 Portionen)",
     category: "Kollagen",
     subcategory: "Reines Kollagen-Getränkepulver (ohne Komplexformel)",
     portionSize: "11 g",
@@ -4283,7 +4283,7 @@ var PRODUCTS = [
   },
   {
     id: 264,
-    price: 14.9, priceRange: "€",    name: "Collagen & Hyaluronic Caps", packageSize: "30 Kapseln (30 Portionen)",
+    price: 10.9, priceRange: "€",    name: "Collagen & Hyaluronic Caps", packageSize: "30 Kapseln (30 Portionen)",
     category: "Kollagen",
     subcategory: "Kollagen + Hyaluronsäure Kapseln",
     portionSize: "1 Kapsel",
@@ -4309,7 +4309,7 @@ var PRODUCTS = [
   // ─── RIEGEL – ERGÄNZUNGEN ─────────────────────────────────────────
   {
     id: 265,
-    price: 2.1, priceRange: "€",    name: "Protein Muesli Bar", packageSize: "1 Stk. (30 g)",
+    price: 1.3, priceRange: "€",    name: "Protein Muesli Bar", packageSize: "1 Stk. (30 g)",
     category: "Riegel",
     subcategory: "Müsli-Proteinriegel (Hafer + Nüsse + Früchte)",
     portionSize: "30 g (1 Riegel)",
@@ -4335,7 +4335,7 @@ var PRODUCTS = [
   },
   {
     id: 266,
-    price: 1.9, priceRange: "€",    name: "Nuts & Fruits Bar", packageSize: "1 Stk. (40 g)",
+    price: 1.5, priceRange: "€",    name: "Nuts & Fruits Bar", packageSize: "1 Stk. (40 g)",
     category: "Riegel",
     subcategory: "Nuss-Frucht-Riegel (Schokoladenüberzug, natürlich gesüßt)",
     portionSize: "40 g (1 Riegel)",
@@ -4361,7 +4361,7 @@ var PRODUCTS = [
   },
   {
     id: 267,
-    price: 1.9, priceRange: "€",    name: "Nuts & Honey Bar", packageSize: "1 Stk. (35 g)",
+    price: 1.5, priceRange: "€",    name: "Nuts & Honey Bar", packageSize: "1 Stk. (35 g)",
     category: "Riegel",
     subcategory: "Honig-Nuss-Riegel (natürlich gesüßt, kein Zuckerzusatz)",
     portionSize: "35 g (1 Riegel)",
@@ -4385,7 +4385,7 @@ var PRODUCTS = [
   },
   {
     id: 268,
-    price: 2.2, priceRange: "€",    name: "Oat & Nuts Bar", packageSize: "1 Stk. (70 g)",
+    price: 2.0, priceRange: "€",    name: "Oat & Nuts Bar", packageSize: "1 Stk. (70 g)",
     category: "Riegel",
     subcategory: "Hafer-Nuss-Riegel mit ölhaltigen Samen",
     portionSize: "70 g (1 Riegel)",
@@ -4412,7 +4412,7 @@ var PRODUCTS = [
   // ─── HEALTHY LIFESTYLE – ERGÄNZUNGEN ─────────────────────────────
   {
     id: 269,
-    price: 2.9, priceRange: "€",    name: "Protein Tortilla Chips", packageSize: "50 g",
+    price: 3.5, priceRange: "€",    name: "Protein Tortilla Chips", packageSize: "50 g",
     category: "Healthy Lifestyle",
     subcategory: "Protein-Tortilla-Chips (Hafer + Erbsenprotein)",
     portionSize: "25 g (½ Beutel)",
@@ -4437,7 +4437,7 @@ var PRODUCTS = [
   },
   {
     id: 270,
-    price: 9.9, priceRange: "€",    name: "Protein Crispies", packageSize: "450 g (15 Portionen)",
+    price: 34.9, priceRange: "€",    name: "Protein Crispies", packageSize: "450 g (15 Portionen)",
     category: "Healthy Lifestyle",
     subcategory: "Proteinreiches Müsli-Frühstück (Milchprotein-Extrudate)",
     portionSize: "30 g Produkt + 100 ml Halbfettmilch",
@@ -4463,7 +4463,7 @@ var PRODUCTS = [
   },
   {
     id: 271,
-    price: 14.9, priceRange: "€",    name: "Fiber Mix", packageSize: "225 g (15 Portionen)",
+    price: 17.9, priceRange: "€",    name: "Fiber Mix", packageSize: "225 g (15 Portionen)",
     category: "Healthy Lifestyle",
     subcategory: "Pflanzlicher Ballaststoff-Mix (Inulin, Glucomannan, Psyllium)",
     portionSize: "15 g (3 × 5 g täglich)",
@@ -4492,7 +4492,7 @@ var PRODUCTS = [
   },
   {
     id: 272,
-    price: 12.9, priceRange: "€",    name: "Instant Oats", packageSize: "1000 g (10 Portionen)",
+    price: 10.9, priceRange: "€",    name: "Instant Oats", packageSize: "1000 g (10 Portionen)",
     category: "Healthy Lifestyle",
     subcategory: "Instant-Haferflocken (flavoured & unflavoured)",
     portionSize: "100 g",
@@ -4516,7 +4516,7 @@ var PRODUCTS = [
   },
   {
     id: 273,
-    price: 12.9, priceRange: "€",    name: "Protein Brownie", packageSize: "600 g (5 Portionen)",
+    price: 21.9, priceRange: "€",    name: "Protein Brownie", packageSize: "600 g (5 Portionen)",
     category: "Healthy Lifestyle",
     subcategory: "Protein-Brownie-Backmischung (Whey + Kollagen)",
     portionSize: "120 g Backmischung + 30 g Öl + 80 ml Wasser",
@@ -4567,7 +4567,7 @@ var PRODUCTS = [
   },
   {
     id: 275,
-    price: 11.9, priceRange: "€",    name: "Hot Chocolate", packageSize: "450 g (15 Portionen)",
+    price: 22.9, priceRange: "€",    name: "Hot Chocolate", packageSize: "450 g (15 Portionen)",
     category: "Healthy Lifestyle",
     subcategory: "Protein-Heißgetränk (Whey + Milchprotein, Schokolade)",
     portionSize: "30 g",
@@ -4595,7 +4595,7 @@ var PRODUCTS = [
   // ─── ENDURANCE LINE – ERGÄNZUNGEN ────────────────────────────────
   {
     id: 276,
-    price: 16.9, priceRange: "€",    name: "Multi Hypotonic", packageSize: "1000 ml (100 Portionen)",
+    price: 28.9, priceRange: "€",    name: "Multi Hypotonic", packageSize: "1000 ml (100 Portionen)",
     category: "Ausdauer & Energie",
     subcategory: "Hypotones Sportgetränk-Konzentrat (Vitamine, Mineralien, Aminosäuren)",
     portionSize: "10 ml in 300–500 ml Wasser",
@@ -4621,7 +4621,7 @@ var PRODUCTS = [
   },
   {
     id: 277,
-    price: 2.9, priceRange: "€",    name: "Energy Gel", packageSize: "40 g (1 Portion)",
+    price: 2.2, priceRange: "€",    name: "Energy Gel", packageSize: "40 g (1 Portion)",
     category: "Ausdauer & Energie",
     subcategory: "Tri-Carb-Energiegel mit MCT-Öl, L-Carnitin & Taurin",
     portionSize: "40 g (1 Beutel)",
@@ -4649,7 +4649,7 @@ var PRODUCTS = [
   },
   {
     id: 278,
-    price: 3.9, priceRange: "€",    name: "Energy Shot", packageSize: "25 ml Ampulle (1 Portion)",
+    price: 2.2, priceRange: "€",    name: "Energy Shot", packageSize: "25 ml Ampulle (1 Portion)",
     category: "Ausdauer & Energie",
     subcategory: "Flüssiger Energie-Shot (Kohlenhydrate + Taurin + Guarana + L-Arginin)",
     portionSize: "25 ml",
@@ -4677,7 +4677,7 @@ var PRODUCTS = [
   },
   {
     id: 279,
-    price: 2.9, priceRange: "€",    name: "Recovery Gel", packageSize: "40 g (1 Portion)",
+    price: 2.2, priceRange: "€",    name: "Recovery Gel", packageSize: "40 g (1 Portion)",
     category: "Ausdauer & Energie",
     subcategory: "Tri-Carb-Regenerationsgel mit Protein, BCAAs & L-Glutamin",
     portionSize: "40 g (1 Beutel)",
@@ -5849,7 +5849,7 @@ var PRODUCTS = [
   // ─── L-CARNITIN ──────────────────────────────────────────────────
   {
     id: 139,
-    price: 22.9, priceRange: "€€",    name: "Carni Elite", packageSize: "10 Amp. × 25 ml",
+    price: 29.9, priceRange: "€€",    name: "Carni Elite", packageSize: "10 Amp. × 25 ml",
     category: "L-Carnitin",
     subcategory: "Premium L-Carnitin-Komplex (Ampullen, 3 Carnitin-Formen + Chrom)",
     portionSize: "1 Ampulle (25 ml)",
@@ -5981,7 +5981,7 @@ var PRODUCTS = [
   // ─── SÜSSUNGSMITTEL / FOOD ────────────────────────────────────────
   {
     id: 144,
-    price: 22.9, priceRange: "€€",    name: "Zero Sauce", packageSize: "350 ml",
+    price: 8.5, priceRange: "€€",    name: "Zero Sauce", packageSize: "350 ml",
     category: "Süßungsmittel",
     subcategory: "Kalorienfreie Soße (Squeezy-Flasche, für Protein-Mahlzeiten)",
     portionSize: "~15 ml",
@@ -6002,7 +6002,7 @@ var PRODUCTS = [
   },
   {
     id: 145,
-    price: 22.9, priceRange: "€€",    name: "Zero Syrup", packageSize: "500 ml",
+    price: 8.5, priceRange: "€€",    name: "Zero Syrup", packageSize: "500 ml",
     category: "Süßungsmittel",
     subcategory: "Kalorienfreier Sirup (Pancake-Sirup, Getränke-Sirup)",
     portionSize: "~20 ml",
@@ -6046,7 +6046,7 @@ var PRODUCTS = [
   // ─── RIEGEL & SNACKS ─────────────────────────────────────────────
   {
     id: 147,
-    price: 20.5, priceRange: "€",    name: "Rice Pudding", packageSize: "1000 g",
+    price: 16.9, priceRange: "€",    name: "Rice Pudding", packageSize: "1000 g",
     category: "Riegel & Snacks",
     subcategory: "Veganer Instant-Reispudding (100% Reismehl, naturbelassen, ohne Kochen)",
     portionSize: "40 g (4 EL Pulver)",
