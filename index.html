@@ -12053,6 +12053,8 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         setActiveCategory(activeCategory === cat ? "Alle" : cat);
         setActiveProfile(null);
         setSearchQuery("");
+        setShowProfiles(false);
+        setSelectedId(null);
       },
       style: {
         padding: "5px 13px",
@@ -12101,7 +12103,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       margin: "0 auto",
       padding: "14px 16px 90px"
     }
-  }, showFavsOnly && stackFavs.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, showFavsOnly && stackFavs.length > 0 && activeCategory === "Alle" && /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 16
     }
@@ -13253,7 +13255,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       e.stopPropagation();
       const key = "btu_stack_favs";
       try {
-        const nextItem = isFav ? stackFavs.filter(x => x !== goalKey) : [...stackFavs, goalKey];
+        const next = isFav ? stackFavs.filter(x => x !== goalKey) : [...stackFavs, goalKey];
         localStorage.setItem(key, JSON.stringify(next));
         setStackFavs(next);
         window.dispatchEvent(new CustomEvent("btu_stack_fav_change", {
