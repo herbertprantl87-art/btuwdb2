@@ -11275,7 +11275,28 @@ function BioTechDatabase() {
         score: getGoalScore(p, activeProfile)
       }));
       // Always filter by score > 0 — no contradictory products under any goal
-      return scored.filter(x => x.score > 0).sort((a, b) => b.score - a.score).map(x => x.p);
+      // Secondary sort: primary category for this goal comes first on score tie
+      const GOAL_PRIMARY_CAT = {
+        zunehmen: "Gainer & Masseaufbau", abnehmen: "Fettverbrenner",
+        kraft: "Kreatin", ausdauer: "Ausdauer & Energie",
+        definieren: "Protein", muskelaufbau: "Protein",
+        gelenke: "Gelenke & Kollagen", schlaf: "Vitamine & Mineralien",
+        immunsystem: "Vitamine & Mineralien", testosteron: "Testosteron-Booster",
+        beauty: "Kollagen", vegan: "Protein", frauen: "Vitamine & Mineralien",
+        gesundheit: "Vitamine & Mineralien", anfaenger: "Protein",
+        senioren: "Gelenke & Kollagen", energie: "Pre-Workout",
+        regeneration: "Aminosäuren"
+      };
+      const priCat = GOAL_PRIMARY_CAT[activeProfile];
+      return scored.filter(x => x.score > 0).sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        if (priCat) {
+          const aPri = a.p.category === priCat ? 1 : 0;
+          const bPri = b.p.category === priCat ? 1 : 0;
+          if (bPri !== aPri) return bPri - aPri;
+        }
+        return 0;
+      }).map(x => x.p);
     }
     const mode = detectMode(q);
     if (mode.mode === "nutrient") {
