@@ -11776,7 +11776,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       flexShrink: 0
     }
   }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowFavsOnly(v => !v),
+    onClick: () => { setShowFavsOnly(v => !v); setActiveProfile(null); setSearchQuery(""); },
     style: {
       fontSize: 10,
       fontWeight: 700,
@@ -11793,7 +11793,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
     }
   }, "\u2B50 ", t.favorites, favorites.length + stackFavs.length > 0 ? ` (${favorites.length + stackFavs.length})` : ""), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDietFilter(dietFilter === "vegan" ? null : "vegan"),
+    onClick: () => { setDietFilter(dietFilter === "vegan" ? null : "vegan"); setActiveProfile(null); setSearchQuery(""); setActiveCategory("Alle"); },
     style: {
       fontSize: 10,
       fontWeight: 700,
@@ -11810,7 +11810,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
     }
   }, "\uD83C\uDF31 ", t.vegan), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDietFilter(dietFilter === "laktosefrei" ? null : "laktosefrei"),
+    onClick: () => { setDietFilter(dietFilter === "laktosefrei" ? null : "laktosefrei"); setActiveProfile(null); setSearchQuery(""); setActiveCategory("Alle"); },
     style: {
       fontSize: 10,
       fontWeight: 700,
@@ -11827,7 +11827,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
     }
   }, "\uD83C\uDF31 ", "Laktosefrei"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDietFilter(dietFilter === "glutenfrei" ? null : "glutenfrei"),
+    onClick: () => { setDietFilter(dietFilter === "glutenfrei" ? null : "glutenfrei"); setActiveProfile(null); setSearchQuery(""); setActiveCategory("Alle"); },
     style: {
       fontSize: 10,
       fontWeight: 700,
@@ -11844,7 +11844,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
     }
   }, "\uD83C\uDF31 ", "Glutenfrei"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDietFilter(dietFilter === "stimfrei" ? null : "stimfrei"),
+    onClick: () => { setDietFilter(dietFilter === "stimfrei" ? null : "stimfrei"); setActiveProfile(null); setSearchQuery(""); setActiveCategory("Alle"); },
     style: {
       fontSize: 10,
       fontWeight: 700,
@@ -11861,7 +11861,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
     }
   }, "\uD83C\uDF31 ", "Stimfrei"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDietFilter(dietFilter === "diabetiker" ? null : "diabetiker"),
+    onClick: () => { setDietFilter(dietFilter === "diabetiker" ? null : "diabetiker"); setActiveProfile(null); setSearchQuery(""); setActiveCategory("Alle"); },
     style: {
       fontSize: 10,
       fontWeight: 700,
@@ -11878,7 +11878,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
     }
   }, "\uD83C\uDF31 ", "Diabetiker"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDietFilter(dietFilter === "halal" ? null : "halal"),
+    onClick: () => { setDietFilter(dietFilter === "halal" ? null : "halal"); setActiveProfile(null); setSearchQuery(""); setActiveCategory("Alle"); },
     style: {
       fontSize: 10,
       fontWeight: 700,
