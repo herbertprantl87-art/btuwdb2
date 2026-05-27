@@ -11274,11 +11274,7 @@ function BioTechDatabase() {
         p,
         score: getGoalScore(p, activeProfile)
       }));
-      // When a specific category is selected, show ALL products in it (sorted by score)
-      // When "Alle" is selected, hide products with score 0
-      if (activeCategory !== "Alle") {
-        return scored.sort((a, b) => b.score - a.score).map(x => x.p);
-      }
+      // Always filter by score > 0 — no contradictory products under any goal
       return scored.filter(x => x.score > 0).sort((a, b) => b.score - a.score).map(x => x.p);
     }
     const mode = detectMode(q);
