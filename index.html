@@ -11265,8 +11265,12 @@ function BioTechDatabase() {
       }
       return base;
     }
+    // Goals that imply an automatic diet filter for the product list below the stack
+    const GOAL_IMPLIED_DIET = { vegan: p => p.vegan === true };
+    const impliedDietFn = (activeProfile && GOAL_IMPLIED_DIET[activeProfile]) || null;
     if (activeProfile && !q) {
-      const scored = PRODUCTS.filter(p => !p.refOnly && catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p)).map(p => ({
+      const effectiveDiet = p => (impliedDietFn ? impliedDietFn(p) : true) && dietFn(p);
+      const scored = PRODUCTS.filter(p => !p.refOnly && catFilter(p) && favFilter(p) && effectiveDiet(p) && priceFn(p)).map(p => ({
         p,
         score: getGoalScore(p, activeProfile)
       }));
