@@ -11247,7 +11247,24 @@ function BioTechDatabase() {
     const isWadaCat = activeCategory.startsWith("\u26a0\ufe0f");
     const refCheck = p => isWadaCat ? p.refOnly === true : !p.refOnly;
     const fullFilter = p => refCheck(p) && catFilter(p) && favFilter(p) && (isWadaCat || (dietFn(p) && priceFn(p)));
-    if (!q && !activeProfile) return PRODUCTS.filter(fullFilter);
+    if (!q && !activeProfile) {
+      const base = PRODUCTS.filter(fullFilter);
+      // When a diet filter is active with no goal/search, sort by category relevance
+      // so the most important products (e.g. Vegan Protein for vegan filter) appear first
+      const dietGoalMap = {
+        vegan: "vegan",
+        laktosefrei: "anfaenger",
+        glutenfrei: "anfaenger",
+        stimfrei: "kraft",
+        diabetiker: "gesundheit"
+      };
+      const mappedGoal = dietFilter && dietGoalMap[dietFilter];
+      if (mappedGoal && activeCategory === "Alle") {
+        return base.map(p => ({ p, score: getGoalScore(p, mappedGoal) }))
+          .sort((a, b) => b.score - a.score).map(x => x.p);
+      }
+      return base;
+    }
     if (activeProfile && !q) {
       const scored = PRODUCTS.filter(p => !p.refOnly && catFilter(p) && favFilter(p) && dietFn(p) && priceFn(p)).map(p => ({
         p,
