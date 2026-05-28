@@ -11712,8 +11712,8 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         user.store || (GEBIETE.find(g => g.value === user.gebiet) || {}).label || user.gebiet || "▾")
     ),
     userMenuOpen && /*#__PURE__*/React.createElement("div", {
-      style: { position: "absolute", right: 0, top: "calc(100% + 8px)", background: "#fff", borderRadius: 10,
-               boxShadow: "0 8px 32px rgba(0,0,0,0.18)", minWidth: 180, zIndex: 500, overflow: "hidden",
+      style: { position: "fixed", right: 8, top: 52, background: "#fff", borderRadius: 10,
+               boxShadow: "0 8px 32px rgba(0,0,0,0.18)", minWidth: 200, zIndex: 500, overflow: "hidden",
                border: "1px solid #eee" }
     },
       /*#__PURE__*/React.createElement("div", { style: { padding: "12px 16px", borderBottom: "1px solid #f0f0f0" } },
@@ -12468,14 +12468,14 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
           onChange: e => setLoginInput(p => ({ ...p, username: e.target.value })),
           onKeyDown: e => e.key === "Enter" && doCheckUsername(),
           style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
-                   border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13,
+                   border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 16,
                    fontFamily: FONT, outline: "none", marginBottom: 16 }
         }),
         /*#__PURE__*/React.createElement("button", {
           onClick: doCheckUsername,
           disabled: loginLoading || !loginInput.username.trim(),
           style: { width: "100%", padding: "11px 0", background: "#c8102e", color: "#fff",
-                   border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
+                   border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, minHeight: 48,
                    cursor: loginLoading ? "wait" : "pointer", fontFamily: FONT, opacity: !loginInput.username.trim() ? 0.5 : 1 }
         }, loginLoading ? "Prüfe…" : "Weiter →")
       ),
@@ -12488,7 +12488,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
           onChange: e => setLoginInput(p => ({ ...p, gebiet: e.target.value, store: "" })),
           style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
                    border: "1.5px solid " + (loginInput.gebiet ? "#e0e0e0" : "#c8102e"),
-                   borderRadius: 8, fontSize: 13, fontFamily: FONT, outline: "none",
+                   borderRadius: 8, fontSize: 16, fontFamily: FONT, outline: "none",
                    marginBottom: 10, background: "#fff", color: loginInput.gebiet ? "#1a1a1a" : "#999",
                    appearance: "none", WebkitAppearance: "none" }
         },
@@ -12502,7 +12502,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
             value: loginInput.name,
             onChange: e => setLoginInput(p => ({ ...p, name: e.target.value })),
             style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
-                     border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13,
+                     border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 16,
                      fontFamily: FONT, outline: "none", marginBottom: 10 }
           }),
         /*#__PURE__*/React.createElement("input", {
@@ -12511,7 +12511,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
           onChange: e => setLoginInput(p => ({ ...p, password: e.target.value })),
           onKeyDown: e => e.key === "Enter" && doRegister(),
           style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
-                   border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13,
+                   border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 16,
                    fontFamily: FONT, outline: "none", marginBottom: 10 }
         }),
         /*#__PURE__*/React.createElement("input", {
@@ -12520,7 +12520,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
           onChange: e => setLoginInput(p => ({ ...p, password2: e.target.value })),
           onKeyDown: e => e.key === "Enter" && doRegister(),
           style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
-                   border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13,
+                   border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 16,
                    fontFamily: FONT, outline: "none", marginBottom: loginError ? 8 : 16 }
         }),
         loginError && /*#__PURE__*/React.createElement("div",
@@ -12528,13 +12528,13 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         /*#__PURE__*/React.createElement("div", { style: { display: "flex", gap: 8 } },
           /*#__PURE__*/React.createElement("button", {
             onClick: () => { setLoginStep("username"); setLoginError(""); setLoginInput(p => ({ ...p, password: "", password2: "" })); },
-            style: { padding: "11px 16px", background: "#f0f0f0", color: "#555", border: "none",
-                     borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: FONT }
+            style: { padding: "13px 16px", background: "#f0f0f0", color: "#555", border: "none",
+                     borderRadius: 10, fontSize: 14, fontWeight: 700, minHeight: 48, cursor: "pointer", fontFamily: FONT }
           }, "← Zurück"),
           /*#__PURE__*/React.createElement("button", {
             onClick: doRegister, disabled: loginLoading,
-            style: { flex: 1, padding: "11px 0", background: "#c8102e", color: "#fff",
-                     border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
+            style: { flex: 1, padding: "13px 0", background: "#c8102e", color: "#fff",
+                     border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, minHeight: 48,
                      cursor: loginLoading ? "wait" : "pointer", fontFamily: FONT }
           }, loginLoading ? "Erstelle…" : "Konto erstellen →")
         )
@@ -16229,7 +16229,7 @@ function MeinQuizPage(props) {
   var erledigte = (quizzes || []).filter(function(q) { return !!getResult(q.id); });
 
   return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
-    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 80px 0" } },
+    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 calc(80px + env(safe-area-inset-bottom)) 0" } },
       // Header
       React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
         React.createElement("button", { onClick: onBack, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "← Zurück"),
@@ -16384,7 +16384,7 @@ function QuizTaker(props) {
           ),
           React.createElement("div", { style: { display: "flex", gap: 10 } },
             React.createElement("button", { onClick: onBack, style: { padding: "11px 16px", background: "#f0f0f0", color: "#555", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Zurück"),
-            React.createElement("button", { onClick: function() { setPhase("playing"); }, style: { flex: 1, padding: "11px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Quiz starten →")
+            React.createElement("button", { onClick: function() { setPhase("playing"); }, style: { flex: 1, padding: "14px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: FONT, minHeight: 48 } }, "Quiz starten →")
           )
         )
       )
@@ -16394,7 +16394,7 @@ function QuizTaker(props) {
   if (phase === "playing" && q) {
     var progress = ((idx) / questions.length) * 100;
     return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 210, overflowY: "auto", fontFamily: FONT } },
-      React.createElement("div", { style: { maxWidth: 600, margin: "0 auto", padding: "0 0 80px 0" } },
+      React.createElement("div", { style: { maxWidth: 600, margin: "0 auto", padding: "0 0 calc(80px + env(safe-area-inset-bottom)) 0" } },
         React.createElement("div", { style: { background: RED, padding: "14px 20px" } },
           React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
             React.createElement("div", { style: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: 600 } }, quiz.titel),
@@ -16418,8 +16418,8 @@ function QuizTaker(props) {
               onClick: function() { handleMC(q.id, oi); },
               style: { display: "block", width: "100%", textAlign: "left", padding: "14px 18px", background: selected ? RED : "#fff",
                        color: selected ? "#fff" : "#333", border: "2px solid " + (selected ? RED : "#e8e8e8"),
-                       borderRadius: 12, fontSize: 14, fontWeight: selected ? 700 : 400,
-                       cursor: "pointer", fontFamily: FONT, marginBottom: 8, transition: "all .15s" }
+                       borderRadius: 12, fontSize: 15, fontWeight: selected ? 700 : 400, minHeight: 52,
+                       cursor: "pointer", fontFamily: FONT, marginBottom: 10, transition: "all .15s" }
             }, opt);
           }),
           q.typ === "freitext" && React.createElement("textarea", {
@@ -16427,7 +16427,7 @@ function QuizTaker(props) {
             onChange: function(e) { handleText(q.id, e.target.value); },
             placeholder: "Antworte in vollständigen Sätzen…",
             rows: 4,
-            style: { width: "100%", boxSizing: "border-box", padding: "12px 16px", border: "2px solid #e9d5ff", borderRadius: 12, fontSize: 14, fontFamily: FONT, resize: "vertical", outline: "none", lineHeight: 1.6, background: "#faf5ff" }
+            style: { width: "100%", boxSizing: "border-box", padding: "12px 16px", border: "2px solid #e9d5ff", borderRadius: 12, fontSize: 16, fontFamily: FONT, resize: "vertical", outline: "none", lineHeight: 1.6, background: "#faf5ff" }
           }),
           React.createElement("div", { style: { display: "flex", gap: 10, marginTop: 20 } },
             idx > 0 && React.createElement("button", {
@@ -16440,7 +16440,7 @@ function QuizTaker(props) {
                 else { finishQuiz(); }
               },
               disabled: !canNext || saving,
-              style: { flex: 1, padding: "12px 0", background: canNext ? RED : "#ccc", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: canNext ? "pointer" : "default", fontFamily: FONT }
+              style: { flex: 1, padding: "14px 0", background: canNext ? RED : "#ccc", color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: canNext ? "pointer" : "default", fontFamily: FONT, minHeight: 48 }
             }, saving ? "Speichere…" : idx < questions.length - 1 ? "Weiter →" : "Abschließen ✓")
           )
         )
@@ -16470,7 +16470,7 @@ function QuizTaker(props) {
           ),
           React.createElement("button", {
             onClick: onDone,
-            style: { width: "100%", padding: "12px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT }
+            style: { width: "100%", padding: "14px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: FONT, minHeight: 48 }
           }, "← Zur Übersicht")
         )
       )
@@ -16550,7 +16550,7 @@ function AuswertungPage(props) {
   if (selUser) {
     var userResults = results.filter(function(r) { return r.user_id === selUser.id; });
     return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
-      React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 80px 0" } },
+      React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 calc(80px + env(safe-area-inset-bottom)) 0" } },
         React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
           React.createElement("button", { onClick: function() { setSelUser(null); setUserAnswers([]); }, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "←"),
           React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 15 } }, selUser.name || selUser.id),
@@ -16617,7 +16617,7 @@ function AuswertungPage(props) {
   }
 
   return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
-    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 80px 0" } },
+    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 calc(80px + env(safe-area-inset-bottom)) 0" } },
       React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
         React.createElement("button", { onClick: onBack, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "← Zurück"),
         React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 16 } }, "📊 Auswertung"),
@@ -16736,7 +16736,7 @@ function QuizCreatorPage(props) {
 
   if (view === "new") {
     return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
-      React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 100px 0" } },
+      React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 calc(100px + env(safe-area-inset-bottom)) 0" } },
         React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
           React.createElement("button", { onClick: function() { setView("list"); setError(""); }, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "← Zurück"),
           React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 16 } }, "Neues Quiz erstellen")
@@ -16746,9 +16746,9 @@ function QuizCreatorPage(props) {
           React.createElement("div", { style: { background: "#fff", borderRadius: 12, padding: "18px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
             React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 } }, "Quiz-Infos"),
             React.createElement("input", { type: "text", placeholder: "Titel (z.B. Produktquiz Mai 2026)", value: titel, onChange: function(e) { setTitel(e.target.value); },
-              style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 14, fontFamily: FONT, outline: "none", marginBottom: 10 } }),
+              style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 16, fontFamily: FONT, outline: "none", marginBottom: 10 } }),
             React.createElement("input", { type: "text", placeholder: "Monat (Format: 2026-06)", value: monat, onChange: function(e) { setMonat(e.target.value); },
-              style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 14, fontFamily: FONT, outline: "none" } })
+              style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 16, fontFamily: FONT, outline: "none" } })
           ),
           // Fragen
           fragen.map(function(f, fi) {
@@ -16767,7 +16767,7 @@ function QuizCreatorPage(props) {
               ),
               React.createElement("textarea", { value: f.frage, onChange: function(e) { updateFrage(fi, "frage", e.target.value); },
                 placeholder: "Fragentext…", rows: 2,
-                style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 14, fontFamily: FONT, resize: "vertical", outline: "none", marginBottom: f.typ === "mc" ? 12 : 0 } }),
+                style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 16, fontFamily: FONT, resize: "vertical", outline: "none", marginBottom: f.typ === "mc" ? 12 : 0 } }),
               f.typ === "mc" && React.createElement(React.Fragment, null,
                 f.antworten.map(function(opt, ai) {
                   var isCorrect = f.korrekte_antwort === ai;
@@ -16776,20 +16776,20 @@ function QuizCreatorPage(props) {
                       style: { width: 26, height: 26, flexShrink: 0, background: isCorrect ? "#16a34a" : "#e0e0e0", color: isCorrect ? "#fff" : "#888", border: "none", borderRadius: "50%", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: FONT } }, isCorrect ? "✓" : (ai + 1)),
                     React.createElement("input", { type: "text", value: opt, placeholder: "Antwort " + (ai + 1) + (isCorrect ? " (korrekt)" : ""),
                       onChange: function(e) { updateAntwort(fi, ai, e.target.value); },
-                      style: { flex: 1, padding: "8px 12px", border: "1.5px solid " + (isCorrect ? "#86efac" : "#e0e0e0"), borderRadius: 8, fontSize: 13, fontFamily: FONT, outline: "none", background: isCorrect ? "#f0fdf4" : "#fff" } })
+                      style: { flex: 1, padding: "8px 12px", border: "1.5px solid " + (isCorrect ? "#86efac" : "#e0e0e0"), borderRadius: 8, fontSize: 16, fontFamily: FONT, outline: "none", background: isCorrect ? "#f0fdf4" : "#fff" } })
                   );
                 })
               )
             );
           }),
           React.createElement("button", { onClick: addFrage,
-            style: { width: "100%", padding: "12px 0", background: "#f0f0f0", color: "#555", border: "2px dashed #ccc", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT, marginBottom: 16 } }, "+ Frage hinzufügen"),
+            style: { width: "100%", padding: "14px 0", background: "#f0f0f0", color: "#555", border: "2px dashed #ccc", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT, marginBottom: 16, minHeight: 48 } }, "+ Frage hinzufügen"),
           error && React.createElement("div", { style: { color: RED, fontSize: 13, marginBottom: 12, padding: "10px 14px", background: "#fff0f0", borderRadius: 8 } }, error),
           React.createElement("div", { style: { display: "flex", gap: 10, marginBottom: 20 } },
             React.createElement("button", { onClick: function() { saveQuiz("entwurf"); }, disabled: saving,
-              style: { flex: 1, padding: "12px 0", background: "#f0f0f0", color: "#555", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Als Entwurf speichern"),
+              style: { flex: 1, padding: "14px 0", background: "#f0f0f0", color: "#555", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT, minHeight: 48 } }, "Als Entwurf speichern"),
             React.createElement("button", { onClick: function() { saveQuiz("aktiv"); }, disabled: saving,
-              style: { flex: 1, padding: "12px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: saving ? "wait" : "pointer", fontFamily: FONT } }, saving ? "Speichere…" : "Veröffentlichen →")
+              style: { flex: 1, padding: "14px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: saving ? "wait" : "pointer", fontFamily: FONT, minHeight: 48 } }, saving ? "Speichere…" : "Veröffentlichen →")
           )
         )
       )
@@ -16797,7 +16797,7 @@ function QuizCreatorPage(props) {
   }
 
   return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
-    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 80px 0" } },
+    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 calc(80px + env(safe-area-inset-bottom)) 0" } },
       React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
         React.createElement("button", { onClick: onBack, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "← Zurück"),
         React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 16 } }, "✏️ Quiz-Creator"),
@@ -16839,6 +16839,12 @@ root.render(/*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/R
 @keyframes btu-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .btu-tw{overflow:hidden;margin-top:5px}
 .btu-ti{display:inline-block;white-space:nowrap;font-size:10px;color:#bbb;animation:btu-scroll 22s linear infinite}
+/* Mobile: prevent iOS input zoom, better tap targets */
+@media (max-width: 768px) {
+  input, select, textarea { font-size: 16px !important; }
+  button { min-height: 44px; }
+  * { -webkit-tap-highlight-color: transparent; }
+}
 </style>
 <script>
 (function(){
