@@ -2839,7 +2839,7 @@ var PRODUCTS = [
   {
     id: 102,
     price: 10.9, priceRange: "€€",    name: "Peanut Butter", packageSize: "400 g",
-    category: "Riegel & Snacks",
+    category: "Riegel & Snacks", tags: ["Gainer & Masseaufbau"],
     subcategory: "Natürliche Erdnussbutter (100 % Erdnüsse, kein Palmöl)",
     portionSize: "32 g (2 EL)",
     kcalPortion: 190,
@@ -4493,7 +4493,7 @@ var PRODUCTS = [
   {
     id: 272,
     price: 10.9, priceRange: "€",    name: "Instant Oats", packageSize: "1000 g (10 Portionen)",
-    category: "Healthy Lifestyle",
+    category: "Healthy Lifestyle", tags: ["Gainer & Masseaufbau"],
     subcategory: "Instant-Haferflocken (flavoured & unflavoured)",
     portionSize: "100 g",
     kcalPortion: 404,
@@ -6047,7 +6047,7 @@ var PRODUCTS = [
   {
     id: 147,
     price: 16.9, priceRange: "€",    name: "Rice Pudding", packageSize: "1000 g",
-    category: "Riegel & Snacks",
+    category: "Riegel & Snacks", tags: ["Gainer & Masseaufbau"],
     subcategory: "Veganer Instant-Reispudding (100% Reismehl, naturbelassen, ohne Kochen)",
     portionSize: "40 g (4 EL Pulver)",
     kcalPortion: "146",
@@ -11231,7 +11231,7 @@ function BioTechDatabase() {
   const [customTick, setCustomTick] = React.useState(0);
   const filtered = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    const catFilter = p => activeCategory === "Alle" || p.category === activeCategory;
+    const catFilter = p => activeCategory === "Alle" || p.category === activeCategory || (p.tags && p.tags.includes(activeCategory));
     const favFilter = p => !showFavsOnly || favorites.includes(p.id);
     const dietFn = p => {
       if (!dietFilter) return true;
