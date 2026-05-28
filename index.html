@@ -14516,7 +14516,7 @@ function ProduktberaterModal(props) {
     });
 
     var scored = filtered.map(function(p) {
-      var cats = BERAT_CAT_MAP[p.category] || [];
+      var _allCats = [p.category].concat(p.tags || []); var cats = _allCats.reduce(function(acc,c){var m=BERAT_CAT_MAP[c]||[];return acc.concat(m.filter(function(v){return acc.indexOf(v)<0;}));}, []);
       // Hard-filter: wenn Nutzer "vegan" gewählt hat, nur vegane Produkte einbeziehen
       if (scoringIds.indexOf("vegan") !== -1 && p.vegan !== true) return;
       var score = 0;
