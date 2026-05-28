@@ -8186,18 +8186,42 @@ var PROFILES = [
 // ═══════════════════════════════════════════════════════════════════════
 var GEBIETE = [
   // Superadmin — nur sichtbar nach Triple-Click auf Logo
-  { value: "Alle Gebiete",         label: "Alle Gebiete – Richard",  role: "superadmin",    glOnly: true  },
-  { value: "NRW/Hessen-Herbert",   label: "NRW/Hessen – Herbert",    role: "superadmin",    glOnly: true  },
+  { value: "Alle Gebiete",         label: "Alle Gebiete – Richard",    role: "superadmin",    glOnly: true  },
+  { value: "NRW/Hessen-Herbert",   label: "NRW/Hessen – Herbert",      role: "superadmin",    glOnly: true  },
+  { value: "Schulungsleiter",      label: "Schulungsleiter – Carmelo", role: "carmelo",       glOnly: true  },
   // GL-Zugänge — nur sichtbar nach Triple-Click auf Logo
-  { value: "Bayern-Roman",         label: "Bayern – Roman",           role: "gebietsleiter", glOnly: true  },
-  { value: "Bayern-Szabolcs",      label: "Bayern – Szabolcs",        role: "gebietsleiter", glOnly: true  },
-  { value: "Berlin-Chris",         label: "Berlin – Chris",           role: "gebietsleiter", glOnly: true  },
-  { value: "Berlin-Alem",          label: "Berlin – Alem",            role: "gebietsleiter", glOnly: true  },
+  { value: "Bayern-Roman",         label: "Bayern – Roman",             role: "gebietsleiter", glOnly: true  },
+  { value: "Bayern-Szabolcs",      label: "Bayern – Szabolcs",          role: "gebietsleiter", glOnly: true  },
+  { value: "Berlin-Chris",         label: "Berlin – Chris",             role: "gebietsleiter", glOnly: true  },
+  { value: "Berlin-Alem",          label: "Berlin – Alem",              role: "gebietsleiter", glOnly: true  },
   // Mitarbeiter-Gebiete — immer sichtbar
-  { value: "NRW/Hessen",           label: "NRW/Hessen",                role: "mitarbeiter",   glOnly: false },
-  { value: "Bayern",               label: "Bayern",                    role: "mitarbeiter",   glOnly: false },
-  { value: "Berlin",               label: "Berlin",                    role: "mitarbeiter",   glOnly: false },
+  { value: "NRW/Hessen",           label: "NRW/Hessen",                 role: "mitarbeiter",   glOnly: false },
+  { value: "Bayern",               label: "Bayern",                     role: "mitarbeiter",   glOnly: false },
+  { value: "Berlin",               label: "Berlin",                     role: "mitarbeiter",   glOnly: false },
 ];
+// Stores pro Gebiet
+var STORES_BY_REGION = {
+  "NRW/Hessen": [
+    "Limbecker Platz Essen",
+    "LOOM Bielefeld",
+    "Thier-Galerie Dortmund",
+    "Düsseldorf Arcaden",
+    "City-Galerie Siegen",
+    "Forum Hanau"
+  ],
+  "Bayern": [
+    "Myzeil Frankfurt",
+    "Skyline Plaza Frankfurt"
+  ],
+  "Berlin": [
+    "RheinCenter Köln"
+  ]
+};
+function getStoresForGebiet(g) {
+  if (!g) return [];
+  var region = getGebietRegion(g);
+  return (region && STORES_BY_REGION[region]) || [];
+}
 function getRoleForGebiet(g) {
   var entry = GEBIETE.find(function(e){ return e.value === g; });
   return entry ? entry.role : "mitarbeiter";
@@ -8206,11 +8230,17 @@ function getRoleForGebiet(g) {
 function getGebietRegion(g) {
   if (!g) return '';
   if (g === 'Alle Gebiete') return null; // sieht alle Regionen
+  if (g === 'Schulungsleiter') return null; // Carmelo sieht alle
   if (g.startsWith('NRW')) return 'NRW/Hessen';
   if (g.startsWith('Bayern')) return 'Bayern';
   if (g.startsWith('Berlin')) return 'Berlin';
   return g;
 }
+// Hilfsfunktionen für Rollen
+function isSuperRole(role) { return role === 'superadmin' || role === 'carmelo'; }
+function isGLRole(role) { return role === 'gebietsleiter' || isSuperRole(role); }
+function canCreateQuiz(role) { return role === 'carmelo'; }
+function canReviewAnswers(role) { return role === 'carmelo' || role === 'superadmin'; }
 
 // ═══════════════════════════════════════════════════════════════════════
 //  EINWAND-DATENBANK (pro Produkt-ID)
@@ -11016,7 +11046,7 @@ function BioTechDatabase() {
       return null;
     }
   });
-  const [loginInput, setLoginInput] = React.useState({ username: "", password: "", password2: "", gebiet: "" });
+  const [loginInput, setLoginInput] = React.useState({ username: "", password: "", password2: "", gebiet: "", name: "", store: "" });
   const [loginStep, setLoginStep] = React.useState("username"); // 'username' | 'register' | 'password'
   const [loginLoading, setLoginLoading] = React.useState(false);
   const [loginError, setLoginError] = React.useState("");
@@ -11051,11 +11081,17 @@ function BioTechDatabase() {
     setLoginError("");
     const [rows, profRows] = await Promise.all([
       SB.get("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value"),
-      SB.get("profiles?id=eq." + encodeURIComponent(username) + "&select=gebiet,role")
+      SB.get("profiles?id=eq." + encodeURIComponent(username) + "&select=gebiet,role,name,store")
     ]);
     setLoginLoading(false);
-    if (profRows && profRows[0] && profRows[0].gebiet) {
-      setLoginInput(p => ({ ...p, gebiet: profRows[0].gebiet }));
+    if (profRows && profRows[0]) {
+      const p = profRows[0];
+      setLoginInput(prev => ({
+        ...prev,
+        gebiet: p.gebiet || prev.gebiet,
+        name: p.name || prev.name,
+        store: p.store || prev.store
+      }));
     }
     if (rows && rows[0]) {
       setLoginStep("password");
@@ -11068,7 +11104,11 @@ function BioTechDatabase() {
     const username = loginInput.username.trim().toLowerCase();
     const pw = loginInput.password;
     const pw2 = loginInput.password2;
+    const nameVal = loginInput.name.trim();
+    const role = getRoleForGebiet(loginInput.gebiet);
     if (!loginInput.gebiet) { setLoginError("Bitte Gebiet auswählen"); return; }
+    if (role === "mitarbeiter" && !nameVal) { setLoginError("Bitte Vorname eingeben"); return; }
+    if (role === "mitarbeiter" && !loginInput.store) { setLoginError("Bitte Store auswählen"); return; }
     if (pw.length < 4) { setLoginError("Passwort mind. 4 Zeichen"); return; }
     if (pw !== pw2) { setLoginError("Passwörter stimmen nicht überein"); return; }
     setLoginLoading(true);
@@ -11086,7 +11126,7 @@ function BioTechDatabase() {
         body: JSON.stringify({ key: "auth_user__" + username, value: { hash } })
       });
       if (!res.ok) throw new Error("Supabase error " + res.status);
-      finishLogin(username, loginInput.gebiet);
+      finishLogin(username, loginInput.gebiet, nameVal, loginInput.store);
     } catch(e) {
       setLoginLoading(false);
       setLoginError("Verbindungsfehler — bitte nochmal versuchen.");
@@ -11107,12 +11147,13 @@ function BioTechDatabase() {
       setLoginError("Falsches Passwort");
       return;
     }
-    finishLogin(username, loginInput.gebiet);
+    finishLogin(username, loginInput.gebiet, loginInput.name, loginInput.store);
   };
 
-  const finishLogin = (username, gebiet) => {
+  const finishLogin = (username, gebiet, nameVal, storeVal) => {
     const role = getRoleForGebiet(gebiet || "");
-    const u = { username, key: username, first: username, last: "", gebiet: gebiet || "", role };
+    const displayName = (nameVal || "").trim() || username;
+    const u = { username, key: username, first: displayName, last: "", gebiet: gebiet || "", role, store: storeVal || "" };
     try { sessionStorage.setItem("btu_session", JSON.stringify(u)); } catch {}
     try { localStorage.setItem("btu_user", JSON.stringify(u)); } catch {}
     setUser(u);
@@ -11122,7 +11163,7 @@ function BioTechDatabase() {
       const localFavs = JSON.parse(localStorage.getItem("btu_favs_" + username) || "[]");
       if (localFavs.length) setFavorites(localFavs);
     } catch {}
-    SB.upsert("profiles", { id: username, first_name: username, last_name: "", gebiet: gebiet || "", role });
+    SB.upsert("profiles", { id: username, name: displayName, first_name: displayName, last_name: "", gebiet: gebiet || "", role, store: storeVal || "" });
     SB.get("favorites?profile_id=eq." + username + "&select=product_ids").then(rows => {
       if (rows && rows[0] && Array.isArray(rows[0].product_ids)) {
         const sbFavs = rows[0].product_ids;
@@ -11151,10 +11192,24 @@ function BioTechDatabase() {
     setNotesText("");
     setSelectedId(null);
     setLoginStep("username");
-    setLoginInput({ username: "", password: "", password2: "", gebiet: "" });
+    setLoginInput({ username: "", password: "", password2: "", gebiet: "", name: "", store: "" });
     setLoginError("");
     setLoginGLMode(false);
+    setActiveView(null);
+    setUserMenuOpen(false);
   };
+  const [activeView, setActiveView] = React.useState(null); // null | 'mein-quiz' | 'auswertung' | 'quiz-creator'
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const userMenuRef = React.useRef(null);
+  React.useEffect(() => {
+    if (!userMenuOpen) return;
+    const handler = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("touchstart", handler); };
+  }, [userMenuOpen]);
   const [activeCategory, setActiveCategory] = React.useState("Alle");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedId, setSelectedId] = React.useState(null);
@@ -11634,25 +11689,67 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       marginLeft: 4
     }
   }, "🔍 ", lang === 'de' ? "Berater" : "Advisor"), user ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: "right",
-      cursor: "pointer"
+    ref: userMenuRef,
+    style: { position: "relative", textAlign: "right" }
+  },
+    /*#__PURE__*/React.createElement("div", {
+      style: { cursor: "pointer" },
+      onClick: () => setUserMenuOpen(v => !v),
+      title: "Menü"
     },
-    onClick: doLogout,
-    title: "Abmelden"
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      fontWeight: 700,
-      color: "#fff"
-    }
-  }, user.first, " ", user.last), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      color: "rgba(255,255,255,0.6)",
-      fontWeight: 600
-    }
-  }, t.logout)) : /*#__PURE__*/React.createElement("div", {
+      /*#__PURE__*/React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: "#fff" } },
+        user.first, user.last ? " " + user.last : ""),
+      /*#__PURE__*/React.createElement("div", { style: { fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 600 } },
+        user.store || (GEBIETE.find(g => g.value === user.gebiet) || {}).label || user.gebiet || "▾")
+    ),
+    userMenuOpen && /*#__PURE__*/React.createElement("div", {
+      style: { position: "absolute", right: 0, top: "calc(100% + 8px)", background: "#fff", borderRadius: 10,
+               boxShadow: "0 8px 32px rgba(0,0,0,0.18)", minWidth: 180, zIndex: 500, overflow: "hidden",
+               border: "1px solid #eee" }
+    },
+      /*#__PURE__*/React.createElement("div", { style: { padding: "12px 16px", borderBottom: "1px solid #f0f0f0" } },
+        /*#__PURE__*/React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: "#1a1a1a" } }, user.first),
+        /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, color: "#888", marginTop: 2 } }, user.store || user.gebiet)
+      ),
+      /*#__PURE__*/React.createElement("button", {
+        onClick: () => { setActiveView("mein-quiz"); setUserMenuOpen(false); },
+        style: { display: "block", width: "100%", textAlign: "left", padding: "10px 16px",
+                 background: activeView === "mein-quiz" ? "#fff0f0" : "transparent",
+                 border: "none", borderBottom: "1px solid #f5f5f5", fontSize: 13,
+                 fontWeight: 600, color: activeView === "mein-quiz" ? "#c8102e" : "#333",
+                 cursor: "pointer", fontFamily: "inherit" }
+      }, "🎓 Meine Quizze"),
+      (isGLRole(user.role)) && /*#__PURE__*/React.createElement("button", {
+        onClick: () => { setActiveView("auswertung"); setUserMenuOpen(false); },
+        style: { display: "block", width: "100%", textAlign: "left", padding: "10px 16px",
+                 background: activeView === "auswertung" ? "#fff0f0" : "transparent",
+                 border: "none", borderBottom: "1px solid #f5f5f5", fontSize: 13,
+                 fontWeight: 600, color: activeView === "auswertung" ? "#c8102e" : "#333",
+                 cursor: "pointer", fontFamily: "inherit" }
+      }, "📊 Auswertung"),
+      canCreateQuiz(user.role) && /*#__PURE__*/React.createElement("button", {
+        onClick: () => { setActiveView("quiz-creator"); setUserMenuOpen(false); },
+        style: { display: "block", width: "100%", textAlign: "left", padding: "10px 16px",
+                 background: activeView === "quiz-creator" ? "#fff0f0" : "transparent",
+                 border: "none", borderBottom: "1px solid #f5f5f5", fontSize: 13,
+                 fontWeight: 600, color: activeView === "quiz-creator" ? "#c8102e" : "#333",
+                 cursor: "pointer", fontFamily: "inherit" }
+      }, "✏️ Quiz erstellen"),
+      activeView && /*#__PURE__*/React.createElement("button", {
+        onClick: () => { setActiveView(null); setUserMenuOpen(false); },
+        style: { display: "block", width: "100%", textAlign: "left", padding: "10px 16px",
+                 border: "none", borderBottom: "1px solid #f5f5f5", fontSize: 13,
+                 fontWeight: 600, color: "#555", cursor: "pointer", fontFamily: "inherit",
+                 background: "transparent" }
+      }, "← Wissensdatenbank"),
+      /*#__PURE__*/React.createElement("button", {
+        onClick: () => { doLogout(); setUserMenuOpen(false); },
+        style: { display: "block", width: "100%", textAlign: "left", padding: "10px 16px",
+                 border: "none", fontSize: 13, fontWeight: 600, color: "#c8102e",
+                 cursor: "pointer", fontFamily: "inherit", background: "transparent" }
+      }, "Abmelden")
+    )
+  ) : /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "right"
     }
@@ -12379,7 +12476,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
           "! Erstmaliges Einloggen — bitte lege dein Passwort fest."),
         /*#__PURE__*/React.createElement("select", {
           value: loginInput.gebiet,
-          onChange: e => setLoginInput(p => ({ ...p, gebiet: e.target.value })),
+          onChange: e => setLoginInput(p => ({ ...p, gebiet: e.target.value, store: "" })),
           style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
                    border: "1.5px solid " + (loginInput.gebiet ? "#e0e0e0" : "#c8102e"),
                    borderRadius: 8, fontSize: 13, fontFamily: FONT, outline: "none",
@@ -12391,6 +12488,32 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
             return /*#__PURE__*/React.createElement("option", { key: g.value, value: g.value }, g.label);
           })
         ),
+        getRoleForGebiet(loginInput.gebiet) === "mitarbeiter" && [
+          /*#__PURE__*/React.createElement("input", {
+            key: "name-input",
+            type: "text", placeholder: "Dein Vorname",
+            value: loginInput.name,
+            onChange: e => setLoginInput(p => ({ ...p, name: e.target.value })),
+            style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
+                     border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13,
+                     fontFamily: FONT, outline: "none", marginBottom: 10 }
+          }),
+          getStoresForGebiet(loginInput.gebiet).length > 0 && /*#__PURE__*/React.createElement("select", {
+            key: "store-select",
+            value: loginInput.store,
+            onChange: e => setLoginInput(p => ({ ...p, store: e.target.value })),
+            style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
+                     border: "1.5px solid " + (loginInput.store ? "#e0e0e0" : "#c8102e"),
+                     borderRadius: 8, fontSize: 13, fontFamily: FONT, outline: "none",
+                     marginBottom: 10, background: "#fff", color: loginInput.store ? "#1a1a1a" : "#999",
+                     appearance: "none", WebkitAppearance: "none" }
+          },
+            /*#__PURE__*/React.createElement("option", { value: "" }, "— Store auswählen —"),
+            getStoresForGebiet(loginInput.gebiet).map(function(s) {
+              return /*#__PURE__*/React.createElement("option", { key: s, value: s }, s);
+            })
+          )
+        ],
         /*#__PURE__*/React.createElement("input", {
           type: "password", placeholder: "Passwort (mind. 4 Zeichen)",
           value: loginInput.password, autoFocus: true,
@@ -12469,6 +12592,18 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         onClose: () => setBeratOpen(false),
         products: PRODUCTS,
         lang: lang
+      }),
+      activeView === "mein-quiz" && user && /*#__PURE__*/React.createElement(MeinQuizPage, {
+        user: user,
+        onBack: () => setActiveView(null)
+      }),
+      activeView === "auswertung" && user && isGLRole(user.role) && /*#__PURE__*/React.createElement(AuswertungPage, {
+        user: user,
+        onBack: () => setActiveView(null)
+      }),
+      activeView === "quiz-creator" && user && canCreateQuiz(user.role) && /*#__PURE__*/React.createElement(QuizCreatorPage, {
+        user: user,
+        onBack: () => setActiveView(null)
       }), /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
@@ -16025,6 +16160,696 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+//  QUIZ SYSTEM – Supabase REST helpers
+// ═══════════════════════════════════════════════════════════════════════
+var QZ = (function() {
+  var BASE = "https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1";
+  var KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
+  var H = { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json" };
+  function get(path) {
+    return fetch(BASE + "/" + path, { headers: H }).then(function(r) { return r.ok ? r.json() : []; }).catch(function() { return []; });
+  }
+  function post(table, data, upsert) {
+    return fetch(BASE + "/" + table, {
+      method: "POST",
+      headers: Object.assign({}, H, upsert ? { "Prefer": "resolution=merge-duplicates,return=representation" } : { "Prefer": "return=representation" }),
+      body: JSON.stringify(data)
+    }).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
+  }
+  function patch(table, query, data) {
+    return fetch(BASE + "/" + table + "?" + query, {
+      method: "PATCH",
+      headers: Object.assign({}, H, { "Prefer": "return=minimal" }),
+      body: JSON.stringify(data)
+    }).catch(function() {});
+  }
+  function del(table, query) {
+    return fetch(BASE + "/" + table + "?" + query, { method: "DELETE", headers: H }).catch(function() {});
+  }
+  return { get: get, post: post, patch: patch, del: del };
+})();
+
+// ─── MEIN QUIZ PAGE ─────────────────────────────────────────────────────────
+function MeinQuizPage(props) {
+  var user = props.user;
+  var onBack = props.onBack;
+  var FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+  var RED = "#c8102e";
+
+  var sQuizzes = React.useState(null); var quizzes = sQuizzes[0]; var setQuizzes = sQuizzes[1];
+  var sResults = React.useState([]); var results = sResults[0]; var setResults = sResults[1];
+  var sLoading = React.useState(true); var loading = sLoading[0]; var setLoading = sLoading[1];
+  var sActive = React.useState(null); var activeQuiz = sActive[0]; var setActiveQuiz = sActive[1];
+
+  React.useEffect(function() {
+    Promise.all([
+      QZ.get("quizzes?status=eq.aktiv&order=monat.desc"),
+      QZ.get("new_quiz_results?user_id=eq." + encodeURIComponent(user.username) + "&select=quiz_id,score_mc,max_score_mc,freitext_bewertet,abgeschlossen_am")
+    ]).then(function(data) {
+      setQuizzes(Array.isArray(data[0]) ? data[0] : []);
+      setResults(Array.isArray(data[1]) ? data[1] : []);
+      setLoading(false);
+    });
+  }, []);
+
+  function getResult(quizId) {
+    return results.find(function(r) { return r.quiz_id === quizId; }) || null;
+  }
+
+  if (activeQuiz) {
+    return React.createElement(QuizTaker, {
+      quiz: activeQuiz,
+      user: user,
+      onDone: function() {
+        setActiveQuiz(null);
+        setLoading(true);
+        QZ.get("new_quiz_results?user_id=eq." + encodeURIComponent(user.username) + "&select=quiz_id,score_mc,max_score_mc,freitext_bewertet,abgeschlossen_am").then(function(rows) {
+          setResults(Array.isArray(rows) ? rows : []);
+          setLoading(false);
+        });
+      },
+      onBack: function() { setActiveQuiz(null); }
+    });
+  }
+
+  var offene = (quizzes || []).filter(function(q) { return !getResult(q.id); });
+  var erledigte = (quizzes || []).filter(function(q) { return !!getResult(q.id); });
+
+  return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
+    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 80px 0" } },
+      // Header
+      React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
+        React.createElement("button", { onClick: onBack, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "← Zurück"),
+        React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 16 } }, "🎓 Meine Quizze"),
+        React.createElement("div", { style: { marginLeft: "auto", color: "rgba(255,255,255,0.8)", fontSize: 12 } }, user.first, " · ", user.store || user.gebiet)
+      ),
+      loading ? React.createElement("div", { style: { textAlign: "center", padding: 40, color: "#999", fontSize: 14 } }, "Lädt…") :
+      React.createElement(React.Fragment, null,
+        // Offene Quizze
+        offene.length > 0 && React.createElement("div", { style: { padding: "20px 20px 0" } },
+          React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 } }, "Offen — " + offene.length),
+          offene.map(function(q) {
+            return React.createElement("div", { key: q.id, style: { background: "#fff", borderRadius: 12, padding: "16px 18px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.07)", display: "flex", alignItems: "center", gap: 12 } },
+              React.createElement("div", { style: { flex: 1 } },
+                React.createElement("div", { style: { fontWeight: 700, fontSize: 15, color: "#1a1a1a" } }, q.titel),
+                React.createElement("div", { style: { fontSize: 12, color: "#888", marginTop: 3 } }, q.monat ? "📅 " + q.monat : "")
+              ),
+              React.createElement("button", {
+                onClick: function() { setActiveQuiz(q); },
+                style: { background: RED, color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: FONT, whiteSpace: "nowrap" }
+              }, "Starten →")
+            );
+          })
+        ),
+        // Erledigte Quizze
+        erledigte.length > 0 && React.createElement("div", { style: { padding: "20px 20px 0" } },
+          React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 } }, "Erledigt — " + erledigte.length),
+          erledigte.map(function(q) {
+            var r = getResult(q.id);
+            var mcPct = r && r.max_score_mc > 0 ? Math.round((r.score_mc / r.max_score_mc) * 100) : null;
+            var datum = r && r.abgeschlossen_am ? new Date(r.abgeschlossen_am).toLocaleDateString("de-DE") : "";
+            return React.createElement("div", { key: q.id, style: { background: "#fff", borderRadius: 12, padding: "14px 18px", marginBottom: 8, boxShadow: "0 1px 4px rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: 12, opacity: 0.85 } },
+              React.createElement("div", { style: { flex: 1 } },
+                React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "#333" } }, q.titel),
+                React.createElement("div", { style: { fontSize: 12, color: "#aaa", marginTop: 2 } }, datum ? "✓ " + datum : "")
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                mcPct !== null && React.createElement("div", { style: { fontWeight: 800, fontSize: 15, color: mcPct >= 80 ? "#16a34a" : mcPct >= 60 ? "#d97706" : RED } }, mcPct + "%"),
+                r && !r.freitext_bewertet && React.createElement("div", { style: { fontSize: 10, color: "#aaa", marginTop: 2 } }, "Freitext ausstehend")
+              )
+            );
+          })
+        ),
+        offene.length === 0 && erledigte.length === 0 && React.createElement("div", { style: { textAlign: "center", padding: "60px 20px", color: "#aaa" } },
+          React.createElement("div", { style: { fontSize: 32, marginBottom: 12 } }, "🎉"),
+          React.createElement("div", { style: { fontSize: 14, fontWeight: 600 } }, "Keine aktiven Quizze"),
+          React.createElement("div", { style: { fontSize: 12, marginTop: 6 } }, "Carmelo veröffentlicht das nächste Quiz in Kürze.")
+        )
+      )
+    )
+  );
+}
+
+// ─── QUIZ TAKER ──────────────────────────────────────────────────────────────
+function QuizTaker(props) {
+  var quiz = props.quiz;
+  var user = props.user;
+  var onDone = props.onDone;
+  var onBack = props.onBack;
+  var FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+  var RED = "#c8102e";
+
+  var sPhase = React.useState("loading"); var phase = sPhase[0]; var setPhase = sPhase[1];
+  var sQuestions = React.useState([]); var questions = sQuestions[0]; var setQuestions = sQuestions[1];
+  var sIdx = React.useState(0); var idx = sIdx[0]; var setIdx = sIdx[1];
+  var sAnswers = React.useState({}); var answers = sAnswers[0]; var setAnswers = sAnswers[1];
+  var sSaving = React.useState(false); var saving = sSaving[0]; var setSaving = sSaving[1];
+
+  React.useEffect(function() {
+    QZ.get("questions?quiz_id=eq." + quiz.id + "&order=reihenfolge.asc").then(function(rows) {
+      setQuestions(Array.isArray(rows) ? rows : []);
+      setPhase("intro");
+    });
+  }, [quiz.id]);
+
+  function handleMC(qId, idx) {
+    setAnswers(function(prev) { return Object.assign({}, prev, { [qId]: idx }); });
+  }
+  function handleText(qId, val) {
+    setAnswers(function(prev) { return Object.assign({}, prev, { [qId]: val }); });
+  }
+
+  var q = questions[idx] || null;
+  var canNext = q ? (q.typ === "mc" ? answers[q.id] !== undefined : (answers[q.id] || "").trim().length >= 5) : false;
+
+  async function finishQuiz() {
+    setSaving(true);
+    var mcQs = questions.filter(function(q) { return q.typ === "mc"; });
+    var scoreMC = mcQs.reduce(function(acc, q) {
+      return acc + (answers[q.id] === q.korrekte_antwort ? 1 : 0);
+    }, 0);
+    var resultData = [{
+      quiz_id: quiz.id,
+      user_id: user.username,
+      store: user.store || "",
+      gebiet: user.gebiet || "",
+      score_mc: scoreMC,
+      max_score_mc: mcQs.length,
+      freitext_bewertet: false,
+      abgeschlossen_am: new Date().toISOString()
+    }];
+    var inserted = await QZ.post("new_quiz_results", resultData);
+    var resultId = inserted && inserted[0] ? inserted[0].id : null;
+    if (resultId) {
+      var answerData = questions.map(function(q) {
+        return {
+          result_id: resultId,
+          question_id: q.id,
+          typ: q.typ,
+          antwort_mc: q.typ === "mc" ? (answers[q.id] !== undefined ? answers[q.id] : null) : null,
+          antwort_text: q.typ === "freitext" ? (answers[q.id] || "") : null
+        };
+      });
+      await QZ.post("quiz_answers", answerData);
+    }
+    setPhase("done");
+    setSaving(false);
+  }
+
+  if (phase === "loading") {
+    return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 210, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT } },
+      React.createElement("div", { style: { color: "#888", fontSize: 14 } }, "Fragen laden…")
+    );
+  }
+
+  if (phase === "intro") {
+    var mcCount = questions.filter(function(q) { return q.typ === "mc"; }).length;
+    var ftCount = questions.filter(function(q) { return q.typ === "freitext"; }).length;
+    return React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 210, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: FONT } },
+      React.createElement("div", { style: { background: "#fff", borderRadius: 16, width: "100%", maxWidth: 420, overflow: "hidden" } },
+        React.createElement("div", { style: { background: RED, padding: "18px 22px" } },
+          React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 17 } }, quiz.titel),
+          React.createElement("div", { style: { color: "rgba(255,255,255,0.8)", fontSize: 13, marginTop: 4 } }, quiz.monat || "")
+        ),
+        React.createElement("div", { style: { padding: 24 } },
+          React.createElement("div", { style: { display: "flex", gap: 12, marginBottom: 20 } },
+            React.createElement("div", { style: { flex: 1, background: "#f8f8f8", borderRadius: 10, padding: "12px 14px", textAlign: "center" } },
+              React.createElement("div", { style: { fontWeight: 800, fontSize: 20, color: RED } }, questions.length),
+              React.createElement("div", { style: { fontSize: 11, color: "#888", marginTop: 3 } }, "Fragen gesamt")
+            ),
+            mcCount > 0 && React.createElement("div", { style: { flex: 1, background: "#f8f8f8", borderRadius: 10, padding: "12px 14px", textAlign: "center" } },
+              React.createElement("div", { style: { fontWeight: 800, fontSize: 20, color: "#16a34a" } }, mcCount),
+              React.createElement("div", { style: { fontSize: 11, color: "#888", marginTop: 3 } }, "Multiple Choice")
+            ),
+            ftCount > 0 && React.createElement("div", { style: { flex: 1, background: "#f8f8f8", borderRadius: 10, padding: "12px 14px", textAlign: "center" } },
+              React.createElement("div", { style: { fontWeight: 800, fontSize: 20, color: "#7c3aed" } }, ftCount),
+              React.createElement("div", { style: { fontSize: 11, color: "#888", marginTop: 3 } }, "Freitext")
+            )
+          ),
+          ftCount > 0 && React.createElement("div", { style: { background: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#6b21a8", marginBottom: 16 } },
+            "ℹ️ Freitext-Antworten werden von Carmelo bewertet. Schreibe vollständige Sätze."
+          ),
+          React.createElement("div", { style: { display: "flex", gap: 10 } },
+            React.createElement("button", { onClick: onBack, style: { padding: "11px 16px", background: "#f0f0f0", color: "#555", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Zurück"),
+            React.createElement("button", { onClick: function() { setPhase("playing"); }, style: { flex: 1, padding: "11px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Quiz starten →")
+          )
+        )
+      )
+    );
+  }
+
+  if (phase === "playing" && q) {
+    var progress = ((idx) / questions.length) * 100;
+    return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 210, overflowY: "auto", fontFamily: FONT } },
+      React.createElement("div", { style: { maxWidth: 600, margin: "0 auto", padding: "0 0 80px 0" } },
+        React.createElement("div", { style: { background: RED, padding: "14px 20px" } },
+          React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
+            React.createElement("div", { style: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: 600 } }, quiz.titel),
+            React.createElement("div", { style: { color: "#fff", fontSize: 12, fontWeight: 700 } }, (idx + 1) + " / " + questions.length)
+          ),
+          React.createElement("div", { style: { background: "rgba(255,255,255,0.3)", borderRadius: 4, height: 4 } },
+            React.createElement("div", { style: { background: "#fff", width: progress + "%", height: "100%", borderRadius: 4, transition: "width .3s" } })
+          )
+        ),
+        React.createElement("div", { style: { padding: "24px 20px" } },
+          React.createElement("div", { style: { background: q.typ === "freitext" ? "#faf5ff" : "#fff", border: q.typ === "freitext" ? "2px solid #e9d5ff" : "none", borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" } },
+            React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: q.typ === "freitext" ? "#7c3aed" : "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 } },
+              q.typ === "freitext" ? "✍️ Freitext" : "☑️ Multiple Choice"
+            ),
+            React.createElement("div", { style: { fontSize: 16, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.5, marginBottom: 20 } }, q.frage)
+          ),
+          q.typ === "mc" && Array.isArray(q.antworten) && q.antworten.map(function(opt, oi) {
+            var selected = answers[q.id] === oi;
+            return React.createElement("button", {
+              key: oi,
+              onClick: function() { handleMC(q.id, oi); },
+              style: { display: "block", width: "100%", textAlign: "left", padding: "14px 18px", background: selected ? RED : "#fff",
+                       color: selected ? "#fff" : "#333", border: "2px solid " + (selected ? RED : "#e8e8e8"),
+                       borderRadius: 12, fontSize: 14, fontWeight: selected ? 700 : 400,
+                       cursor: "pointer", fontFamily: FONT, marginBottom: 8, transition: "all .15s" }
+            }, opt);
+          }),
+          q.typ === "freitext" && React.createElement("textarea", {
+            value: answers[q.id] || "",
+            onChange: function(e) { handleText(q.id, e.target.value); },
+            placeholder: "Antworte in vollständigen Sätzen…",
+            rows: 4,
+            style: { width: "100%", boxSizing: "border-box", padding: "12px 16px", border: "2px solid #e9d5ff", borderRadius: 12, fontSize: 14, fontFamily: FONT, resize: "vertical", outline: "none", lineHeight: 1.6, background: "#faf5ff" }
+          }),
+          React.createElement("div", { style: { display: "flex", gap: 10, marginTop: 20 } },
+            idx > 0 && React.createElement("button", {
+              onClick: function() { setIdx(function(i) { return i - 1; }); },
+              style: { padding: "12px 18px", background: "#f0f0f0", color: "#555", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: FONT }
+            }, "← Zurück"),
+            React.createElement("button", {
+              onClick: function() {
+                if (idx < questions.length - 1) { setIdx(function(i) { return i + 1; }); }
+                else { finishQuiz(); }
+              },
+              disabled: !canNext || saving,
+              style: { flex: 1, padding: "12px 0", background: canNext ? RED : "#ccc", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: canNext ? "pointer" : "default", fontFamily: FONT }
+            }, saving ? "Speichere…" : idx < questions.length - 1 ? "Weiter →" : "Abschließen ✓")
+          )
+        )
+      )
+    );
+  }
+
+  if (phase === "done") {
+    var mcQs2 = questions.filter(function(q) { return q.typ === "mc"; });
+    var scoreMC2 = mcQs2.reduce(function(acc, q) { return acc + (answers[q.id] === q.korrekte_antwort ? 1 : 0); }, 0);
+    var pct = mcQs2.length > 0 ? Math.round((scoreMC2 / mcQs2.length) * 100) : null;
+    var ftCount2 = questions.filter(function(q) { return q.typ === "freitext"; }).length;
+    return React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 210, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: FONT } },
+      React.createElement("div", { style: { background: "#fff", borderRadius: 16, width: "100%", maxWidth: 400, overflow: "hidden" } },
+        React.createElement("div", { style: { background: pct >= 80 ? "#16a34a" : pct >= 60 ? "#d97706" : RED, padding: "24px 22px", textAlign: "center" } },
+          React.createElement("div", { style: { fontSize: 40, marginBottom: 8 } }, pct >= 80 ? "🏆" : pct >= 60 ? "👍" : "📚"),
+          React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 20 } }, pct !== null ? pct + "%" : "Eingereicht"),
+          React.createElement("div", { style: { color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 4 } }, quiz.titel)
+        ),
+        React.createElement("div", { style: { padding: 22 } },
+          mcQs2.length > 0 && React.createElement("div", { style: { display: "flex", justifyContent: "space-between", background: "#f8f8f8", borderRadius: 10, padding: "12px 16px", marginBottom: 12 } },
+            React.createElement("span", { style: { fontSize: 13, color: "#555" } }, "Multiple Choice"),
+            React.createElement("span", { style: { fontWeight: 800, color: "#1a1a1a", fontSize: 14 } }, scoreMC2 + " / " + mcQs2.length)
+          ),
+          ftCount2 > 0 && React.createElement("div", { style: { background: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#6b21a8", marginBottom: 16 } },
+            "✍️ " + ftCount2 + " Freitext-Antworten eingereicht. Carmelo bewertet sie in Kürze."
+          ),
+          React.createElement("button", {
+            onClick: onDone,
+            style: { width: "100%", padding: "12px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT }
+          }, "← Zur Übersicht")
+        )
+      )
+    );
+  }
+  return null;
+}
+
+// ─── AUSWERTUNG PAGE ─────────────────────────────────────────────────────────
+function AuswertungPage(props) {
+  var user = props.user;
+  var onBack = props.onBack;
+  var FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+  var RED = "#c8102e";
+
+  var sProfiles = React.useState(null); var profiles = sProfiles[0]; var setProfiles = sProfiles[1];
+  var sResults = React.useState([]); var results = sResults[0]; var setResults = sResults[1];
+  var sQuizzes = React.useState([]); var quizzes = sQuizzes[0]; var setQuizzes = sQuizzes[1];
+  var sLoading = React.useState(true); var loading = sLoading[0]; var setLoading = sLoading[1];
+  var sSelStore = React.useState(null); var selStore = sSelStore[0]; var setSelStore = sSelStore[1];
+  var sSelUser = React.useState(null); var selUser = sSelUser[0]; var setSelUser = sSelUser[1];
+  var sAnswers = React.useState([]); var userAnswers = sAnswers[0]; var setUserAnswers = sAnswers[1];
+  var sQuestions = React.useState({}); var questionMap = sQuestions[0]; var setQuestionMap = sQuestions[1];
+  var sFilter = React.useState(""); var filterMonth = sFilter[0]; var setFilterMonth = sFilter[1];
+
+  var isSA = isSuperRole(user.role);
+  var region = isSA ? null : getGebietRegion(user.gebiet);
+
+  React.useEffect(function() {
+    var profileQuery = region ? "profiles?gebiet=ilike." + encodeURIComponent(region.split("/")[0] + "%") + "&select=id,name,store,gebiet" : "profiles?select=id,name,store,gebiet";
+    Promise.all([
+      QZ.get(profileQuery),
+      QZ.get("new_quiz_results?select=*&order=abgeschlossen_am.desc"),
+      QZ.get("quizzes?select=id,titel,monat,status&order=monat.desc")
+    ]).then(function(data) {
+      setProfiles(Array.isArray(data[0]) ? data[0].filter(function(p) { return !isGLRole(getRoleForGebiet(p.gebiet || "")); }) : []);
+      setResults(Array.isArray(data[1]) ? data[1] : []);
+      setQuizzes(Array.isArray(data[2]) ? data[2] : []);
+      setLoading(false);
+    });
+  }, []);
+
+  function loadUserAnswers(userId, resultId) {
+    QZ.get("quiz_answers?result_id=eq." + resultId + "&select=*").then(function(rows) {
+      setUserAnswers(Array.isArray(rows) ? rows : []);
+    });
+    // load question text for this quiz
+    var result = results.find(function(r) { return r.id === resultId; });
+    if (result) {
+      QZ.get("questions?quiz_id=eq." + result.quiz_id + "&select=id,frage,typ,antworten,korrekte_antwort").then(function(rows) {
+        var map = {};
+        (rows || []).forEach(function(q) { map[q.id] = q; });
+        setQuestionMap(map);
+      });
+    }
+  }
+
+  // Group profiles by store
+  var stores = [];
+  (profiles || []).forEach(function(p) {
+    if (p.store && !stores.includes(p.store)) stores.push(p.store);
+  });
+
+  var filteredProfiles = selStore ? (profiles || []).filter(function(p) { return p.store === selStore; }) : (profiles || []);
+  if (filterMonth) {
+    // Only show users who have results for the selected month
+  }
+  var months = [];
+  quizzes.forEach(function(q) { if (q.monat && !months.includes(q.monat)) months.push(q.monat); });
+
+  if (selUser) {
+    var userResults = results.filter(function(r) { return r.user_id === selUser.id; });
+    return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
+      React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 80px 0" } },
+        React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
+          React.createElement("button", { onClick: function() { setSelUser(null); setUserAnswers([]); }, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "←"),
+          React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 15 } }, selUser.name || selUser.id),
+          React.createElement("div", { style: { color: "rgba(255,255,255,0.7)", fontSize: 12 } }, selUser.store || "")
+        ),
+        React.createElement("div", { style: { padding: 20 } },
+          userResults.length === 0 && React.createElement("div", { style: { textAlign: "center", color: "#aaa", padding: "40px 0", fontSize: 14 } }, "Noch keine Quizze abgeschlossen."),
+          userResults.map(function(r) {
+            var quiz = quizzes.find(function(q) { return q.id === r.quiz_id; });
+            var pct = r.max_score_mc > 0 ? Math.round((r.score_mc / r.max_score_mc) * 100) : null;
+            var datum = r.abgeschlossen_am ? new Date(r.abgeschlossen_am).toLocaleDateString("de-DE") : "";
+            return React.createElement("div", { key: r.id, style: { background: "#fff", borderRadius: 12, padding: "16px 18px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 } },
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "#1a1a1a" } }, quiz ? quiz.titel : r.quiz_id),
+                  React.createElement("div", { style: { fontSize: 12, color: "#888", marginTop: 2 } }, datum ? "✓ " + datum : "")
+                ),
+                React.createElement("div", { style: { textAlign: "right" } },
+                  pct !== null && React.createElement("div", { style: { fontWeight: 800, fontSize: 16, color: pct >= 80 ? "#16a34a" : pct >= 60 ? "#d97706" : RED } }, pct + "%"),
+                  React.createElement("div", { style: { fontSize: 11, color: "#aaa" } }, r.score_mc + "/" + r.max_score_mc + " MC")
+                )
+              ),
+              !r.freitext_bewertet && React.createElement("div", { style: { fontSize: 11, color: "#7c3aed", background: "#faf5ff", borderRadius: 6, padding: "5px 10px", display: "inline-block" } }, "Freitext-Bewertung ausstehend"),
+              canReviewAnswers(user.role) && React.createElement("button", {
+                onClick: function() { loadUserAnswers(selUser.id, r.id); },
+                style: { marginTop: 8, padding: "6px 12px", background: "#f0f0f0", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: FONT, color: "#555" }
+              }, "Antworten anzeigen"),
+              // Answers detail
+              userAnswers.length > 0 && canReviewAnswers(user.role) && userAnswers[0] && userAnswers[0].result_id === r.id && React.createElement("div", { style: { marginTop: 12, borderTop: "1px solid #f0f0f0", paddingTop: 12 } },
+                userAnswers.map(function(a) {
+                  var qText = questionMap[a.question_id];
+                  return React.createElement("div", { key: a.id, style: { marginBottom: 10, padding: "10px 12px", background: "#f8f8f8", borderRadius: 8 } },
+                    React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 6 } }, qText ? qText.frage : a.question_id),
+                    a.typ === "mc" && React.createElement("div", { style: { fontSize: 12 } },
+                      React.createElement("span", { style: { color: a.antwort_mc === (qText && qText.korrekte_antwort) ? "#16a34a" : RED, fontWeight: 700 } },
+                        a.antwort_mc === (qText && qText.korrekte_antwort) ? "✓ Richtig" : "✗ Falsch"
+                      ),
+                      ": ", qText && Array.isArray(qText.antworten) ? (qText.antworten[a.antwort_mc] || "—") : a.antwort_mc
+                    ),
+                    a.typ === "freitext" && React.createElement("div", null,
+                      React.createElement("div", { style: { fontSize: 12, color: "#555", fontStyle: "italic", lineHeight: 1.5 } }, a.antwort_text || "—"),
+                      canReviewAnswers(user.role) && React.createElement("div", { style: { marginTop: 6, display: "flex", gap: 6, alignItems: "center" } },
+                        ["0", "1", "2"].map(function(pt) {
+                          return React.createElement("button", {
+                            key: pt,
+                            onClick: function() {
+                              QZ.patch("quiz_answers", "id=eq." + a.id, { punkte_freitext: parseInt(pt), bewertet_von: user.username, bewertet_am: new Date().toISOString() });
+                            },
+                            style: { padding: "4px 10px", background: a.punkte_freitext === parseInt(pt) ? RED : "#e0e0e0",
+                                     color: a.punkte_freitext === parseInt(pt) ? "#fff" : "#555",
+                                     border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT }
+                          }, pt + " Pkt");
+                        })
+                      )
+                    )
+                  );
+                })
+              )
+            );
+          })
+        )
+      )
+    );
+  }
+
+  return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
+    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 80px 0" } },
+      React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
+        React.createElement("button", { onClick: onBack, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "← Zurück"),
+        React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 16 } }, "📊 Auswertung"),
+        !isSA && React.createElement("div", { style: { color: "rgba(255,255,255,0.7)", fontSize: 12 } }, region || "")
+      ),
+      loading ? React.createElement("div", { style: { textAlign: "center", padding: 40, color: "#999" } }, "Lädt…") :
+      React.createElement("div", { style: { padding: "16px 20px" } },
+        // Store filter (for GL/SA with multiple stores)
+        stores.length > 1 && React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 } },
+          React.createElement("button", {
+            onClick: function() { setSelStore(null); },
+            style: { padding: "6px 14px", background: !selStore ? RED : "#fff", color: !selStore ? "#fff" : "#555",
+                     border: "2px solid " + (!selStore ? RED : "#e0e0e0"), borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT }
+          }, "Alle Stores"),
+          stores.map(function(s) {
+            return React.createElement("button", {
+              key: s,
+              onClick: function() { setSelStore(s); },
+              style: { padding: "6px 14px", background: selStore === s ? RED : "#fff", color: selStore === s ? "#fff" : "#555",
+                       border: "2px solid " + (selStore === s ? RED : "#e0e0e0"), borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT }
+            }, s);
+          })
+        ),
+        // Staff list
+        filteredProfiles.length === 0 && React.createElement("div", { style: { textAlign: "center", color: "#aaa", padding: "40px 0" } }, "Keine Mitarbeiter gefunden."),
+        filteredProfiles.map(function(p) {
+          var userRes = results.filter(function(r) { return r.user_id === p.id; });
+          var done = userRes.length;
+          var totalQ = quizzes.filter(function(q) { return q.status === "aktiv"; }).length;
+          return React.createElement("div", {
+            key: p.id,
+            onClick: function() { setSelUser(p); setUserAnswers([]); },
+            style: { background: "#fff", borderRadius: 12, padding: "14px 18px", marginBottom: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }
+          },
+            React.createElement("div", { style: { width: 36, height: 36, background: RED, borderRadius: 50, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 15, flexShrink: 0 } },
+              (p.name || p.id || "?").charAt(0).toUpperCase()
+            ),
+            React.createElement("div", { style: { flex: 1 } },
+              React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "#1a1a1a" } }, p.name || p.id),
+              React.createElement("div", { style: { fontSize: 12, color: "#888", marginTop: 2 } }, p.store || p.gebiet || "")
+            ),
+            React.createElement("div", { style: { textAlign: "right" } },
+              React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: done > 0 ? "#16a34a" : "#aaa" } }, done + "/" + totalQ),
+              React.createElement("div", { style: { fontSize: 11, color: "#aaa" } }, "Quizze")
+            ),
+            React.createElement("div", { style: { color: "#ccc", fontSize: 18 } }, "›")
+          );
+        })
+      )
+    )
+  );
+}
+
+// ─── QUIZ CREATOR PAGE ───────────────────────────────────────────────────────
+function QuizCreatorPage(props) {
+  var user = props.user;
+  var onBack = props.onBack;
+  var FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+  var RED = "#c8102e";
+
+  var sView = React.useState("list"); var view = sView[0]; var setView = sView[1];
+  var sQuizzes = React.useState(null); var quizzes = sQuizzes[0]; var setQuizzes = sQuizzes[1];
+  var sLoading = React.useState(true); var loading = sLoading[0]; var setLoading = sLoading[1];
+  var sSaving = React.useState(false); var saving = sSaving[0]; var setSaving = sSaving[1];
+  var sError = React.useState(""); var error = sError[0]; var setError = sError[1];
+
+  // New quiz form state
+  var sTitel = React.useState(""); var titel = sTitel[0]; var setTitel = sTitel[1];
+  var sMonat = React.useState(""); var monat = sMonat[0]; var setMonat = sMonat[1];
+  var sFragen = React.useState([{ typ: "mc", frage: "", antworten: ["", "", "", ""], korrekte_antwort: 0, reihenfolge: 0 }]);
+  var fragen = sFragen[0]; var setFragen = sFragen[1];
+
+  function loadQuizzes() {
+    setLoading(true);
+    QZ.get("quizzes?order=monat.desc&select=*").then(function(rows) {
+      setQuizzes(Array.isArray(rows) ? rows : []);
+      setLoading(false);
+    });
+  }
+  React.useEffect(loadQuizzes, []);
+
+  function addFrage() {
+    setFragen(function(prev) {
+      return prev.concat([{ typ: "mc", frage: "", antworten: ["", "", "", ""], korrekte_antwort: 0, reihenfolge: prev.length }]);
+    });
+  }
+  function removeFrage(i) {
+    setFragen(function(prev) { return prev.filter(function(_, j) { return j !== i; }); });
+  }
+  function updateFrage(i, key, val) {
+    setFragen(function(prev) {
+      var next = prev.map(function(f, j) { return j === i ? Object.assign({}, f, { [key]: val }) : f; });
+      return next;
+    });
+  }
+  function updateAntwort(fi, ai, val) {
+    setFragen(function(prev) {
+      var next = prev.map(function(f, j) {
+        if (j !== fi) return f;
+        var a = f.antworten.map(function(x, k) { return k === ai ? val : x; });
+        return Object.assign({}, f, { antworten: a });
+      });
+      return next;
+    });
+  }
+
+  async function saveQuiz(status) {
+    if (!titel.trim()) { setError("Titel fehlt"); return; }
+    if (!monat.trim()) { setError("Monat fehlt (Format: 2026-06)"); return; }
+    var validFragen = fragen.filter(function(f) { return f.frage.trim(); });
+    if (validFragen.length === 0) { setError("Mindestens eine Frage erforderlich"); return; }
+    setSaving(true); setError("");
+    var quizRes = await QZ.post("quizzes", [{ titel: titel.trim(), monat: monat.trim(), erstellt_von: user.username, status: status, veroeffentlicht_am: status === "aktiv" ? new Date().toISOString() : null }]);
+    var quizId = quizRes && quizRes[0] ? quizRes[0].id : null;
+    if (!quizId) { setError("Fehler beim Erstellen des Quiz"); setSaving(false); return; }
+    var frageData = validFragen.map(function(f, i) {
+      return { quiz_id: quizId, frage: f.frage, typ: f.typ, antworten: f.typ === "mc" ? f.antworten : null, korrekte_antwort: f.typ === "mc" ? f.korrekte_antwort : null, reihenfolge: i };
+    });
+    await QZ.post("questions", frageData);
+    setSaving(false);
+    setView("list");
+    setTitel(""); setMonat(""); setFragen([{ typ: "mc", frage: "", antworten: ["", "", "", ""], korrekte_antwort: 0, reihenfolge: 0 }]);
+    loadQuizzes();
+  }
+
+  async function changeStatus(quizId, newStatus) {
+    await QZ.patch("quizzes", "id=eq." + quizId, { status: newStatus, veroeffentlicht_am: newStatus === "aktiv" ? new Date().toISOString() : undefined });
+    loadQuizzes();
+  }
+
+  var statusColor = { entwurf: "#888", aktiv: "#16a34a", archiv: "#aaa" };
+  var statusLabel = { entwurf: "Entwurf", aktiv: "Aktiv", archiv: "Archiv" };
+
+  if (view === "new") {
+    return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
+      React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 100px 0" } },
+        React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
+          React.createElement("button", { onClick: function() { setView("list"); setError(""); }, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "← Zurück"),
+          React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 16 } }, "Neues Quiz erstellen")
+        ),
+        React.createElement("div", { style: { padding: "20px 20px 0" } },
+          // Titel + Monat
+          React.createElement("div", { style: { background: "#fff", borderRadius: 12, padding: "18px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
+            React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 } }, "Quiz-Infos"),
+            React.createElement("input", { type: "text", placeholder: "Titel (z.B. Produktquiz Mai 2026)", value: titel, onChange: function(e) { setTitel(e.target.value); },
+              style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 14, fontFamily: FONT, outline: "none", marginBottom: 10 } }),
+            React.createElement("input", { type: "text", placeholder: "Monat (Format: 2026-06)", value: monat, onChange: function(e) { setMonat(e.target.value); },
+              style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 14, fontFamily: FONT, outline: "none" } })
+          ),
+          // Fragen
+          fragen.map(function(f, fi) {
+            return React.createElement("div", { key: fi, style: { background: "#fff", borderRadius: 12, padding: "18px 18px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 } },
+                React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: "#888", textTransform: "uppercase", letterSpacing: 1 } }, "Frage " + (fi + 1)),
+                React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
+                  React.createElement("select", { value: f.typ, onChange: function(e) { updateFrage(fi, "typ", e.target.value); },
+                    style: { fontSize: 12, padding: "4px 8px", border: "1.5px solid #e0e0e0", borderRadius: 6, fontFamily: FONT, background: "#fff", cursor: "pointer" } },
+                    React.createElement("option", { value: "mc" }, "Multiple Choice"),
+                    React.createElement("option", { value: "freitext" }, "Freitext")
+                  ),
+                  fragen.length > 1 && React.createElement("button", { onClick: function() { removeFrage(fi); },
+                    style: { padding: "4px 10px", background: "#fee2e2", color: RED, border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "✕")
+                )
+              ),
+              React.createElement("textarea", { value: f.frage, onChange: function(e) { updateFrage(fi, "frage", e.target.value); },
+                placeholder: "Fragentext…", rows: 2,
+                style: { width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 14, fontFamily: FONT, resize: "vertical", outline: "none", marginBottom: f.typ === "mc" ? 12 : 0 } }),
+              f.typ === "mc" && React.createElement(React.Fragment, null,
+                f.antworten.map(function(opt, ai) {
+                  var isCorrect = f.korrekte_antwort === ai;
+                  return React.createElement("div", { key: ai, style: { display: "flex", gap: 8, alignItems: "center", marginBottom: 8 } },
+                    React.createElement("button", { onClick: function() { updateFrage(fi, "korrekte_antwort", ai); },
+                      style: { width: 26, height: 26, flexShrink: 0, background: isCorrect ? "#16a34a" : "#e0e0e0", color: isCorrect ? "#fff" : "#888", border: "none", borderRadius: "50%", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: FONT } }, isCorrect ? "✓" : (ai + 1)),
+                    React.createElement("input", { type: "text", value: opt, placeholder: "Antwort " + (ai + 1) + (isCorrect ? " (korrekt)" : ""),
+                      onChange: function(e) { updateAntwort(fi, ai, e.target.value); },
+                      style: { flex: 1, padding: "8px 12px", border: "1.5px solid " + (isCorrect ? "#86efac" : "#e0e0e0"), borderRadius: 8, fontSize: 13, fontFamily: FONT, outline: "none", background: isCorrect ? "#f0fdf4" : "#fff" } })
+                  );
+                })
+              )
+            );
+          }),
+          React.createElement("button", { onClick: addFrage,
+            style: { width: "100%", padding: "12px 0", background: "#f0f0f0", color: "#555", border: "2px dashed #ccc", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT, marginBottom: 16 } }, "+ Frage hinzufügen"),
+          error && React.createElement("div", { style: { color: RED, fontSize: 13, marginBottom: 12, padding: "10px 14px", background: "#fff0f0", borderRadius: 8 } }, error),
+          React.createElement("div", { style: { display: "flex", gap: 10, marginBottom: 20 } },
+            React.createElement("button", { onClick: function() { saveQuiz("entwurf"); }, disabled: saving,
+              style: { flex: 1, padding: "12px 0", background: "#f0f0f0", color: "#555", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Als Entwurf speichern"),
+            React.createElement("button", { onClick: function() { saveQuiz("aktiv"); }, disabled: saving,
+              style: { flex: 1, padding: "12px 0", background: RED, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: saving ? "wait" : "pointer", fontFamily: FONT } }, saving ? "Speichere…" : "Veröffentlichen →")
+          )
+        )
+      )
+    );
+  }
+
+  return React.createElement("div", { style: { position: "fixed", inset: 0, background: "#eef0f3", zIndex: 200, overflowY: "auto", fontFamily: FONT } },
+    React.createElement("div", { style: { maxWidth: 680, margin: "0 auto", padding: "0 0 80px 0" } },
+      React.createElement("div", { style: { background: RED, padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 } },
+        React.createElement("button", { onClick: onBack, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "← Zurück"),
+        React.createElement("div", { style: { color: "#fff", fontWeight: 800, fontSize: 16 } }, "✏️ Quiz-Creator"),
+        React.createElement("button", { onClick: function() { setView("new"); }, style: { marginLeft: "auto", background: "#fff", color: RED, border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: FONT } }, "+ Neues Quiz")
+      ),
+      loading ? React.createElement("div", { style: { textAlign: "center", padding: 40, color: "#999" } }, "Lädt…") :
+      React.createElement("div", { style: { padding: "16px 20px" } },
+        (quizzes || []).length === 0 && React.createElement("div", { style: { textAlign: "center", color: "#aaa", padding: "60px 0", fontSize: 14 } }, "Noch keine Quizze. Erstelle das erste!"),
+        (quizzes || []).map(function(q) {
+          return React.createElement("div", { key: q.id, style: { background: "#fff", borderRadius: 12, padding: "14px 18px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+              React.createElement("div", { style: { flex: 1 } },
+                React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "#1a1a1a" } }, q.titel),
+                React.createElement("div", { style: { fontSize: 12, color: "#888", marginTop: 3 } }, q.monat || "")
+              ),
+              React.createElement("div", { style: { marginLeft: 12, padding: "3px 10px", background: (q.status === "aktiv" ? "#dcfce7" : q.status === "archiv" ? "#f3f4f6" : "#fef9c3"), color: statusColor[q.status], borderRadius: 20, fontSize: 11, fontWeight: 700 } }, statusLabel[q.status] || q.status)
+            ),
+            React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 12 } },
+              q.status !== "aktiv" && React.createElement("button", { onClick: function() { changeStatus(q.id, "aktiv"); },
+                style: { padding: "6px 12px", background: "#dcfce7", color: "#16a34a", border: "none", borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Aktivieren"),
+              q.status === "aktiv" && React.createElement("button", { onClick: function() { changeStatus(q.id, "entwurf"); },
+                style: { padding: "6px 12px", background: "#fef9c3", color: "#854d0e", border: "none", borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Deaktivieren"),
+              q.status !== "archiv" && React.createElement("button", { onClick: function() { changeStatus(q.id, "archiv"); },
+                style: { padding: "6px 12px", background: "#f3f4f6", color: "#888", border: "none", borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT } }, "Archivieren")
+            )
+          );
+        })
+      )
+    )
+  );
+}
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/React.createElement(BioTechDatabase, null)));
 </script>
