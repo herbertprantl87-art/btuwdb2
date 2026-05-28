@@ -11041,7 +11041,9 @@ function BioTechDatabase() {
   // ── USER LOGIN ────────────────────────────────────────────────────
   const [user, setUser] = React.useState(() => {
     try {
-      return JSON.parse(sessionStorage.getItem("btu_session") || "null");
+      const u = JSON.parse(sessionStorage.getItem("btu_session") || "null");
+      if (u && u.gebiet) u.role = getRoleForGebiet(u.gebiet);
+      return u;
     } catch {
       return null;
     }
