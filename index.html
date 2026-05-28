@@ -11685,7 +11685,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       cursor: "pointer",
       fontFamily: FONT
     }
-  }, "\uD83C\uDF93 ", t.quiz), /*#__PURE__*/React.createElement("button", {
+  }, "\uD83C\uDF93 ", /*#__PURE__*/React.createElement("span", { className: "btu-quiz-label" }, t.quiz)), /*#__PURE__*/React.createElement("button", {
     onClick: () => setBeratOpen(true),
     style: {
       padding: "4px 10px",
@@ -11699,19 +11699,24 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       fontFamily: FONT,
       marginLeft: 4
     }
-  }, "🔍 ", lang === 'de' ? "Berater" : "Advisor"), user ? /*#__PURE__*/React.createElement("div", {
+  }, "🔍 ", /*#__PURE__*/React.createElement("span", { className: "btu-berat-label" }, lang === 'de' ? "Berater" : "Advisor")), user ? /*#__PURE__*/React.createElement("div", {
     ref: userMenuRef,
-    style: { position: "relative", textAlign: "right" }
+    style: { position: "relative", flexShrink: 0 }
   },
     /*#__PURE__*/React.createElement("div", {
-      style: { cursor: "pointer" },
+      style: { cursor: "pointer", display: "flex", alignItems: "center", gap: 5 },
       onClick: () => setUserMenuOpen(v => !v),
       title: "Menü"
     },
-      /*#__PURE__*/React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: "#fff" } },
-        user.first, user.last ? " " + user.last : ""),
-      /*#__PURE__*/React.createElement("div", { style: { fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 600 } },
-        user.store || (GEBIETE.find(g => g.value === user.gebiet) || {}).label || user.gebiet || "▾")
+      /*#__PURE__*/React.createElement("div", {
+        style: { width: 28, height: 28, background: "rgba(255,255,255,0.25)", borderRadius: "50%",
+                 display: "flex", alignItems: "center", justifyContent: "center",
+                 fontWeight: 800, fontSize: 13, color: "#fff", flexShrink: 0 }
+      }, (user.first || "?").charAt(0).toUpperCase()),
+      /*#__PURE__*/React.createElement("span", { className: "btu-user-label",
+        style: { fontSize: 10, fontWeight: 700, color: "#fff", whiteSpace: "nowrap",
+                 maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis" }
+      }, user.first, " ▾")
     ),
     userMenuOpen && /*#__PURE__*/React.createElement("div", {
       style: { position: "fixed", right: 8, top: 52, background: "#fff", borderRadius: 10,
@@ -14770,11 +14775,12 @@ function ProduktberaterModal(props) {
           xBtn()
         ),
         CE('div',{style:{background:'#a50024',display:'flex',justifyContent:'flex-end',gap:3,padding:'5px 14px'}},
-          CE('button',{key:'de',onClick:function(){setBeraterLang('de');},style:{background:beraterLang==='de'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='de'?700:400}},'DE'),
-          CE('button',{key:'en',onClick:function(){setBeraterLang('en');},style:{background:beraterLang==='en'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='en'?700:400}},'EN'),
-          CE('button',{key:'ru',onClick:function(){setBeraterLang('ru');},style:{background:beraterLang==='ru'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='ru'?700:400}},'RU'),
-          CE('button',{key:'tr',onClick:function(){setBeraterLang('tr');},style:{background:beraterLang==='tr'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='tr'?700:400}},'TR'),
-          CE('button',{key:'ar',onClick:function(){setBeraterLang('ar');},style:{background:beraterLang==='ar'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='ar'?700:400}},'AR')
+          CE('div',{className:'btu-lang-row'},
+          CE('button',{key:'de',onClick:function(){setBeraterLang('de');},style:{background:beraterLang==='de'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='de'?700:400,flexShrink:0,minHeight:36}},'DE'),
+          CE('button',{key:'en',onClick:function(){setBeraterLang('en');},style:{background:beraterLang==='en'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='en'?700:400,flexShrink:0,minHeight:36}},'EN'),
+          CE('button',{key:'ru',onClick:function(){setBeraterLang('ru');},style:{background:beraterLang==='ru'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='ru'?700:400,flexShrink:0,minHeight:36}},'RU'),
+          CE('button',{key:'tr',onClick:function(){setBeraterLang('tr');},style:{background:beraterLang==='tr'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='tr'?700:400,flexShrink:0,minHeight:36}},'TR'),
+          CE('button',{key:'ar',onClick:function(){setBeraterLang('ar');},style:{background:beraterLang==='ar'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='ar'?700:400,flexShrink:0,minHeight:36}},'AR'))
         ),
         CE('div',{style:{padding:'14px',overflowY:'auto',maxHeight:'70vh'}},
           cart.length === 0
@@ -14835,11 +14841,12 @@ function ProduktberaterModal(props) {
           )
         ),
         CE('div',{style:{background:'#a50024',display:'flex',justifyContent:'flex-end',gap:3,padding:'5px 14px'}},
-          CE('button',{key:'de',onClick:function(){setBeraterLang('de');},style:{background:beraterLang==='de'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='de'?700:400}},'DE'),
-          CE('button',{key:'en',onClick:function(){setBeraterLang('en');},style:{background:beraterLang==='en'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='en'?700:400}},'EN'),
-          CE('button',{key:'ru',onClick:function(){setBeraterLang('ru');},style:{background:beraterLang==='ru'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='ru'?700:400}},'RU'),
-          CE('button',{key:'tr',onClick:function(){setBeraterLang('tr');},style:{background:beraterLang==='tr'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='tr'?700:400}},'TR'),
-          CE('button',{key:'ar',onClick:function(){setBeraterLang('ar');},style:{background:beraterLang==='ar'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'2px 8px',cursor:'pointer',fontSize:11,color:'#fff',fontWeight:beraterLang==='ar'?700:400}},'AR')
+          CE('div',{className:'btu-lang-row'},
+          CE('button',{key:'de',onClick:function(){setBeraterLang('de');},style:{background:beraterLang==='de'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='de'?700:400,flexShrink:0,minHeight:36}},'DE'),
+          CE('button',{key:'en',onClick:function(){setBeraterLang('en');},style:{background:beraterLang==='en'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='en'?700:400,flexShrink:0,minHeight:36}},'EN'),
+          CE('button',{key:'ru',onClick:function(){setBeraterLang('ru');},style:{background:beraterLang==='ru'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='ru'?700:400,flexShrink:0,minHeight:36}},'RU'),
+          CE('button',{key:'tr',onClick:function(){setBeraterLang('tr');},style:{background:beraterLang==='tr'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='tr'?700:400,flexShrink:0,minHeight:36}},'TR'),
+          CE('button',{key:'ar',onClick:function(){setBeraterLang('ar');},style:{background:beraterLang==='ar'?'rgba(255,255,255,0.2)':'transparent',border:'1px solid rgba(255,255,255,0.4)',borderRadius:4,padding:'6px 12px',cursor:'pointer',fontSize:13,color:'#fff',fontWeight:beraterLang==='ar'?700:400,flexShrink:0,minHeight:36}},'AR'))
         ),
         CE('div',{style:{padding:'14px 14px 20px'}},
 
@@ -16847,6 +16854,14 @@ root.render(/*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/R
   button { min-height: 44px; }
   * { -webkit-tap-highlight-color: transparent; }
 }
+/* Mobile header: compress Quiz/Berater labels */
+@media (max-width: 480px) {
+  .btu-user-label { display: none !important; }
+  .btu-quiz-label, .btu-berat-label { display: none !important; }
+}
+/* Produktberater language buttons: scrollable row */
+.btu-lang-row { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-shrink: 0; }
+.btu-lang-row::-webkit-scrollbar { display: none; }
 </style>
 <script>
 (function(){
