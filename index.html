@@ -11141,14 +11141,22 @@ function BioTechDatabase() {
     setLoginLoading(true);
     setLoginError("");
     const hash = await sha256hex(pw);
-    const rows = await SB.get("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value");
+    const [rows, profRows] = await Promise.all([
+      SB.get("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value"),
+      SB.get("profiles?id=eq." + encodeURIComponent(username) + "&select=gebiet,role,name,store")
+    ]);
     const stored = rows && rows[0] ? rows[0].value : null;
     if (!stored || stored.hash !== hash) {
       setLoginLoading(false);
       setLoginError("Falsches Passwort");
       return;
     }
-    finishLogin(username, loginInput.gebiet, loginInput.name, loginInput.store);
+    // Always use gebiet/name from Supabase profile if available
+    const prof = profRows && profRows[0] ? profRows[0] : null;
+    const gebiet = (prof && prof.gebiet) || loginInput.gebiet || "";
+    const nameVal = (prof && prof.name) || loginInput.name || username;
+    const storeVal = (prof && prof.store) || loginInput.store || "";
+    finishLogin(username, gebiet, nameVal, storeVal);
   };
 
   const finishLogin = (username, gebiet, nameVal, storeVal) => {
