@@ -15246,10 +15246,14 @@ function AdminPanel({
           const ln = p.last_name  || "";
           return { key: p.id, displayName: (fn + " " + ln).trim() || p.id, firstName: fn, lastName: ln, favs, quiz, hist, gebiet: p.gebiet || "", role: p.role || "mitarbeiter" };
         });
-        // Gebiet-Filter: superadmin sieht alles, GL/MA nur eigene Region
-        if (currentUser && currentUser.role !== "superadmin") {
-          var myReg = getGebietRegion(currentUser.gebiet || "");
-          if (myReg) list = list.filter(u => getGebietRegion(u.gebiet) === myReg);
+        // Gebiet-Filter: superadmin sieht alles, carmelo nur sich selbst, GL/MA nur eigene Region
+        if (currentUser) {
+          if (currentUser.role === "carmelo") {
+            list = list.filter(u => u.key === currentUser.username);
+          } else if (currentUser.role !== "superadmin") {
+            var myReg = getGebietRegion(currentUser.gebiet || "");
+            if (myReg) list = list.filter(u => getGebietRegion(u.gebiet) === myReg);
+          }
         }
         setUsers(list);
         return;
