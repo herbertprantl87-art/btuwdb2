@@ -16510,8 +16510,8 @@ function AuswertungPage(props) {
 
   React.useEffect(function() {
     var profileQuery = region
-      ? "profiles?gebiet=ilike." + encodeURIComponent(region.split("/")[0] + "%") + "&select=id,name,store,gebiet&order=name.asc"
-      : "profiles?select=id,name,store,gebiet&order=name.asc";
+      ? "profiles?gebiet=ilike." + encodeURIComponent(region.split("/")[0] + "%") + "&select=id,name,store,gebiet,role&order=name.asc"
+      : "profiles?select=id,name,store,gebiet,role&order=name.asc";
     Promise.all([
       QZ.get(profileQuery),
       QZ.get("new_quiz_results?select=*&order=abgeschlossen_am.desc"),
