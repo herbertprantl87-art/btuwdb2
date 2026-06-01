@@ -15015,7 +15015,7 @@ function CartAnalyticsTab({FONT_SYS}) {
   var users = data.users || [];
   var totalAdds = data.total || 0;
 
-  return React.createElement('div',{style:{padding:'14px 16px'}},
+  return React.createElement('div',{style:{padding:'14px 16px', boxSizing:'border-box'}},
     React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
       React.createElement('div',{style:{fontSize:10,fontWeight:800,color:'#3a3a3a',textTransform:'uppercase',letterSpacing:1.2}},'Warenkorb-Analyse'),
       React.createElement('select',{
@@ -15444,7 +15444,7 @@ function AdminPanel({
       ),
 
       // Scrollable content
-      React.createElement("div", { style:{ flex:1, overflowY:"auto", padding:"0" } },
+      React.createElement("div", { style:{ flex:1, overflowY:"auto", padding:"0", minHeight:0 } },
 
         // ── NUTZER TAB ──
         tab==="users" && React.createElement("div", null,
@@ -15905,7 +15905,7 @@ function AdminPanel({
       ),
 
       // ── WARENKORB ANALYSE TAB ──
-      tab==="cart" && React.createElement("div", {style:{flex:1,overflowY:"auto",minHeight:0}}, React.createElement(CartAnalyticsTab, {FONT_SYS: FONT_SYS})),
+      tab==="cart" && React.createElement(CartAnalyticsTab, {FONT_SYS: FONT_SYS}),
 
       // Footer
       React.createElement("div", { style:{ padding:"12px 20px", borderTop:"1px solid #1a1a1a",
