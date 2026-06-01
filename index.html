@@ -15556,19 +15556,6 @@ function AdminPanel({
             })
           ),
 
-          // Presence Debug Box
-          presenceDebug && presenceDebug.length > 0 && React.createElement("div", { style:{ margin:"0 0 12px 0", background:"#0a0a0a", border:"1px solid #1e1e1e", borderRadius:8, padding:"10px 14px" } },
-            React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#f59e0b", letterSpacing:1.4, textTransform:"uppercase", marginBottom:8 } }, "🔍 Presence Debug"),
-            React.createElement("div", { style:{ fontSize:10, color:"#555", marginBottom:6 } }, "onlineUsers keys: " + Object.keys(onlineUsers||{}).join(", ") || "(leer)"),
-            [...presenceDebug].reverse().map((d, i) =>
-              React.createElement("div", { key:i, style:{ fontSize:10, color: d.event==="presence_state"||d.event==="presence_diff" ? "#4ade80" : "#444", borderTop: i>0?"1px solid #111":"none", padding:"3px 0" } },
-                React.createElement("span", { style:{ color:"#555", marginRight:6 } }, d.ts),
-                React.createElement("span", { style:{ color:"#f59e0b", marginRight:6 } }, d.event),
-                React.createElement("span", {}, d.payload)
-              )
-            )
-          ),
-
           users.length===0 && React.createElement("div", { style:{ padding:"32px 20px",
               textAlign:"center", color:"#333", fontSize:12 } }, "Noch keine Nutzer."),
 
