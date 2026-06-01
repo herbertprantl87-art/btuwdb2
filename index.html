@@ -10829,6 +10829,8 @@ function BioTechDatabase() {
   const [adminPinInput, setAdminPinInput] = React.useState("");
   const [adminPinError, setAdminPinError] = React.useState(false);
   const [bLogoClicks, setBLogoClicks] = React.useState(0);
+  const [onlineUsers, setOnlineUsers] = React.useState({});
+  const presenceChannelRef = React.useRef(null);
 
   // ── SPRACHE ────────────────────────────────────────────────────────
   // Beim Start immer Deutsch
@@ -11019,6 +11021,55 @@ function BioTechDatabase() {
     try { localStorage.setItem("btu_user", JSON.stringify(u)); } catch {}
     setUser(u);
     setLoginLoading(false);
+    // ── Presence: join channel ──
+    try {
+      const SB_URL = "https://mejwpbahcmlkwajkymnj.supabase.co";
+      const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
+      if (presenceChannelRef.current) {
+        try { presenceChannelRef.current.unsubscribe(); } catch {}
+      }
+      const wsUrl = SB_URL.replace("https://", "wss://") + "/realtime/v1/websocket?apikey=" + SB_KEY + "&vsn=1.0.0";
+      const ws = new WebSocket(wsUrl);
+      presenceChannelRef.current = ws;
+      const joinRef = "1"; const ref = "1";
+      const topic = "realtime:btuwdb-presence";
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ topic, event: "phx_join", payload: { config: { presence: { key: u.username } } }, ref, join_ref: joinRef }));
+        const track = () => ws.send(JSON.stringify({ topic, event: "presence", payload: { type: "track", key: u.username, payload: { username: u.username, name: displayName, role, store: storeVal || "" } }, ref: "2", join_ref: joinRef }));
+        setTimeout(track, 500);
+        const hbInterval = setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ topic: "phoenix", event: "heartbeat", payload: {}, ref: "hb" })); else clearInterval(hbInterval); }, 20000);
+      };
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.event === "presence_state" || msg.event === "presence_diff") {
+            const state = msg.event === "presence_state" ? msg.payload : null;
+            if (state) {
+              const online = {};
+              Object.entries(state).forEach(([key, val]) => {
+                const metas = (val && val.metas) ? val.metas : [];
+                if (metas.length > 0) online[key] = metas[0];
+              });
+              setOnlineUsers(online);
+            }
+            if (msg.event === "presence_diff") {
+              setOnlineUsers(prev => {
+                const next = { ...prev };
+                const joins = msg.payload.joins || {};
+                const leaves = msg.payload.leaves || {};
+                Object.entries(joins).forEach(([key, val]) => {
+                  const metas = (val && val.metas) ? val.metas : [];
+                  if (metas.length > 0) next[key] = metas[0];
+                });
+                Object.keys(leaves).forEach(key => { delete next[key]; });
+                return next;
+              });
+            }
+          }
+        } catch {}
+      };
+      ws.onclose = () => { presenceChannelRef.current = null; };
+    } catch (err) {}
     // Restore favorites instantly from localStorage, then sync Supabase
     try {
       const localFavs = JSON.parse(localStorage.getItem("btu_favs_" + username) || "[]");
@@ -11041,6 +11092,13 @@ function BioTechDatabase() {
     });
   };
   const doLogout = () => {
+    try {
+      if (presenceChannelRef.current) {
+        try { presenceChannelRef.current.close(); } catch {}
+        presenceChannelRef.current = null;
+      }
+      setOnlineUsers({});
+    } catch {}
     try {
       sessionStorage.removeItem("btu_session");
       sessionStorage.removeItem("btu_lastGoal");
@@ -12112,7 +12170,8 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     },
     onLeave: () => setAdminMode(false),
     productCount: PRODUCTS.filter(p => !p.refOnly).length,
-    currentUser: user
+    currentUser: user,
+    onlineUsers: onlineUsers
   }), /*#__PURE__*/React.createElement("div", {
     className: "btu-main-scroll",
     style: {
@@ -15099,7 +15158,7 @@ function CartAnalyticsTab({FONT_SYS}) {
 
   
 function AdminPanel({
-  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser, onCustomTick
+  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser, onCustomTick, onlineUsers
 }) {
   const [tab, setTab]               = React.useState("users");
   const [users, setUsers]           = React.useState([]);
@@ -15522,8 +15581,11 @@ function AdminPanel({
                 ),
                 React.createElement("div", { style:{ flex:1, minWidth:0 } },
                   React.createElement("div", { style:{ fontWeight:700, fontSize:13, color:"#e0e0e0",
-                      marginBottom:4, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } },
-                    u.displayName
+                      marginBottom:4, display:"flex", alignItems:"center", gap:6 } },
+                    isGLRole(currentUser && currentUser.role) && onlineUsers && onlineUsers[u.key]
+                      ? React.createElement("span", { title:"Online", style:{ width:8, height:8, borderRadius:"50%", background:"#22c55e", display:"inline-block", flexShrink:0, boxShadow:"0 0 4px #22c55e" } })
+                      : isGLRole(currentUser && currentUser.role) && React.createElement("span", { style:{ width:8, height:8, borderRadius:"50%", background:"#2a2a2a", display:"inline-block", flexShrink:0 } }),
+                    React.createElement("span", { style:{ whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, u.displayName)
                   ),
                   React.createElement("div", { style:{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" } },
                     React.createElement("span", { style:{ fontSize:10, color:"#3a3a3a" } },
