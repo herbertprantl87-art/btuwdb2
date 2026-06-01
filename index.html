@@ -101,10 +101,12 @@ c.addEventListener("touchstart",function(e){e.stopPropagation();e.preventDefault
     var tmr=setInterval(function(){cd--;var el=document.getElementById("btu-cd");if(el)el.textContent=cd;if(cd<=0){clearInterval(tmr);location.reload(true);}},1000);
   }
   function check(){
+    if(sessionStorage.getItem("btu_reloaded")==="1"){sessionStorage.removeItem("btu_reloaded");return;}
     fetch("https://herbertprantl87-art.github.io/btuwdb2/version.json?t="+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){
       if(d&&d.sha&&d.sha!==window.__BTU_BUILD){
+        sessionStorage.setItem("btu_reloaded","1");
         location.reload(true);
       }
     })
