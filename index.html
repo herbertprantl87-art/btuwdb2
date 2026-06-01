@@ -15407,7 +15407,7 @@ function AdminPanel({
     React.createElement("div", {
       style:{ position:"fixed", top:0, right:0, bottom:0, width:Math.min(420, window.innerWidth), zIndex:1001,
               background:"#111", fontFamily:FONT_SYS, display:"flex", flexDirection:"column",
-              boxShadow:"-8px 0 40px rgba(0,0,0,.6)", overflowY:"hidden" }
+              boxShadow:"-8px 0 40px rgba(0,0,0,.6)", overflowY:"clip" }
     },
 
       // Header
@@ -15905,7 +15905,7 @@ function AdminPanel({
       ),
 
       // ── WARENKORB ANALYSE TAB ──
-      tab==="cart" && React.createElement(CartAnalyticsTab, {FONT_SYS: FONT_SYS}),
+      tab==="cart" && React.createElement("div", {style:{flex:1,overflowY:"auto",minHeight:0}}, React.createElement(CartAnalyticsTab, {FONT_SYS: FONT_SYS})),
 
       // Footer
       React.createElement("div", { style:{ padding:"12px 20px", borderTop:"1px solid #1a1a1a",
