@@ -10830,6 +10830,7 @@ function BioTechDatabase() {
   const [adminPinError, setAdminPinError] = React.useState(false);
   const [bLogoClicks, setBLogoClicks] = React.useState(0);
   const [onlineUsers, setOnlineUsers] = React.useState({});
+  const [presenceDebug, setPresenceDebug] = React.useState([]);
   const presenceChannelRef = React.useRef(null);
 
   // ── SPRACHE ────────────────────────────────────────────────────────
@@ -11042,6 +11043,8 @@ function BioTechDatabase() {
       ws.onmessage = (ev) => {
         try {
           const msg = JSON.parse(ev.data);
+          // Debug: log every message
+          setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: msg.event, topic: msg.topic, payload: JSON.stringify(msg.payload).slice(0, 200) }]);
           if (msg.event === "presence_state" || msg.event === "presence_diff") {
             const state = msg.event === "presence_state" ? msg.payload : null;
             if (state) {
@@ -12171,7 +12174,8 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     onLeave: () => setAdminMode(false),
     productCount: PRODUCTS.filter(p => !p.refOnly).length,
     currentUser: user,
-    onlineUsers: onlineUsers
+    onlineUsers: onlineUsers,
+    presenceDebug: presenceDebug
   }), /*#__PURE__*/React.createElement("div", {
     className: "btu-main-scroll",
     style: {
@@ -15158,7 +15162,7 @@ function CartAnalyticsTab({FONT_SYS}) {
 
   
 function AdminPanel({
-  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser, onCustomTick, onlineUsers
+  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser, onCustomTick, onlineUsers, presenceDebug
 }) {
   const [tab, setTab]               = React.useState("users");
   const [users, setUsers]           = React.useState([]);
@@ -15556,6 +15560,19 @@ function AdminPanel({
                       background:"#141414", border:"1.5px solid #222", borderRadius:8,
                       fontSize:12, color:"#e0e0e0", fontFamily:"inherit", outline:"none" }
             })
+          ),
+
+          // Presence Debug Box
+          presenceDebug && presenceDebug.length > 0 && React.createElement("div", { style:{ margin:"0 0 12px 0", background:"#0a0a0a", border:"1px solid #1e1e1e", borderRadius:8, padding:"10px 14px" } },
+            React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#f59e0b", letterSpacing:1.4, textTransform:"uppercase", marginBottom:8 } }, "🔍 Presence Debug"),
+            React.createElement("div", { style:{ fontSize:10, color:"#555", marginBottom:6 } }, "onlineUsers keys: " + Object.keys(onlineUsers||{}).join(", ") || "(leer)"),
+            [...presenceDebug].reverse().map((d, i) =>
+              React.createElement("div", { key:i, style:{ fontSize:10, color: d.event==="presence_state"||d.event==="presence_diff" ? "#4ade80" : "#444", borderTop: i>0?"1px solid #111":"none", padding:"3px 0" } },
+                React.createElement("span", { style:{ color:"#555", marginRight:6 } }, d.ts),
+                React.createElement("span", { style:{ color:"#f59e0b", marginRight:6 } }, d.event),
+                React.createElement("span", {}, d.payload)
+              )
+            )
           ),
 
           users.length===0 && React.createElement("div", { style:{ padding:"32px 20px",
