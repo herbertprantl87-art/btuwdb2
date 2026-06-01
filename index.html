@@ -113,7 +113,7 @@ c.addEventListener("touchstart",function(e){e.stopPropagation();e.preventDefault
   }
   localStorage.removeItem("btu_toast_ts"); // Force-check beim Start
   check(); // Sofort beim Laden
-  _iv=setInterval(check,60000); // Temporaer 1 Min, wird spaeter auf 3h geaendert
+  _iv=setInterval(check,10800000); // 3h
 })();
 </script>
 <div id="root"></div>
