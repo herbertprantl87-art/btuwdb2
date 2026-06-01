@@ -106,12 +106,14 @@ c.addEventListener("touchstart",function(e){e.stopPropagation();e.preventDefault
     .then(function(d){
       if(d&&d.sha&&d.sha!==window.__BTU_BUILD){
         var last=parseInt(localStorage.getItem("btu_toast_ts")||"0",10);
-        if(Date.now()-last>=10800000){showToast();}
+        showToast(); // Kein Throttle — einmaliger Check beim Start
       }
     })
     .catch(function(){});
   }
-  setTimeout(function(){check();_iv=setInterval(check,21600000);},30000);
+  localStorage.removeItem("btu_toast_ts"); // Force-check beim Start
+  check(); // Sofort beim Laden
+  _iv=setInterval(check,60000); // Temporaer 1 Min, wird spaeter auf 3h geaendert
 })();
 </script>
 <div id="root"></div>
