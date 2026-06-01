@@ -10833,6 +10833,11 @@ function BioTechDatabase() {
   const [onlineUsers, setOnlineUsers] = React.useState({});
   const [presenceDebug, setPresenceDebug] = React.useState([]);
   const presenceChannelRef = React.useRef(null);
+  const [inbox, setInbox] = React.useState([]);
+  const [showInbox, setShowInbox] = React.useState(false);
+  const [inboxReplyTo, setInboxReplyTo] = React.useState(null);
+  const [inboxReplyText, setInboxReplyText] = React.useState("");
+  const [inboxSending, setInboxSending] = React.useState(false);
 
   // ── SPRACHE ────────────────────────────────────────────────────────
   // Beim Start immer Deutsch
@@ -11087,6 +11092,10 @@ function BioTechDatabase() {
         if (r.history) localStorage.setItem("btu_quiz_hist_" + username, JSON.stringify(r.history));
       }
     });
+    // Load inbox
+    SB.get("messages?to_username=eq." + encodeURIComponent(username) + "&order=created_at.desc&select=*").then(rows => {
+      if (rows) setInbox(rows);
+    });
   };
   const doLogout = () => {
     try {
@@ -11113,6 +11122,10 @@ function BioTechDatabase() {
     setLoginGLMode(false);
     setActiveView(null);
     setUserMenuOpen(false);
+    setInbox([]);
+    setShowInbox(false);
+    setInboxReplyTo(null);
+    setInboxReplyText("");
   };
   const [activeView, setActiveView] = React.useState(null); // null | 'mein-quiz' | 'auswertung' | 'quiz-creator'
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
@@ -12557,7 +12570,81 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       fontWeight: 600
     }
   }, filtered.length, " / ", PRODUCTS.length, " \xB7 ", CATEGORIES.length - 1, " Kat."),
-  /*#__PURE__*/React.createElement("button",{onClick:()=>setShowNotes(true),title:"Merkzettel",style:{position:"fixed",bottom:20,right:20,width:52,height:52,borderRadius:"50%",background:"linear-gradient(135deg,#c8102e,#e8294a)",border:"none",boxShadow:"0 4px 15px rgba(200,16,46,0.4)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,zIndex:200}},notesText?"\u{1F4DD}":"\u{1F4CB}"),showNotes&&/*#__PURE__*/React.createElement("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16,paddingTop:70},onClick:()=>setShowNotes(false)},/*#__PURE__*/React.createElement("div",{style:{background:"#fff",borderRadius:16,padding:20,width:"100%",maxWidth:480,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"},onClick:e=>e.stopPropagation()},/*#__PURE__*/React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}},/*#__PURE__*/React.createElement("div",{style:{fontWeight:700,fontSize:16,color:"#1a1a1a",display:"flex",alignItems:"center",gap:8,fontFamily:FONT}},"\u{1F4DD} Mein Merkzettel"),/*#__PURE__*/React.createElement("button",{onClick:()=>setShowNotes(false),style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#888",padding:0,lineHeight:1}},"\u00D7")),/*#__PURE__*/React.createElement("textarea",{value:notesText,onChange:e=>{const v=e.target.value;setNotesText(v);try{localStorage.setItem(('btu_notes_'+(JSON.parse(localStorage.getItem('btu_user')||'{}').key||'_')),v);try{(function(){var _su=JSON.parse(localStorage.getItem('btu_user')||'{}');if(_su&&_su.key){fetch('https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/notes',{method:'POST',headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_key:_su.key,content:v,updated_at:new Date().toISOString()})}).catch(function(){});}})();}catch{}}catch{}},placeholder:"Notizen hier eingeben...",autoFocus:true,style:{width:"100%",height:220,border:"1.5px solid #e5e7eb",borderRadius:10,padding:"12px 14px",fontFamily:FONT,fontSize:13,lineHeight:1.6,resize:"vertical",outline:"none",color:"#1a1a1a",boxSizing:"border-box"}}),/*#__PURE__*/React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12}},/*#__PURE__*/React.createElement("span",{style:{fontSize:11,color:"#aaa",fontFamily:FONT}},"Automatisch gespeichert"),/*#__PURE__*/React.createElement("button",{onClick:()=>{setNotesText("");try{(function(){var _u=JSON.parse(localStorage.getItem('btu_user')||'{}');if(_u&&_u.key)localStorage.removeItem('btu_notes_'+_u.key);localStorage.removeItem('btu_notes');})();}catch{}},style:{background:"none",border:"1px solid #e5e7eb",borderRadius:8,padding:"5px 12px",fontFamily:FONT,fontSize:11,color:"#888",cursor:"pointer"}},"L\xF6schen"))))));
+  user && /*#__PURE__*/React.createElement("div",{style:{position:"fixed",bottom:80,right:20,zIndex:200}},
+  /*#__PURE__*/React.createElement("button",{
+    onClick:()=>setShowInbox(true),
+    title:"Nachrichten",
+    style:{width:52,height:52,borderRadius:"50%",background:"linear-gradient(135deg,#1e3a8a,#2563eb)",border:"none",boxShadow:"0 4px 15px rgba(37,99,235,0.4)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,position:"relative"}
+  },
+    "✉️",
+    inbox.filter(m=>!m.read).length > 0 && /*#__PURE__*/React.createElement("span",{style:{position:"absolute",top:2,right:2,background:"#ef4444",color:"#fff",borderRadius:"50%",width:18,height:18,fontSize:10,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}},
+      inbox.filter(m=>!m.read).length > 9 ? "9+" : inbox.filter(m=>!m.read).length
+    )
+  )
+),
+/*#__PURE__*/React.createElement("button",{onClick:()=>setShowNotes(true),title:"Merkzettel",style:{position:"fixed",bottom:20,right:20,width:52,height:52,borderRadius:"50%",background:"linear-gradient(135deg,#c8102e,#e8294a)",border:"none",boxShadow:"0 4px 15px rgba(200,16,46,0.4)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,zIndex:200}},notesText?"\u{1F4DD}":"\u{1F4CB}"),showInbox && user && /*#__PURE__*/React.createElement("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:16,paddingTop:60},onClick:()=>{setShowInbox(false);setInboxReplyTo(null);setInboxReplyText("");}},
+  /*#__PURE__*/React.createElement("div",{style:{background:"#111",borderRadius:16,padding:20,width:"100%",maxWidth:520,maxHeight:"80vh",display:"flex",flexDirection:"column",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"},onClick:e=>e.stopPropagation()},
+    /*#__PURE__*/React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexShrink:0}},
+      /*#__PURE__*/React.createElement("div",{style:{fontWeight:800,fontSize:16,color:"#e0e0e0",display:"flex",alignItems:"center",gap:8}},
+        "✉️ Nachrichten",
+        inbox.filter(m=>!m.read).length > 0 && /*#__PURE__*/React.createElement("span",{style:{background:"#ef4444",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:11,fontWeight:800}}, inbox.filter(m=>!m.read).length+" neu")
+      ),
+      /*#__PURE__*/React.createElement("button",{onClick:()=>{setShowInbox(false);setInboxReplyTo(null);setInboxReplyText("");},style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#888",padding:0,lineHeight:1}},"×")
+    ),
+    inbox.length === 0
+      ? /*#__PURE__*/React.createElement("div",{style:{color:"#444",fontSize:13,textAlign:"center",padding:"32px 0"}},"Keine Nachrichten.")
+      : /*#__PURE__*/React.createElement("div",{style:{overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:10}},
+          [...inbox].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(msg =>
+            /*#__PURE__*/React.createElement("div",{key:msg.id,style:{background:msg.read?"#161616":"#0d1a2e",border:"1px solid "+( msg.read?"#1e1e1e":"#1e3a5f"),borderRadius:10,padding:"12px 14px"}},
+              /*#__PURE__*/React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}},
+                /*#__PURE__*/React.createElement("span",{style:{fontWeight:700,fontSize:12,color:"#60a5fa"}},"Von: "+msg.from_name),
+                /*#__PURE__*/React.createElement("span",{style:{fontSize:10,color:"#444"}}, new Date(msg.created_at).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}))
+              ),
+              /*#__PURE__*/React.createElement("div",{style:{fontSize:13,color:"#d0d0d0",lineHeight:1.5,marginBottom:8}}, msg.body),
+              /*#__PURE__*/React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+                !msg.read && /*#__PURE__*/React.createElement("button",{
+                  onClick:()=>{
+                    SB.upsert("messages",{id:msg.id,from_username:msg.from_username,from_name:msg.from_name,to_username:msg.to_username,body:msg.body,read:true,created_at:msg.created_at});
+                    setInbox(prev=>prev.map(m=>m.id===msg.id?{...m,read:true}:m));
+                  },
+                  style:{fontSize:10,color:"#4ade80",background:"transparent",border:"1px solid #14532d",borderRadius:6,padding:"3px 10px",cursor:"pointer"}
+                },"✓ Gelesen"),
+                /*#__PURE__*/React.createElement("button",{
+                  onClick:()=>{ setInboxReplyTo(msg); setInboxReplyText(""); },
+                  style:{fontSize:10,color:"#60a5fa",background:"transparent",border:"1px solid #1e3a8a",borderRadius:6,padding:"3px 10px",cursor:"pointer"}
+                },"↩ Antworten")
+              ),
+              inboxReplyTo && inboxReplyTo.id === msg.id && /*#__PURE__*/React.createElement("div",{style:{marginTop:10,borderTop:"1px solid #1e1e1e",paddingTop:10}},
+                /*#__PURE__*/React.createElement("textarea",{
+                  value:inboxReplyText,
+                  onChange:e=>setInboxReplyText(e.target.value),
+                  placeholder:"Antwort schreiben...",
+                  autoFocus:true,
+                  style:{width:"100%",height:80,background:"#0a0a0a",border:"1px solid #2a2a2a",borderRadius:8,padding:"8px 10px",color:"#e0e0e0",fontSize:12,resize:"none",outline:"none",boxSizing:"border-box",fontFamily:"inherit"}
+                }),
+                /*#__PURE__*/React.createElement("div",{style:{display:"flex",gap:6,marginTop:6,justifyContent:"flex-end"}},
+                  /*#__PURE__*/React.createElement("button",{onClick:()=>{setInboxReplyTo(null);setInboxReplyText("");},style:{fontSize:11,color:"#666",background:"transparent",border:"1px solid #222",borderRadius:6,padding:"5px 12px",cursor:"pointer"}},"Abbrechen"),
+                  /*#__PURE__*/React.createElement("button",{
+                    disabled:inboxSending||!inboxReplyText.trim(),
+                    onClick:async()=>{
+                      if(!inboxReplyText.trim()||!user) return;
+                      setInboxSending(true);
+                      const nm={from_username:user.username||user.key,from_name:user.first||user.username,to_username:msg.from_username,body:inboxReplyText.trim(),read:false,created_at:new Date().toISOString()};
+                      await SB.upsert("messages",nm);
+                      setInboxSending(false);
+                      setInboxReplyTo(null);
+                      setInboxReplyText("");
+                    },
+                    style:{fontSize:11,fontWeight:700,color:"#fff",background:"#1e3a8a",border:"none",borderRadius:6,padding:"5px 14px",cursor:"pointer",opacity:inboxSending?0.6:1}
+                  }, inboxSending?"...":"Senden")
+                )
+              )
+            )
+          )
+        )
+  )
+),
+showNotes&&/*#__PURE__*/React.createElement("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16,paddingTop:70},onClick:()=>setShowNotes(false)},/*#__PURE__*/React.createElement("div",{style:{background:"#fff",borderRadius:16,padding:20,width:"100%",maxWidth:480,boxShadow:"0 20px 60px rgba(0,0,0,0.3)"},onClick:e=>e.stopPropagation()},/*#__PURE__*/React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}},/*#__PURE__*/React.createElement("div",{style:{fontWeight:700,fontSize:16,color:"#1a1a1a",display:"flex",alignItems:"center",gap:8,fontFamily:FONT}},"\u{1F4DD} Mein Merkzettel"),/*#__PURE__*/React.createElement("button",{onClick:()=>setShowNotes(false),style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#888",padding:0,lineHeight:1}},"\u00D7")),/*#__PURE__*/React.createElement("textarea",{value:notesText,onChange:e=>{const v=e.target.value;setNotesText(v);try{localStorage.setItem(('btu_notes_'+(JSON.parse(localStorage.getItem('btu_user')||'{}').key||'_')),v);try{(function(){var _su=JSON.parse(localStorage.getItem('btu_user')||'{}');if(_su&&_su.key){fetch('https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/notes',{method:'POST',headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_key:_su.key,content:v,updated_at:new Date().toISOString()})}).catch(function(){});}})();}catch{}}catch{}},placeholder:"Notizen hier eingeben...",autoFocus:true,style:{width:"100%",height:220,border:"1.5px solid #e5e7eb",borderRadius:10,padding:"12px 14px",fontFamily:FONT,fontSize:13,lineHeight:1.6,resize:"vertical",outline:"none",color:"#1a1a1a",boxSizing:"border-box"}}),/*#__PURE__*/React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12}},/*#__PURE__*/React.createElement("span",{style:{fontSize:11,color:"#aaa",fontFamily:FONT}},"Automatisch gespeichert"),/*#__PURE__*/React.createElement("button",{onClick:()=>{setNotesText("");try{(function(){var _u=JSON.parse(localStorage.getItem('btu_user')||'{}');if(_u&&_u.key)localStorage.removeItem('btu_notes_'+_u.key);localStorage.removeItem('btu_notes');})();}catch{}},style:{background:"none",border:"1px solid #e5e7eb",borderRadius:8,padding:"5px 12px",fontFamily:FONT,fontSize:11,color:"#888",cursor:"pointer"}},"L\xF6schen"))))));
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -15156,7 +15243,7 @@ function CartAnalyticsTab({FONT_SYS}) {
 
   
 function AdminPanel({
-  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser, onCustomTick, onlineUsers, presenceDebug
+  t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser, onCustomTick, onlineUsers, presenceDebug, onMessageSent
 }) {
   const [tab, setTab]               = React.useState("users");
   const [users, setUsers]           = React.useState([]);
@@ -15174,6 +15261,10 @@ function AdminPanel({
   const [editingUserId, setEditingUserId] = React.useState(null);
   const [editUserFields, setEditUserFields] = React.useState({ first: "", last: "" });
   const [editUserMsg, setEditUserMsg] = React.useState("");
+  const [composingTo, setComposingTo] = React.useState(null);
+  const [composeText, setComposeText] = React.useState("");
+  const [composeSending, setComposeSending] = React.useState(false);
+  const [composeSentMsg, setComposeSentMsg] = React.useState("");
   const EMPTY_PROD = { name:"", category:"Protein", categoryCustom:"", subcategory:"", price:"", packageSize:"", portionSize:"", kcalPortion:"", proteinPortion:"", fatPortion:"", carbsPortion:"", vegan:false, notes:"", flavors:"" };
   const [newProdOpen, setNewProdOpen] = React.useState(false);
   const [newProd, setNewProd] = React.useState(EMPTY_PROD);
@@ -15724,7 +15815,49 @@ function AdminPanel({
                         style:{ fontSize:11, fontWeight:700, padding:"7px 14px", background:"transparent",
                                 color:"#f87171", border:"1px solid #2a1010", borderRadius:8,
                                 cursor:"pointer", fontFamily:FONT_SYS }
-                      }, "🗑 Profil löschen")
+                      }, "🗑 Profil löschen"),
+                      currentUser && isGLRole(currentUser.role) && u.key !== (currentUser.username||currentUser.key) &&
+                        React.createElement("button", {
+                          onClick:()=>{ setComposingTo(u); setComposeText(""); setComposeSentMsg(""); },
+                          style:{ fontSize:11, fontWeight:700, padding:"7px 14px", background:"transparent",
+                                  color:"#34d399", border:"1px solid #064e3b", borderRadius:8,
+                                  cursor:"pointer", fontFamily:FONT_SYS }
+                        }, "✉️ Nachricht")
+                    ),
+                    composingTo && composingTo.key === u.key && React.createElement("div", {
+                      style:{ marginTop:12, background:"#0a1a12", border:"1px solid #064e3b", borderRadius:10, padding:"12px 14px" }
+                    },
+                      React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#34d399", letterSpacing:1.4, textTransform:"uppercase", marginBottom:8 } },
+                        "✉️ Nachricht an " + u.displayName
+                      ),
+                      React.createElement("textarea", {
+                        value: composeText,
+                        onChange: e => setComposeText(e.target.value),
+                        placeholder: "Nachricht eingeben...",
+                        autoFocus: true,
+                        style:{ width:"100%", height:90, background:"#050e08", border:"1px solid #0d2818", borderRadius:8, padding:"8px 10px", color:"#e0e0e0", fontSize:12, resize:"none", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }
+                      }),
+                      composeSentMsg && React.createElement("div", { style:{ fontSize:11, color:"#4ade80", marginTop:4 } }, composeSentMsg),
+                      React.createElement("div", { style:{ display:"flex", gap:6, marginTop:8, justifyContent:"flex-end" } },
+                        React.createElement("button", {
+                          onClick:()=>{ setComposingTo(null); setComposeText(""); setComposeSentMsg(""); },
+                          style:{ fontSize:11, color:"#555", background:"transparent", border:"1px solid #1a1a1a", borderRadius:6, padding:"5px 12px", cursor:"pointer" }
+                        }, "Abbrechen"),
+                        React.createElement("button", {
+                          disabled: composeSending || !composeText.trim(),
+                          onClick: async () => {
+                            if (!composeText.trim() || !currentUser) return;
+                            setComposeSending(true);
+                            const nm = { from_username: currentUser.username||currentUser.key, from_name: currentUser.first||currentUser.username||currentUser.key, to_username: u.key, body: composeText.trim(), read: false, created_at: new Date().toISOString() };
+                            await SB.upsert("messages", nm);
+                            setComposeSending(false);
+                            setComposeText("");
+                            setComposeSentMsg("✓ Gesendet!");
+                            setTimeout(()=>{ setComposeSentMsg(""); setComposingTo(null); }, 2000);
+                          },
+                          style:{ fontSize:11, fontWeight:700, color:"#fff", background: composeSending||!composeText.trim() ? "#1a2e20" : "#065f46", border:"none", borderRadius:6, padding:"5px 14px", cursor:"pointer" }
+                        }, composeSending ? "..." : "Senden")
+                      )
                     )
               )
             );
