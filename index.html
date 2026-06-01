@@ -11096,6 +11096,19 @@ function BioTechDatabase() {
     SB.get("messages?to_username=eq." + encodeURIComponent(username) + "&order=created_at.desc&select=*").then(rows => {
       if (rows) setInbox(rows);
     });
+    // Realtime: new messages arriving while logged in
+    try {
+      if (window.supabase && window.supabase.createClient) {
+        const SB_URL = "https://mejwpbahcmlkwajkymnj.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
+        const sbMsg = window.supabase.createClient(SB_URL, SB_KEY);
+        sbMsg.channel("inbox-" + username)
+          .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "to_username=eq." + username }, payload => {
+            setInbox(prev => [payload.new, ...prev]);
+          })
+          .subscribe();
+      }
+    } catch {}
   };
   const doLogout = () => {
     try {
