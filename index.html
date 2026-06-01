@@ -15444,7 +15444,7 @@ function AdminPanel({
       ),
 
       // Scrollable content
-      React.createElement("div", { style:{ flex:1, overflowY:"auto", padding:"0", minHeight:0 } },
+      React.createElement("div", { style:{ flex:1, overflowY:"auto", padding:"0", minHeight:0, display: tab==="cart" ? "none" : "block" } },
 
         // ── NUTZER TAB ──
         tab==="users" && React.createElement("div", null,
@@ -15905,7 +15905,9 @@ function AdminPanel({
       ),
 
       // ── WARENKORB ANALYSE TAB ──
-      tab==="cart" && React.createElement(CartAnalyticsTab, {FONT_SYS: FONT_SYS}),
+      tab==="cart" && React.createElement("div", { style:{ flex:1, overflowY:"auto", minHeight:0 } },
+        React.createElement(CartAnalyticsTab, {FONT_SYS: FONT_SYS})
+      ),
 
       // Footer
       React.createElement("div", { style:{ padding:"12px 20px", borderTop:"1px solid #1a1a1a",
