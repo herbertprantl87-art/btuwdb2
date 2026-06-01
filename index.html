@@ -15593,7 +15593,7 @@ function AdminPanel({
                 React.createElement("div", { style:{ flex:1, minWidth:0 } },
                   React.createElement("div", { style:{ fontWeight:700, fontSize:13, color:"#e0e0e0",
                       marginBottom:4, display:"flex", alignItems:"center", gap:6 } },
-                    isGLRole(currentUser && currentUser.role) && onlineUsers && (onlineUsers[u.key] || Object.values(onlineUsers).some(p => p && p.username && p.username.toLowerCase() === u.key.toLowerCase()))
+                    isGLRole(currentUser && currentUser.role) && onlineUsers && (onlineUsers[u.key] || Object.values(onlineUsers).some(p => { if (!p) return false; const pun = (p.username||"").toLowerCase().replace(/\s+/g,""); const uk = (u.key||"").toLowerCase().replace(/\s+/g,""); const dn = (u.displayName||"").toLowerCase().replace(/\s+/g,""); return pun === uk || pun === dn; }))
                       ? React.createElement("span", { title:"Online", style:{ width:8, height:8, borderRadius:"50%", background:"#22c55e", display:"inline-block", flexShrink:0, boxShadow:"0 0 4px #22c55e" } })
                       : isGLRole(currentUser && currentUser.role) && React.createElement("span", { style:{ width:8, height:8, borderRadius:"50%", background:"#2a2a2a", display:"inline-block", flexShrink:0 } }),
                     React.createElement("span", { style:{ whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, u.displayName)
