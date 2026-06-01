@@ -820,7 +820,8 @@ var PRODUCTS = [
     carbsPortion: "0 g",
     freeFrom: ["Aspartam", "GVO"],
     vegan: false,
-    halal: "ja",
+    gelatin_animal: true,
+    halal: "nein",
     keyIngredients: [
       "Koffein 200 mg / Portion",
       "L-Carnitin-L-Tartrat (L-Carnitin-Quelle 1)",
@@ -1342,7 +1343,8 @@ var PRODUCTS = [
     carbsPortion: "0 g",
     freeFrom: ["Aspartam", "Gluten", "Laktose", "Zucker", "GVO"],
     vegan: false,
-    halal: "ja",
+    gelatin_animal: true,
+    halal: "nein",
     keyIngredients: [
       "Teszto-Forme: Zink (Testosteron-Homöostase), Magnesium, Vitamin B6 (ZMB-Komplex)",
       "Kreatin-Monohydrat 167 mg / Tagesdosis",
@@ -1372,7 +1374,8 @@ var PRODUCTS = [
     carbsPortion: "0 g",
     freeFrom: ["Aspartam", "Farbstoffe", "GVO", "Koffein"],
     vegan: false,
-    halal: "ja",
+    gelatin_animal: true,
+    halal: "nein",
     keyIngredients: [
       "ZMB-Komplex: Zink, Magnesium, Vitamin B6",
       "HMB (Beta-Hydroxy-Beta-Methylbutyrat)",
@@ -1609,6 +1612,7 @@ var PRODUCTS = [
     carbsPortion: "0 g",
     freeFrom: ["Zucker", "Gluten", "Laktose"],
     vegan: false,
+    gelatin_animal: true,
     halal: "ja",
     keyIngredients: [
       "Fischöl-Konzentrat (Makrele/Sardelle/Sardine)",
@@ -2660,7 +2664,8 @@ var PRODUCTS = [
     carbsPortion: "0 g",
     freeFrom: ["GVO"],
     vegan: false,
-    halal: "ja",
+    gelatin_animal: true,
+    halal: "nein",
     keyIngredients: [
       "Koffein aus 4 natürlichen Quellen: Guarana, Grüntee, Kolanuss + synthetisch",
       "Grüntee-Extrakt EGCG (Thermogenese)",
@@ -5851,6 +5856,7 @@ var PRODUCTS = [
     carbsPortion: "~3 g",
     freeFrom: ["GVO"],
     vegan: false,
+    gelatin_animal: true,
     halal: "ja",
     keyIngredients: [
       "L-Carnitin-L-Tartrat (sportlichste Form)",
@@ -12634,7 +12640,7 @@ function ProductCard({
       borderRadius: 20,
       padding: "1px 7px"
     }
-  }, "\u26A0 ", t.halal, "?")), /*#__PURE__*/React.createElement("div", {
+  }, "\u26A0 ", t.halal, "?"), !isRef && p.gelatin_animal && /*#__PURE__*/React.createElement("span", {style:{fontSize:10,fontWeight:700,color:"#92400e",background:"#fef3c7",border:"1px solid #fcd34d",borderRadius:20,padding:"1px 7px"}}, "\uD83D\uDC37 Gelatine")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontWeight: 700,
       fontSize: 14,
