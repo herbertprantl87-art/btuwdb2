@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -11022,57 +11023,50 @@ function BioTechDatabase() {
     try { localStorage.setItem("btu_user", JSON.stringify(u)); } catch {}
     setUser(u);
     setLoginLoading(false);
-    // ── Presence: join channel ──
+    // ── Presence: join channel via supabase-js ──
     try {
       const SB_URL = "https://mejwpbahcmlkwajkymnj.supabase.co";
       const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
       if (presenceChannelRef.current) {
         try { presenceChannelRef.current.unsubscribe(); } catch {}
+        presenceChannelRef.current = null;
       }
-      const wsUrl = SB_URL.replace("https://", "wss://") + "/realtime/v1/websocket?apikey=" + SB_KEY + "&vsn=1.0.0";
-      const ws = new WebSocket(wsUrl);
-      presenceChannelRef.current = ws;
-      const joinRef = "1"; const ref = "1";
-      const topic = "realtime:btuwdb-presence";
-      ws.onopen = () => {
-        ws.send(JSON.stringify({ topic, event: "phx_join", payload: { config: { presence: { key: u.username } } }, ref, join_ref: joinRef }));
-        const track = () => ws.send(JSON.stringify({ topic, event: "presence", payload: { type: "track", key: u.username, payload: { username: u.username, name: displayName, role, store: storeVal || "" } }, ref: "2", join_ref: joinRef }));
-        setTimeout(track, 500);
-        const hbInterval = setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ topic: "phoenix", event: "heartbeat", payload: {}, ref: "hb" })); else clearInterval(hbInterval); }, 20000);
-      };
-      ws.onmessage = (ev) => {
-        try {
-          const msg = JSON.parse(ev.data);
-          // Debug: log every message
-          setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: msg.event, topic: msg.topic, payload: JSON.stringify(msg.payload).slice(0, 200) }]);
-          if (msg.event === "presence_state" || msg.event === "presence_diff") {
-            const state = msg.event === "presence_state" ? msg.payload : null;
-            if (state) {
-              const online = {};
-              Object.entries(state).forEach(([key, val]) => {
-                const metas = (val && val.metas) ? val.metas : [];
-                if (metas.length > 0) online[key] = metas[0];
-              });
-              setOnlineUsers(online);
+      if (window.supabase && window.supabase.createClient) {
+        const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+        const channel = sbClient.channel("btuwdb-presence", {
+          config: { presence: { key: u.username } }
+        });
+        channel
+          .on("presence", { event: "sync" }, () => {
+            const state = channel.presenceState();
+            setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: "sync", payload: JSON.stringify(state).slice(0, 300) }]);
+            const online = {};
+            Object.entries(state).forEach(([key, presences]) => {
+              if (presences && presences.length > 0) online[key] = presences[0];
+            });
+            setOnlineUsers(online);
+          })
+          .on("presence", { event: "join" }, ({ key, newPresences }) => {
+            setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: "join", payload: key + ": " + JSON.stringify(newPresences).slice(0, 150) }]);
+            setOnlineUsers(prev => ({ ...prev, [key]: newPresences[0] }));
+          })
+          .on("presence", { event: "leave" }, ({ key }) => {
+            setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: "leave", payload: key }]);
+            setOnlineUsers(prev => { const next = { ...prev }; delete next[key]; return next; });
+          })
+          .subscribe(async (status) => {
+            setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: "status", payload: status }]);
+            if (status === "SUBSCRIBED") {
+              await channel.track({ username: u.username, name: displayName, role, store: storeVal || "" });
             }
-            if (msg.event === "presence_diff") {
-              setOnlineUsers(prev => {
-                const next = { ...prev };
-                const joins = msg.payload.joins || {};
-                const leaves = msg.payload.leaves || {};
-                Object.entries(joins).forEach(([key, val]) => {
-                  const metas = (val && val.metas) ? val.metas : [];
-                  if (metas.length > 0) next[key] = metas[0];
-                });
-                Object.keys(leaves).forEach(key => { delete next[key]; });
-                return next;
-              });
-            }
-          }
-        } catch {}
-      };
-      ws.onclose = () => { presenceChannelRef.current = null; };
-    } catch (err) {}
+          });
+        presenceChannelRef.current = channel;
+      } else {
+        setPresenceDebug(prev => [...prev, { ts: new Date().toLocaleTimeString(), event: "ERROR", payload: "supabase-js not loaded" }]);
+      }
+    } catch (err) {
+      setPresenceDebug(prev => [...prev, { ts: new Date().toLocaleTimeString(), event: "CATCH", payload: String(err) }]);
+    }
     // Restore favorites instantly from localStorage, then sync Supabase
     try {
       const localFavs = JSON.parse(localStorage.getItem("btu_favs_" + username) || "[]");
@@ -11097,7 +11091,7 @@ function BioTechDatabase() {
   const doLogout = () => {
     try {
       if (presenceChannelRef.current) {
-        try { presenceChannelRef.current.close(); } catch {}
+        try { presenceChannelRef.current.unsubscribe(); } catch {}
         presenceChannelRef.current = null;
       }
       setOnlineUsers({});
