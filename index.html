@@ -11,6 +11,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
+    @keyframes btu-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --btu-red: #c8102e;
@@ -11062,7 +11063,7 @@ function BioTechDatabase() {
           .subscribe(async (status) => {
             setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: "status", payload: status }]);
             if (status === "SUBSCRIBED") {
-              await channel.track({ username: u.username, name: displayName, role, store: storeVal || "" });
+              await channel.track({ username: u.username, name: displayName, role, store: storeVal || "", since: Date.now() });
             }
           });
         presenceChannelRef.current = channel;
@@ -15642,12 +15643,26 @@ function AdminPanel({
                 color:createMsg.startsWith("✓")?"#4ade80":"#f87171" } }, createMsg)
           ),
 
-          // User count
-          React.createElement("div", { style:{ padding:"10px 20px 6px", fontSize:10, fontWeight:800,
-              color:"#3a3a3a", textTransform:"uppercase", letterSpacing:1.6,
-              display:"flex", justifyContent:"space-between" } },
-            React.createElement("span", null, users.length+" Nutzer"),
-            React.createElement("span", { style:{color:"#2a2a2a"} }, users.filter(u=>u.quiz).length+" mit Quiz")
+          // User count + online banner
+          React.createElement("div", { style:{ padding:"10px 20px 6px" } },
+            React.createElement("div", { style:{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                fontSize:10, fontWeight:800, color:"#3a3a3a", textTransform:"uppercase", letterSpacing:1.6, marginBottom:0 } },
+              React.createElement("span", null, users.length+" Nutzer"),
+              React.createElement("span", { style:{color:"#2a2a2a"} }, users.filter(u=>u.quiz).length+" mit Quiz")
+            ),
+            isGLRole(currentUser && currentUser.role) && onlineUsers && Object.keys(onlineUsers).length > 0 &&
+              React.createElement("div", { style:{ marginTop:8, padding:"8px 10px", background:"#071a0f",
+                  border:"1px solid #0d2e1a", borderRadius:9, display:"flex", alignItems:"center", gap:8 } },
+                React.createElement("span", { style:{ width:8, height:8, borderRadius:"50%", background:"#22c55e",
+                    flexShrink:0, boxShadow:"0 0 6px #22c55e88", animation:"btu-pulse 1.6s ease-in-out infinite",
+                    display:"inline-block" } }),
+                React.createElement("span", { style:{ fontSize:11, fontWeight:700, color:"#22c55e" } },
+                  Object.keys(onlineUsers).length === 1 ? "1 Person online" : Object.keys(onlineUsers).length+" Personen online"
+                ),
+                React.createElement("span", { style:{ fontSize:10, color:"#1a4a2a", marginLeft:4 } },
+                  "· " + Object.values(onlineUsers).map(p => (p && (p.name || p.username)) || "?").join(", ")
+                )
+              )
           ),
 
           React.createElement("div", { style:{ padding:"8px 20px 10px" } },
@@ -15685,7 +15700,7 @@ function AdminPanel({
                   React.createElement("div", { style:{ fontWeight:700, fontSize:13, color:"#e0e0e0",
                       marginBottom:4, display:"flex", alignItems:"center", gap:6 } },
                     isGLRole(currentUser && currentUser.role) && onlineUsers && (onlineUsers[u.key] || Object.values(onlineUsers).some(p => { if (!p) return false; const norm = s => (s||"").toLowerCase().replace(/\s+/g,""); const pun = norm(p.username); return pun === norm(u.key) || pun === norm(u.displayName) || pun === norm(u.firstName); }))
-                      ? React.createElement("span", { title:"Online", style:{ width:8, height:8, borderRadius:"50%", background:"#22c55e", display:"inline-block", flexShrink:0, boxShadow:"0 0 4px #22c55e" } })
+                      ? React.createElement("span", { title:"Online", style:{ width:8, height:8, borderRadius:"50%", background:"#22c55e", display:"inline-block", flexShrink:0, boxShadow:"0 0 6px #22c55e88", animation:"btu-pulse 1.6s ease-in-out infinite" } })
                       : isGLRole(currentUser && currentUser.role) && React.createElement("span", { style:{ width:8, height:8, borderRadius:"50%", background:"#2a2a2a", display:"inline-block", flexShrink:0 } }),
                     React.createElement("span", { style:{ whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, u.displayName)
                   ),
