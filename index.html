@@ -11079,7 +11079,7 @@ function BioTechDatabase() {
       const localFavs = JSON.parse(localStorage.getItem("btu_favs_" + username) || "[]");
       if (localFavs.length) setFavorites(localFavs);
     } catch {}
-    SB.upsert("profiles", { id: username, name: displayName, first_name: displayName, last_name: "", gebiet: gebiet || "", role, store: storeVal || "" });
+    SB.upsert("profiles", { id: username, name: displayName, first_name: displayName, last_name: "", gebiet: gebiet || "", role, store: storeVal || "", is_online: true, last_seen: new Date().toISOString() });
     SB.get("favorites?profile_id=eq." + username + "&select=product_ids").then(rows => {
       if (rows && rows[0] && Array.isArray(rows[0].product_ids)) {
         const sbFavs = rows[0].product_ids;
@@ -11103,6 +11103,15 @@ function BioTechDatabase() {
       all.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
       setInbox(all);
     });
+    // Heartbeat: update last_seen every 5 minutes while logged in
+    try {
+      const _hbUser = username;
+      const _hbInterval = setInterval(() => {
+        SB.patch("profiles", "id=eq." + encodeURIComponent(_hbUser), { last_seen: new Date().toISOString(), is_online: true });
+      }, 5 * 60 * 1000);
+      // Store interval ref for cleanup on logout
+      window._btu_heartbeat = _hbInterval;
+    } catch {}
     // Realtime: new messages arriving while logged in
     try {
       if (window.supabase && window.supabase.createClient) {
@@ -11143,6 +11152,18 @@ function BioTechDatabase() {
         try { inboxChannelRef.current.channel.unsubscribe(); } catch {}
         try { inboxChannelRef.current.client.removeAllChannels(); } catch {}
         inboxChannelRef.current = null;
+      }
+    } catch {}
+    try {
+      // Clear heartbeat interval
+      if (window._btu_heartbeat) { clearInterval(window._btu_heartbeat); window._btu_heartbeat = null; }
+    } catch {}
+    try {
+      // Persist last_seen + is_online=false on logout
+      const _logoutUser = (() => { try { return JSON.parse(sessionStorage.getItem("btu_session") || "null"); } catch { return null; } })();
+      if (_logoutUser && (_logoutUser.username || _logoutUser.key)) {
+        const _uid = _logoutUser.username || _logoutUser.key;
+        SB.patch("profiles", "id=eq." + encodeURIComponent(_uid), { is_online: false, last_seen: new Date().toISOString() });
       }
     } catch {}
     try {
@@ -15409,7 +15430,7 @@ function AdminPanel({
   const loadUsers = () => {
     // Primary: load from Supabase
     Promise.all([
-      SB.get("profiles?select=id,first_name,last_name,gebiet,role&order=first_name"),
+      SB.get("profiles?select=id,first_name,last_name,gebiet,role,is_online,last_seen&order=first_name"),
       SB.get("favorites?select=profile_id,product_ids"),
       SB.get("quiz_results?select=profile_id,best_pct,last_pct,count,history")
     ]).then(([profiles, favRows, quizRows]) => {
@@ -15422,7 +15443,7 @@ function AdminPanel({
           const hist = (quizRow && Array.isArray(quizRow.history)) ? quizRow.history : [];
           const fn = p.first_name || "";
           const ln = p.last_name  || "";
-          return { key: p.id, displayName: (fn + " " + ln).trim() || p.id, firstName: fn, lastName: ln, favs, quiz, hist, gebiet: p.gebiet || "", role: p.role || "mitarbeiter" };
+          return { key: p.id, displayName: (fn + " " + ln).trim() || p.id, firstName: fn, lastName: ln, favs, quiz, hist, gebiet: p.gebiet || "", role: p.role || "mitarbeiter", is_online: p.is_online || false, last_seen: p.last_seen || null };
         });
         // Gebiet-Filter: superadmin sieht alles, carmelo nur sich selbst, GL/MA nur eigene Region
         if (currentUser) {
@@ -15816,9 +15837,23 @@ function AdminPanel({
                 React.createElement("div", { style:{ flex:1, minWidth:0 } },
                   React.createElement("div", { style:{ fontWeight:700, fontSize:13, color:"#e0e0e0",
                       marginBottom:4, display:"flex", alignItems:"center", gap:6 } },
-                    isGLRole(currentUser && currentUser.role) && onlineUsers && (onlineUsers[u.key] || Object.values(onlineUsers).some(p => { if (!p) return false; const norm = s => (s||"").toLowerCase().replace(/\s+/g,""); const pun = norm(p.username); return pun === norm(u.key) || pun === norm(u.displayName) || pun === norm(u.firstName); }))
-                      ? React.createElement("span", { title:"Online", style:{ width:8, height:8, borderRadius:"50%", background:"#22c55e", display:"inline-block", flexShrink:0, boxShadow:"0 0 6px #22c55e88", animation:"btu-pulse 1.6s ease-in-out infinite" } })
-                      : isGLRole(currentUser && currentUser.role) && React.createElement("span", { style:{ width:8, height:8, borderRadius:"50%", background:"#2a2a2a", display:"inline-block", flexShrink:0 } }),
+                    (()=>{
+                      if (!isGLRole(currentUser && currentUser.role)) return null;
+                      const isRealtime = onlineUsers && (onlineUsers[u.key] || Object.values(onlineUsers).some(p => { if (!p) return false; const norm = s => (s||"").toLowerCase().replace(/\s+/g,""); const pun = norm(p.username); return pun === norm(u.key) || pun === norm(u.displayName) || pun === norm(u.firstName); }));
+                      const isOnlineDB = u.is_online;
+                      const isOnline = isRealtime || isOnlineDB;
+                      const lastSeen = u.last_seen ? new Date(u.last_seen) : null;
+                      const lastSeenStr = lastSeen ? (()=>{
+                        const diff = Math.floor((Date.now()-lastSeen.getTime())/1000);
+                        if (diff < 60) return "gerade eben";
+                        if (diff < 3600) return "vor " + Math.floor(diff/60) + " Min.";
+                        if (diff < 86400) return "vor " + Math.floor(diff/3600) + " Std.";
+                        return "vor " + Math.floor(diff/86400) + " Tag(en)";
+                      })() : null;
+                      return isOnline
+                        ? React.createElement("span", { title: "Online", style:{ width:9, height:9, borderRadius:"50%", background:"#22c55e", display:"inline-block", flexShrink:0, boxShadow:"0 0 6px #22c55e88", animation:"btu-pulse 1.6s ease-in-out infinite" } })
+                        : React.createElement("span", { title: lastSeenStr ? "Zuletzt: " + lastSeenStr : "Offline", style:{ width:9, height:9, borderRadius:"50%", background: lastSeen ? "#4a4a4a" : "#2a2a2a", display:"inline-block", flexShrink:0 } });
+                    })(),
                     React.createElement("span", { style:{ whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, u.displayName)
                   ),
                   React.createElement("div", { style:{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" } },
