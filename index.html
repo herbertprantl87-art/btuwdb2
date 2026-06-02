@@ -10834,6 +10834,7 @@ function BioTechDatabase() {
   const [onlineUsers, setOnlineUsers] = React.useState({});
   const [presenceDebug, setPresenceDebug] = React.useState([]);
   const presenceChannelRef = React.useRef(null);
+  const inboxChannelRef = React.useRef(null);
   const [inbox, setInbox] = React.useState([]);
   const [showInbox, setShowInbox] = React.useState(false);
   const [inboxReplyTo, setInboxReplyTo] = React.useState(null);
@@ -11103,11 +11104,12 @@ function BioTechDatabase() {
         const SB_URL = "https://mejwpbahcmlkwajkymnj.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
         const sbMsg = window.supabase.createClient(SB_URL, SB_KEY);
-        sbMsg.channel("inbox-" + username)
+        const inboxCh = sbMsg.channel("inbox-" + username)
           .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "to_username=eq." + username }, payload => {
             setInbox(prev => [payload.new, ...prev]);
           })
           .subscribe();
+        inboxChannelRef.current = { channel: inboxCh, client: sbMsg };
       }
     } catch {}
   };
@@ -11118,6 +11120,13 @@ function BioTechDatabase() {
         presenceChannelRef.current = null;
       }
       setOnlineUsers({});
+    } catch {}
+    try {
+      if (inboxChannelRef.current) {
+        try { inboxChannelRef.current.channel.unsubscribe(); } catch {}
+        try { inboxChannelRef.current.client.removeAllChannels(); } catch {}
+        inboxChannelRef.current = null;
+      }
     } catch {}
     try {
       sessionStorage.removeItem("btu_session");
@@ -12196,7 +12205,8 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     productCount: PRODUCTS.filter(p => !p.refOnly).length,
     currentUser: user,
     onlineUsers: onlineUsers,
-    presenceDebug: presenceDebug
+    presenceDebug: presenceDebug,
+    onMessageSent: () => { SB.get("messages?to_username=eq." + encodeURIComponent((user&&(user.username||user.key))||"") + "&order=created_at.desc&select=*").then(rows => { if (rows) setInbox(rows); }); }
   }), /*#__PURE__*/React.createElement("div", {
     className: "btu-main-scroll",
     style: {
@@ -12618,7 +12628,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
               /*#__PURE__*/React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
                 !msg.read && /*#__PURE__*/React.createElement("button",{
                   onClick:()=>{
-                    SB.upsert("messages",{id:msg.id,from_username:msg.from_username,from_name:msg.from_name,to_username:msg.to_username,body:msg.body,read:true,created_at:msg.created_at});
+                    SB.patch("messages","id=eq."+encodeURIComponent(msg.id),{read:true});
                     setInbox(prev=>prev.map(m=>m.id===msg.id?{...m,read:true}:m));
                   },
                   style:{fontSize:10,color:"#4ade80",background:"transparent",border:"1px solid #14532d",borderRadius:6,padding:"3px 10px",cursor:"pointer"}
