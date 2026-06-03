@@ -11139,7 +11139,21 @@ function BioTechDatabase() {
       // Store interval ref for cleanup on logout
       window._btu_heartbeat = _hbInterval;
     } catch {}
-
+    // Polling: alle 10s auf neue Nachrichten prüfen
+    try {
+      const _pollUser = username;
+      if (window._btu_msgpoll) clearInterval(window._btu_msgpoll);
+      window._btu_msgpoll = setInterval(async () => {
+        const [received, sent] = await Promise.all([
+          SB.get("messages?to_username=eq." + encodeURIComponent(_pollUser) + "&order=created_at.asc&select=*"),
+          SB.get("messages?from_username=eq." + encodeURIComponent(_pollUser) + "&order=created_at.asc&select=*")
+        ]);
+        const all = [...(received||[]), ...(sent||[])];
+        all.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+        setInbox(all);
+      }, 10000);
+      inboxChannelRef.current = { channel: null, client: null };
+    } catch {}
   };
   const doLogout = () => {
     try {
@@ -12660,7 +12674,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
 
     /*── Thread list or open thread ──*/
     (()=>{
-      const me = user.username || user.key;
+      const me = (user.username || user.key || "").toLowerCase();
       const myRole = user.role || "mitarbeiter";
       const canInitiate = myRole !== "mitarbeiter";
 
