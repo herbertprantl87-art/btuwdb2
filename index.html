@@ -10837,36 +10837,6 @@ function BioTechDatabase() {
   const inboxChannelRef = React.useRef(null);
   const [inbox, setInbox] = React.useState([]);
 
-  // Polling auf neue Nachrichten - startet bei Login UND bei Seitenreload mit aktiver Session
-  React.useEffect(() => {
-    const u = user;
-    if (!u) return;
-    const username = u.username || u.key || "";
-    if (!username) return;
-    // Sofort laden
-    Promise.all([
-      SB.get("messages?to_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*"),
-      SB.get("messages?from_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*")
-    ]).then(([received, sent]) => {
-      const all = [...(received||[]), ...(sent||[])];
-      all.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
-      setInbox(all);
-    });
-    // Dann alle 10s pollen
-    if (window._btu_msgpoll) clearInterval(window._btu_msgpoll);
-    window._btu_msgpoll = setInterval(async () => {
-      const [received, sent] = await Promise.all([
-        SB.get("messages?to_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*"),
-        SB.get("messages?from_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*")
-      ]);
-      const all = [...(received||[]), ...(sent||[])];
-      all.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
-      setInbox(all);
-    }, 3000);
-    return () => {
-      if (window._btu_msgpoll) { clearInterval(window._btu_msgpoll); window._btu_msgpoll = null; }
-    };
-  }, [user]);
   const [showInbox, setShowInbox] = React.useState(false);
   const [inboxReplyTo, setInboxReplyTo] = React.useState(null);
   const [inboxReplyText, setInboxReplyText] = React.useState("");
@@ -11061,7 +11031,33 @@ function BioTechDatabase() {
     try { localStorage.setItem("btu_user", JSON.stringify(u)); } catch {}
     setUser(u);
     setLoginLoading(false);
-    // ── Presence: join channel via supabase-js ──
+  
+  // Polling: neue Nachrichten alle 3s im Hintergrund
+  React.useEffect(() => {
+    if (!user) {
+      if (window._btu_msgpoll) { clearInterval(window._btu_msgpoll); window._btu_msgpoll = null; }
+      return;
+    }
+    const username = user.username || user.key || "";
+    if (!username) return;
+    const fetchInbox = async () => {
+      const [received, sent] = await Promise.all([
+        SB.get("messages?to_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*"),
+        SB.get("messages?from_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*")
+      ]);
+      const all = [...(received||[]), ...(sent||[])];
+      all.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+      setInbox(all);
+    };
+    fetchInbox();
+    if (window._btu_msgpoll) clearInterval(window._btu_msgpoll);
+    window._btu_msgpoll = setInterval(fetchInbox, 3000);
+    return () => {
+      if (window._btu_msgpoll) { clearInterval(window._btu_msgpoll); window._btu_msgpoll = null; }
+    };
+  }, [user]);
+
+  // ── Presence: join channel via supabase-js ──
     try {
       const SB_URL = "https://mejwpbahcmlkwajkymnj.supabase.co";
       const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
