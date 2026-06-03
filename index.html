@@ -11112,27 +11112,20 @@ function BioTechDatabase() {
       // Store interval ref for cleanup on logout
       window._btu_heartbeat = _hbInterval;
     } catch {}
-    // Realtime: new messages arriving while logged in
+    // Polling: alle 10s auf neue Nachrichten prüfen
     try {
-      if (window.supabase && window.supabase.createClient) {
-        const SB_URL = "https://mejwpbahcmlkwajkymnj.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
-        const sbMsg = window.supabase.createClient(SB_URL, SB_KEY);
-        const inboxCh = sbMsg.channel("inbox-" + username)
-          .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
-            const msg = payload.new;
-            if (msg.to_username !== username && msg.from_username !== username) return;
-            setInbox(prev => {
-              const exists = prev.some(m => m.id === msg.id);
-              if (exists) return prev;
-              return [...prev, msg].sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
-            });
-          })
-          .subscribe((status) => {
-            console.log("[BTU Realtime]", status);
-          });
-        inboxChannelRef.current = { channel: inboxCh, client: sbMsg };
-      }
+      const _pollUser = username;
+      const _pollInterval = setInterval(async () => {
+        const [received, sent] = await Promise.all([
+          SB.get("messages?to_username=eq." + encodeURIComponent(_pollUser) + "&order=created_at.asc&select=*"),
+          SB.get("messages?from_username=eq." + encodeURIComponent(_pollUser) + "&order=created_at.asc&select=*")
+        ]);
+        const all = [...(received||[]), ...(sent||[])];
+        all.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+        setInbox(all);
+      }, 10000);
+      window._btu_msgpoll = _pollInterval;
+      inboxChannelRef.current = { channel: null, client: null, pollInterval: _pollInterval };
     } catch {}
   };
   const doLogout = () => {
@@ -11145,8 +11138,10 @@ function BioTechDatabase() {
     } catch {}
     try {
       if (inboxChannelRef.current) {
-        try { inboxChannelRef.current.channel.unsubscribe(); } catch {}
-        try { inboxChannelRef.current.client.removeAllChannels(); } catch {}
+        try { inboxChannelRef.current.channel && inboxChannelRef.current.channel.unsubscribe(); } catch {}
+        try { inboxChannelRef.current.client && inboxChannelRef.current.client.removeAllChannels(); } catch {}
+        try { inboxChannelRef.current.pollInterval && clearInterval(inboxChannelRef.current.pollInterval); } catch {}
+        if (window._btu_msgpoll) { clearInterval(window._btu_msgpoll); window._btu_msgpoll = null; }
         inboxChannelRef.current = null;
       }
     } catch {}
