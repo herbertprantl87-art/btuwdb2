@@ -11126,15 +11126,14 @@ function BioTechDatabase() {
               return [...prev, payload.new].sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
             });
           })
+          .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "from_username=eq." + username }, payload => {
+            setInbox(prev => {
+              const exists = prev.some(m => m.id === payload.new.id);
+              if (exists) return prev;
+              return [...prev, payload.new].sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+            });
+          })
           .subscribe();
-        // Also subscribe to sent messages (so multi-device stays in sync)
-        inboxCh.on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "from_username=eq." + username }, payload => {
-          setInbox(prev => {
-            const exists = prev.some(m => m.id === payload.new.id);
-            if (exists) return prev;
-            return [...prev, payload.new].sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
-          });
-        });
         inboxChannelRef.current = { channel: inboxCh, client: sbMsg };
       }
     } catch {}
