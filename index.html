@@ -10836,6 +10836,37 @@ function BioTechDatabase() {
   const presenceChannelRef = React.useRef(null);
   const inboxChannelRef = React.useRef(null);
   const [inbox, setInbox] = React.useState([]);
+
+  // Polling auf neue Nachrichten - startet bei Login UND bei Seitenreload mit aktiver Session
+  React.useEffect(() => {
+    const u = user;
+    if (!u) return;
+    const username = u.username || u.key || "";
+    if (!username) return;
+    // Sofort laden
+    Promise.all([
+      SB.get("messages?to_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*"),
+      SB.get("messages?from_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*")
+    ]).then(([received, sent]) => {
+      const all = [...(received||[]), ...(sent||[])];
+      all.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+      setInbox(all);
+    });
+    // Dann alle 10s pollen
+    if (window._btu_msgpoll) clearInterval(window._btu_msgpoll);
+    window._btu_msgpoll = setInterval(async () => {
+      const [received, sent] = await Promise.all([
+        SB.get("messages?to_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*"),
+        SB.get("messages?from_username=eq." + encodeURIComponent(username) + "&order=created_at.asc&select=*")
+      ]);
+      const all = [...(received||[]), ...(sent||[])];
+      all.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+      setInbox(all);
+    }, 10000);
+    return () => {
+      if (window._btu_msgpoll) { clearInterval(window._btu_msgpoll); window._btu_msgpoll = null; }
+    };
+  }, [user]);
   const [showInbox, setShowInbox] = React.useState(false);
   const [inboxReplyTo, setInboxReplyTo] = React.useState(null);
   const [inboxReplyText, setInboxReplyText] = React.useState("");
@@ -11115,7 +11146,8 @@ function BioTechDatabase() {
     // Polling: alle 10s auf neue Nachrichten prüfen
     try {
       const _pollUser = username;
-      const _pollInterval = setInterval(async () => {
+      if (window._btu_msgpoll) clearInterval(window._btu_msgpoll);
+      window._btu_msgpoll = setInterval(async () => {
         const [received, sent] = await Promise.all([
           SB.get("messages?to_username=eq." + encodeURIComponent(_pollUser) + "&order=created_at.asc&select=*"),
           SB.get("messages?from_username=eq." + encodeURIComponent(_pollUser) + "&order=created_at.asc&select=*")
@@ -11124,8 +11156,7 @@ function BioTechDatabase() {
         all.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
         setInbox(all);
       }, 10000);
-      window._btu_msgpoll = _pollInterval;
-      inboxChannelRef.current = { channel: null, client: null, pollInterval: _pollInterval };
+      inboxChannelRef.current = { channel: null, client: null };
     } catch {}
   };
   const doLogout = () => {
@@ -11137,13 +11168,8 @@ function BioTechDatabase() {
       setOnlineUsers({});
     } catch {}
     try {
-      if (inboxChannelRef.current) {
-        try { inboxChannelRef.current.channel && inboxChannelRef.current.channel.unsubscribe(); } catch {}
-        try { inboxChannelRef.current.client && inboxChannelRef.current.client.removeAllChannels(); } catch {}
-        try { inboxChannelRef.current.pollInterval && clearInterval(inboxChannelRef.current.pollInterval); } catch {}
-        if (window._btu_msgpoll) { clearInterval(window._btu_msgpoll); window._btu_msgpoll = null; }
-        inboxChannelRef.current = null;
-      }
+      if (window._btu_msgpoll) { clearInterval(window._btu_msgpoll); window._btu_msgpoll = null; }
+      inboxChannelRef.current = null;
     } catch {}
     try {
       // Clear heartbeat interval
