@@ -15466,10 +15466,15 @@ function AdminPanel({
             if (currentUser.role === "gebietsleiter") {
               // GL sieht nur Mitarbeiter seines exakten Gebiets (z.B. Berlin-Chris != Berlin-Alem)
               var myGebiet = currentUser.gebiet || "";
-              list = list.filter(u => u.gebiet === myGebiet || u.key === currentUser.username);
+              if (!myGebiet) {
+                list = []; // kein Gebiet = nichts anzeigen
+              } else {
+                list = list.filter(u => u.gebiet === myGebiet || u.key === currentUser.username);
+              }
             } else {
               var myReg = getGebietRegion(currentUser.gebiet || "");
               if (myReg) list = list.filter(u => getGebietRegion(u.gebiet) === myReg);
+              else list = [];
             }
           }
         }
