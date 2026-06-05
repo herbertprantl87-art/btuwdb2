@@ -15463,8 +15463,14 @@ function AdminPanel({
           if (currentUser.role === "carmelo") {
             list = list.filter(u => u.key === currentUser.username);
           } else if (currentUser.role !== "superadmin") {
-            var myReg = getGebietRegion(currentUser.gebiet || "");
-            if (myReg) list = list.filter(u => getGebietRegion(u.gebiet) === myReg);
+            if (currentUser.role === "gebietsleiter") {
+              // GL sieht nur Mitarbeiter seines exakten Gebiets (z.B. Berlin-Chris != Berlin-Alem)
+              var myGebiet = currentUser.gebiet || "";
+              list = list.filter(u => u.gebiet === myGebiet || u.key === currentUser.username);
+            } else {
+              var myReg = getGebietRegion(currentUser.gebiet || "");
+              if (myReg) list = list.filter(u => getGebietRegion(u.gebiet) === myReg);
+            }
           }
         }
         setUsers(list);
@@ -15649,8 +15655,8 @@ function AdminPanel({
     if (users.find(u=>u.key===key)) { setCreateMsg("Existiert bereits."); return; }
     const firstName = createFirst.trim();
     const lastName  = createLast.trim();
-    // Gebiet vom aktuellen GL-Nutzer ableiten
-    const myGebiet = getGebietRegion(currentUser && currentUser.gebiet ? currentUser.gebiet : "") || "";
+    // Gebiet vom aktuellen GL-Nutzer ableiten (exaktes Gebiet, nicht Region)
+    const myGebiet = (currentUser && currentUser.gebiet) ? currentUser.gebiet : "";
     // Supabase
     SB.upsert("profiles", { id: key, first_name: firstName, last_name: lastName, gebiet: myGebiet, role: "mitarbeiter" });
     SB.upsert("favorites", { profile_id: key, product_ids: [], updated_at: new Date().toISOString() });
