@@ -15313,18 +15313,31 @@ function CartAnalyticsTab({FONT_SYS}) {
     if (isSA) {
       fetchEvents(null);
     } else {
-      var region = getGebietRegion(cu.gebiet||'');
-      if (!region) { fetchEvents(null); }
-      else {
-        var rPrefix = region.indexOf('/') !== -1 ? region.split('/')[0] : region;
-        fetch(SB_BASE+'profiles?select=id&gebiet=ilike.'+encodeURIComponent(rPrefix+'%'), {headers:{'apikey':APIKEY,'Content-Type':'application/json'}})
+      var myGebiet = cu.gebiet || '';
+      if (!myGebiet) { fetchEvents([]); }
+      else if (cu.role === 'gebietsleiter') {
+        fetch(SB_BASE+'profiles?select=id&gebiet=eq.'+encodeURIComponent(myGebiet), {headers:{'apikey':APIKEY,'Content-Type':'application/json'}})
         .then(function(r){ return r.json(); })
         .then(function(profiles){
           var names = Array.isArray(profiles) ? profiles.map(function(p){ return p.id; }) : [];
           if (cu.username && names.indexOf(cu.username) === -1) names.push(cu.username);
           fetchEvents(names);
         })
-        .catch(function(){ fetchEvents(null); });
+        .catch(function(){ fetchEvents([]); });
+      } else {
+        var region = getGebietRegion(myGebiet);
+        if (!region) { fetchEvents([]); }
+        else {
+          var rPrefix = region.indexOf('/') !== -1 ? region.split('/')[0] : region;
+          fetch(SB_BASE+'profiles?select=id&gebiet=ilike.'+encodeURIComponent(rPrefix+'%'), {headers:{'apikey':APIKEY,'Content-Type':'application/json'}})
+          .then(function(r){ return r.json(); })
+          .then(function(profiles){
+            var names = Array.isArray(profiles) ? profiles.map(function(p){ return p.id; }) : [];
+            if (cu.username && names.indexOf(cu.username) === -1) names.push(cu.username);
+            fetchEvents(names);
+          })
+          .catch(function(){ fetchEvents([]); });
+        }
       }
     }
   }, [days]);
