@@ -7627,7 +7627,9 @@ var SB = (function() {
       method: "POST",
       headers: Object.assign({}, H, { "Prefer": "resolution=merge-duplicates,return=minimal" }),
       body: JSON.stringify(data)
-    }).catch(function() {});
+    }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t) { throw new Error(table + ": " + r.status + " " + t); });
+    });
   }
   function del(table, query) {
     return fetch(BASE + "/" + table + "?" + query, { method: "DELETE", headers: H }).catch(function() {});
@@ -15675,9 +15677,14 @@ function AdminPanel({
     const lastName  = createLast.trim();
     // Gebiet vom aktuellen GL-Nutzer ableiten (exaktes Gebiet, nicht Region)
     const myGebiet = (currentUser && currentUser.gebiet) ? currentUser.gebiet : "";
-    // Supabase
-    SB.upsert("profiles", { id: key, first_name: firstName, last_name: lastName, gebiet: myGebiet, role: "mitarbeiter" });
-    SB.upsert("favorites", { profile_id: key, product_ids: [], updated_at: new Date().toISOString() });
+    // Supabase – mit await, damit Fehler sichtbar werden
+    try {
+      await SB.upsert("profiles", { id: key, first_name: firstName, last_name: lastName, gebiet: myGebiet, role: "mitarbeiter" });
+      await SB.upsert("favorites", { profile_id: key, product_ids: [], updated_at: new Date().toISOString() });
+    } catch(e) {
+      setCreateMsg("❌ Fehler beim Speichern in Supabase: " + (e && e.message ? e.message : e));
+      return;
+    }
     // Passwort setzen (optional)
     const pw = createPw.trim();
     if (pw.length >= 4) {
@@ -15686,8 +15693,6 @@ function AdminPanel({
         await SB.upsert("app_config", { key: "auth_user__" + key, value: { hash } });
       } catch(e) { console.warn("Passwort konnte nicht gesetzt werden:", e); }
     }
-    // localStorage fallback
-    try { localStorage.setItem("btu_favs_"+key,"[]"); } catch {}
     setCreateFirst(""); setCreateLast(""); setCreatePw("");
     setCreateMsg("✓ "+firstName+" "+lastName+" erstellt."+(pw.length>=4?" (mit Passwort)":""));
     setTimeout(loadUsers, 500);
