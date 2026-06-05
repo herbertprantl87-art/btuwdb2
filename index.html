@@ -10982,28 +10982,22 @@ function BioTechDatabase() {
     setLoginError("");
     try {
       const hash = await sha256hex(pw);
-      const res = await fetch("https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/app_config", {
-        method: "POST",
-        headers: {
-          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE",
-          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE",
-          "Content-Type": "application/json",
-          "Prefer": "resolution=merge-duplicates,return=minimal"
-        },
-        body: JSON.stringify({ key: "auth_user__" + username, value: { hash } })
-      });
-      if (!res.ok) throw new Error("Supabase error " + res.status);
-      // Profil in Supabase anlegen damit gebiet/role persistent ist
-      const regRole = getRoleForGebiet(loginInput.gebiet);
+      // Passwort in app_config speichern
+      await SB.upsert("app_config", { key: "auth_user__" + username, value: { hash } });
+      // Profil in Supabase anlegen – role explizit "mitarbeiter" für MA-Gebiet, sonst aus Gebiet
+      const regRole = getRoleForGebiet(loginInput.gebiet) === "gebietsleiter" ? "gebietsleiter" : "mitarbeiter";
+      // Nur GL-Gebiet ohne -MA-Suffix bekommt gebietsleiter; MA-Dropdown hat immer glOnly:false
+      const isGLLogin = GEBIETE.find(function(g){ return g.value === loginInput.gebiet && g.glOnly; });
+      const finalRole = isGLLogin ? getRoleForGebiet(loginInput.gebiet) : "mitarbeiter";
       await SB.upsert("profiles", {
         id: username,
         first_name: nameVal || username,
         last_name: "",
         gebiet: loginInput.gebiet,
-        role: regRole,
+        role: finalRole,
         store: loginInput.store || ""
       });
-      finishLogin(username, loginInput.gebiet, nameVal, loginInput.store);
+      finishLogin(username, loginInput.gebiet, nameVal, loginInput.store, finalRole);
     } catch(e) {
       setLoginLoading(false);
       setLoginError("Verbindungsfehler — bitte nochmal versuchen.");
