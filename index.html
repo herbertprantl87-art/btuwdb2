@@ -10908,7 +10908,7 @@ function BioTechDatabase() {
   const [user, setUser] = React.useState(() => {
     try {
       const u = JSON.parse(sessionStorage.getItem("btu_session") || "null");
-      if (u && u.gebiet) u.role = getRoleForGebiet(u.gebiet);
+      if (u && u.gebiet && !u.role) u.role = getRoleForGebiet(u.gebiet);
       return u;
     } catch {
       return null;
@@ -10993,6 +10993,16 @@ function BioTechDatabase() {
         body: JSON.stringify({ key: "auth_user__" + username, value: { hash } })
       });
       if (!res.ok) throw new Error("Supabase error " + res.status);
+      // Profil in Supabase anlegen damit gebiet/role persistent ist
+      const regRole = getRoleForGebiet(loginInput.gebiet);
+      await SB.upsert("profiles", {
+        id: username,
+        first_name: nameVal || username,
+        last_name: "",
+        gebiet: loginInput.gebiet,
+        role: regRole,
+        store: loginInput.store || ""
+      });
       finishLogin(username, loginInput.gebiet, nameVal, loginInput.store);
     } catch(e) {
       setLoginLoading(false);
@@ -11017,16 +11027,17 @@ function BioTechDatabase() {
       setLoginError("Falsches Passwort");
       return;
     }
-    // Always use gebiet/name from Supabase profile if available
+    // Always use gebiet/name/role from Supabase profile if available
     const prof = profRows && profRows[0] ? profRows[0] : null;
     const gebiet = (prof && prof.gebiet) || loginInput.gebiet || "";
     const nameVal = (prof && prof.name) || loginInput.name || username;
     const storeVal = (prof && prof.store) || loginInput.store || "";
-    finishLogin(username, gebiet, nameVal, storeVal);
+    const roleVal = (prof && prof.role) || null;
+    finishLogin(username, gebiet, nameVal, storeVal, roleVal);
   };
 
-  const finishLogin = (username, gebiet, nameVal, storeVal) => {
-    const role = getRoleForGebiet(gebiet || "");
+  const finishLogin = (username, gebiet, nameVal, storeVal, explicitRole) => {
+    const role = explicitRole || getRoleForGebiet(gebiet || "");
     const displayName = (nameVal || "").trim() || username;
     const u = { username, key: username, first: displayName, last: "", gebiet: gebiet || "", role, store: storeVal || "" };
     try { sessionStorage.setItem("btu_session", JSON.stringify(u)); } catch {}
