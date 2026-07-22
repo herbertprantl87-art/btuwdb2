@@ -11321,7 +11321,36 @@ function BioTechDatabase() {
     return detectMode(q);
   }, [searchQuery, activeProfile]);
   const [customTick, setCustomTick] = React.useState(0);
-  const filtered = React.useMemo(() => {
+  // ── Live-Sync: Overrides + Custom-Produkte alle 30s aus Supabase ziehen ──
+  React.useEffect(() => {
+    let stopped = false;
+    const poll = () => {
+      Promise.all([SB.getConfig("product_overrides"), SB.getConfig("custom_products")]).then(res => {
+        if (stopped) return;
+        let changed = false;
+        const ov = res[0], cp = res[1];
+        if (ov && typeof ov === "object") {
+          const cur = localStorage.getItem("btu_product_overrides") || "{}";
+          if (JSON.stringify(ov) !== cur) {
+            localStorage.setItem("btu_product_overrides", JSON.stringify(ov));
+            applyProductOverrides(ov);
+            changed = true;
+          }
+        }
+        if (Array.isArray(cp)) {
+          const cur = localStorage.getItem("btu_custom_products") || "[]";
+          if (JSON.stringify(cp) !== cur) {
+            localStorage.setItem("btu_custom_products", JSON.stringify(cp));
+            cp.forEach(p => { if (!PRODUCTS.find(x => x.id === p.id)) PRODUCTS.push(p); });
+            changed = true;
+          }
+        }
+        if (changed) setCustomTick(n => n + 1);
+      }).catch(() => {});
+    };
+    const iv = setInterval(poll, 30000);
+    return () => { stopped = true; clearInterval(iv); };
+  }, []);
     const q = searchQuery.toLowerCase().trim();
     const catFilter = p => activeCategory === "Alle" || p.category === activeCategory || (p.tags && p.tags.includes(activeCategory));
     const favFilter = p => !showFavsOnly || favorites.includes(p.id);
