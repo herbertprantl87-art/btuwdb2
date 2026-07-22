@@ -12378,7 +12378,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       overflowX: "auto",
       scrollbarWidth: "thin"
     }
-  }, (window.CUSTOM_CATS || []).filter(cc => user && (cc.gebiet === user.gebiet || isSuperRole(user.role))).map(cc => {
+  }, (window.CUSTOM_CATS || []).filter(cc => user && (cc.global === true || cc.gebiet === user.gebiet || isSuperRole(user.role))).map(cc => {
     const ckey = "cc:" + cc.id;
     const active = activeCategory === ckey;
     return [/*#__PURE__*/React.createElement("button", {
@@ -12407,7 +12407,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         transition: "all 0.15s",
         flexShrink: 0
       }
-    }, (cc.emoji ? cc.emoji + " " : "") + cc.name), user && isGLRole(user.role) && /*#__PURE__*/React.createElement("button", {
+    }, (cc.emoji ? cc.emoji + " " : "") + cc.name), user && isGLRole(user.role) && (isSuperRole(user.role) || cc.global !== true) && /*#__PURE__*/React.createElement("button", {
       key: ckey + "-edit",
       onClick: () => setCatModal(cc),
       title: "Kategorie bearbeiten oder löschen",
@@ -14962,6 +14962,7 @@ function CustomCatModal(props) {
     var entry = {
       id: cat ? cat.id : ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now())),
       gebiet: cat ? cat.gebiet : user.gebiet,
+      global: cat ? (cat.global === true) : isSuperRole(user.role),
       name: name.trim(),
       emoji: emoji,
       productIds: ids,
