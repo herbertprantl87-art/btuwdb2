@@ -15794,7 +15794,7 @@ function AdminPanel({
     } catch { setUsers([]); }
   };
 
-  React.useEffect(()=>{ loadUsers(); }, [tick]);
+  React.useEffect(()=>{ loadUsers(); const iv = setInterval(loadUsers, 60000); return () => clearInterval(iv); }, [tick]);
   React.useEffect(()=>{
     const h=()=>setTick(n=>n+1);
     window.addEventListener("btu_quiz_done",h);
@@ -16186,9 +16186,10 @@ function AdminPanel({
                     (()=>{
                       if (!isGLRole(currentUser && currentUser.role)) return null;
                       const isRealtime = onlineUsers && (onlineUsers[u.key] || Object.values(onlineUsers).some(p => { if (!p) return false; const norm = s => (s||"").toLowerCase().replace(/\s+/g,""); const pun = norm(p.username); return pun === norm(u.key) || pun === norm(u.displayName) || pun === norm(u.firstName); }));
-                      const isOnlineDB = u.is_online;
-                      const isOnline = isRealtime || isOnlineDB;
                       const lastSeen = u.last_seen ? new Date(u.last_seen) : null;
+                      // DB-Status nur zaehlen, wenn last_seen frisch ist (Heartbeat = 5 Min) — sonst bleiben Nutzer nach Tab-Schliessen ewig "online"
+                      const isOnlineDB = u.is_online && lastSeen && (Date.now() - lastSeen.getTime()) < 10 * 60 * 1000;
+                      const isOnline = isRealtime || isOnlineDB;
                       const lastSeenStr = lastSeen ? (()=>{
                         const diff = Math.floor((Date.now()-lastSeen.getTime())/1000);
                         if (diff < 60) return "gerade eben";
