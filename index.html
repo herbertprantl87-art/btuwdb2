@@ -15664,7 +15664,7 @@ function AdminPanel({
     if (!window.confirm('"'+name+'" wirklich löschen?')) return;
     try {
       const existing = JSON.parse(localStorage.getItem("btu_custom_products")||"[]");
-      const nextItem = existing.filter(p=>p.id!==id);
+      const next = existing.filter(p=>p.id!==id);
       localStorage.setItem("btu_custom_products", JSON.stringify(next));
       SB.setConfig("custom_products", next);
       const idx = PRODUCTS.findIndex(p=>p.id===id);
@@ -15728,14 +15728,14 @@ function AdminPanel({
       if(String(editFields.price)!==String(orig.price||"")) clean.price=editFields.price;
       if(editFields.notes!==(orig.notes||"")) clean.notes=editFields.notes;
     }
-    const nextItem={...overrides}; if(Object.keys(clean).length) nextItem[pid]=clean; else delete nextItem[pid];
+    const next={...overrides}; if(Object.keys(clean).length) next[pid]=clean; else delete next[pid];
     localStorage.setItem("btu_product_overrides",JSON.stringify(next));
     SB.setConfig("product_overrides", next);
     setOverrides(next); setEditingId(null);
     setSavedMsg("✓ Gespeichert"); setTimeout(()=>setSavedMsg(""),3000);
   };
   const resetOv = pid => {
-    const nextItem={...overrides}; delete nextItem[pid];
+    const next={...overrides}; delete next[pid];
     localStorage.setItem("btu_product_overrides",JSON.stringify(next));
     SB.setConfig("product_overrides", next);
     setOverrides(next); setEditingId(null);
