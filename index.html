@@ -12345,12 +12345,12 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         transition: "all 0.15s",
         flexShrink: 0
       }
-    }, (cc.emoji ? cc.emoji + " " : "") + cc.name), active && user && isGLRole(user.role) && /*#__PURE__*/React.createElement("button", {
+    }, (cc.emoji ? cc.emoji + " " : "") + cc.name), user && isGLRole(user.role) && /*#__PURE__*/React.createElement("button", {
       key: ckey + "-edit",
       onClick: () => setCatModal(cc),
       title: "Kategorie bearbeiten oder löschen",
       style: {
-        padding: "5px 11px",
+        padding: "5px 9px",
         borderRadius: 20,
         border: "1.5px solid #c8102e",
         background: "#fff",
@@ -12362,7 +12362,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         fontFamily: FONT,
         flexShrink: 0
       }
-    }, "✎ Bearbeiten")];
+    }, "✎")];
   }), user && isGLRole(user.role) && /*#__PURE__*/React.createElement("button", {
     key: "cc-new",
     onClick: () => setCatModal("new"),
