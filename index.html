@@ -7653,8 +7653,27 @@ var SB = (function() {
   return { get: get, upsert: upsert, del: del, patch: patch, getConfig: getConfig, setConfig: setConfig };
 })();
 
+// ── Overrides auf PRODUCTS anwenden (Original in _orig sichern) ──────
+function applyProductOverrides(ov) {
+  var KEYS = ["name","kcalPortion","proteinPortion","price","notes"];
+  PRODUCTS.forEach(function(p) {
+    if (!p._orig) {
+      p._orig = {};
+      KEYS.forEach(function(k){ p._orig[k] = p[k]; });
+    }
+    var o = ov && ov[p.id];
+    KEYS.forEach(function(k) {
+      p[k] = (o && o[k] !== undefined) ? o[k] : p._orig[k];
+    });
+  });
+}
+
 // ── Startup: pull overrides + custom products from Supabase ──────────
 (function() {
+  // Sofort lokale Overrides anwenden (falls offline / Supabase langsam)
+  setTimeout(function() {
+    try { applyProductOverrides(JSON.parse(localStorage.getItem("btu_product_overrides") || "{}")); } catch(e) {}
+  }, 0);
   Promise.all([
     SB.getConfig("product_overrides"),
     SB.getConfig("custom_products")
@@ -7663,6 +7682,7 @@ var SB = (function() {
     var cp = results[1];
     if (ov && typeof ov === "object") {
       localStorage.setItem("btu_product_overrides", JSON.stringify(ov));
+      applyProductOverrides(ov);
     }
     if (Array.isArray(cp) && cp.length > 0) {
       localStorage.setItem("btu_custom_products", JSON.stringify(cp));
@@ -15720,25 +15740,30 @@ function AdminPanel({
       price:ov.price!==undefined?ov.price:(p.price||""), notes:ov.notes!==undefined?ov.notes:(p.notes||"") });
   };
   const saveEdit = pid => {
-    const orig=PRODUCTS.find(p=>p.id===pid); const clean={};
-    if(orig){
-      if(editFields.name!==orig.name) clean.name=editFields.name;
-      if(String(editFields.kcalPortion)!==String(orig.kcalPortion||"")) clean.kcalPortion=editFields.kcalPortion;
-      if(String(editFields.proteinPortion)!==String(orig.proteinPortion||"")) clean.proteinPortion=editFields.proteinPortion;
-      if(String(editFields.price)!==String(orig.price||"")) clean.price=editFields.price;
-      if(editFields.notes!==(orig.notes||"")) clean.notes=editFields.notes;
+    const prod=PRODUCTS.find(p=>p.id===pid); const clean={};
+    if(prod){
+      const base=prod._orig||prod;
+      if(editFields.name!==base.name) clean.name=editFields.name;
+      if(String(editFields.kcalPortion)!==String(base.kcalPortion||"")) clean.kcalPortion=editFields.kcalPortion;
+      if(String(editFields.proteinPortion)!==String(base.proteinPortion||"")) clean.proteinPortion=editFields.proteinPortion;
+      if(String(editFields.price)!==String(base.price||"")) clean.price=editFields.price;
+      if(editFields.notes!==(base.notes||"")) clean.notes=editFields.notes;
     }
     const next={...overrides}; if(Object.keys(clean).length) next[pid]=clean; else delete next[pid];
     localStorage.setItem("btu_product_overrides",JSON.stringify(next));
     SB.setConfig("product_overrides", next);
+    applyProductOverrides(next);
     setOverrides(next); setEditingId(null);
+    if(typeof onCustomTick==="function") onCustomTick();
     setSavedMsg("✓ Gespeichert"); setTimeout(()=>setSavedMsg(""),3000);
   };
   const resetOv = pid => {
     const next={...overrides}; delete next[pid];
     localStorage.setItem("btu_product_overrides",JSON.stringify(next));
     SB.setConfig("product_overrides", next);
+    applyProductOverrides(next);
     setOverrides(next); setEditingId(null);
+    if(typeof onCustomTick==="function") onCustomTick();
   };
   const hasOv = pid=>overrides[pid]&&Object.keys(overrides[pid]).length>0;
 
