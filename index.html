@@ -7656,6 +7656,7 @@ var SB = (function() {
 // ── Overrides auf PRODUCTS anwenden (Original in _orig sichern) ──────
 function applyProductOverrides(ov) {
   var KEYS = ["name","kcalPortion","proteinPortion","price","notes"];
+  var NUM_KEYS = { price:1, kcalPortion:1 };
   PRODUCTS.forEach(function(p) {
     if (!p._orig) {
       p._orig = {};
@@ -7663,7 +7664,11 @@ function applyProductOverrides(ov) {
     }
     var o = ov && ov[p.id];
     KEYS.forEach(function(k) {
-      p[k] = (o && o[k] !== undefined) ? o[k] : p._orig[k];
+      var v = (o && o[k] !== undefined) ? o[k] : p._orig[k];
+      if (NUM_KEYS[k] && typeof v === "string" && v.trim() !== "" && !isNaN(parseFloat(v.replace(",", ".")))) {
+        v = parseFloat(v.replace(",", "."));
+      }
+      p[k] = v;
     });
   });
 }
