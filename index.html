@@ -12316,39 +12316,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       overflowX: "auto",
       scrollbarWidth: "thin"
     }
-  }, CATEGORIES.map(cat => {
-    const active = activeCategory === cat;
-    const color = CAT_COLORS[cat] || "#c8102e";
-    const isRef = isRefCat(cat);
-    return /*#__PURE__*/React.createElement("button", {
-      key: cat,
-      onClick: () => {
-        setActiveCategory(activeCategory === cat ? "Alle" : cat);
-        setActiveProfile(null);
-        setSearchQuery("");
-        setShowProfiles(false);
-        setSelectedId(null);
-      },
-      style: {
-        padding: "5px 13px",
-        borderRadius: 20,
-        border: "1.5px solid",
-        borderColor: active ? color : isRef ? "#ffcdd2" : "#e0e0e0",
-        background: active ? color : isRef ? "#fff5f5" : "#fff",
-        color: active ? "#fff" : isRef ? color : "#555",
-        fontSize: 11,
-        fontWeight: active ? 700 : 500,
-        cursor: "pointer",
-        whiteSpace: "nowrap",
-        fontFamily: FONT,
-        transition: "all 0.15s",
-        flexShrink: 0
-      }
-    }, /*#__PURE__*/React.createElement(Tx, {
-      lang: lang,
-      text: cat
-    }));
-  }), (window.CUSTOM_CATS || []).filter(cc => user && (cc.gebiet === user.gebiet || isSuperRole(user.role))).map(cc => {
+  }, (window.CUSTOM_CATS || []).filter(cc => user && (cc.gebiet === user.gebiet || isSuperRole(user.role))).map(cc => {
     const ckey = "cc:" + cc.id;
     const active = activeCategory === ckey;
     return /*#__PURE__*/React.createElement("button", {
@@ -12395,7 +12363,39 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       fontFamily: FONT,
       flexShrink: 0
     }
-  }, "+ Eigene"))), adminMode && /*#__PURE__*/React.createElement(AdminPanel, {
+  }, "+ Eigene"), CATEGORIES.map(cat => {
+    const active = activeCategory === cat;
+    const color = CAT_COLORS[cat] || "#c8102e";
+    const isRef = isRefCat(cat);
+    return /*#__PURE__*/React.createElement("button", {
+      key: cat,
+      onClick: () => {
+        setActiveCategory(activeCategory === cat ? "Alle" : cat);
+        setActiveProfile(null);
+        setSearchQuery("");
+        setShowProfiles(false);
+        setSelectedId(null);
+      },
+      style: {
+        padding: "5px 13px",
+        borderRadius: 20,
+        border: "1.5px solid",
+        borderColor: active ? color : isRef ? "#ffcdd2" : "#e0e0e0",
+        background: active ? color : isRef ? "#fff5f5" : "#fff",
+        color: active ? "#fff" : isRef ? color : "#555",
+        fontSize: 11,
+        fontWeight: active ? 700 : 500,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        fontFamily: FONT,
+        transition: "all 0.15s",
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Tx, {
+      lang: lang,
+      text: cat
+    }));
+  }))), adminMode && /*#__PURE__*/React.createElement(AdminPanel, {
     t: t,
     lang: lang,
     FONT: FONT,
