@@ -12319,7 +12319,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
   }, (window.CUSTOM_CATS || []).filter(cc => user && (cc.gebiet === user.gebiet || isSuperRole(user.role))).map(cc => {
     const ckey = "cc:" + cc.id;
     const active = activeCategory === ckey;
-    return /*#__PURE__*/React.createElement("button", {
+    return [/*#__PURE__*/React.createElement("button", {
       key: ckey,
       onClick: () => {
         setActiveCategory(active ? "Alle" : ckey);
@@ -12329,7 +12329,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         setSelectedId(null);
       },
       onDoubleClick: () => { if (user && isGLRole(user.role)) setCatModal(cc); },
-      title: (user && isGLRole(user.role)) ? "Doppelklick zum Bearbeiten" : (cc.name),
+      title: cc.name,
       style: {
         padding: "5px 13px",
         borderRadius: 20,
@@ -12345,7 +12345,24 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         transition: "all 0.15s",
         flexShrink: 0
       }
-    }, (cc.emoji ? cc.emoji + " " : "") + cc.name);
+    }, (cc.emoji ? cc.emoji + " " : "") + cc.name), active && user && isGLRole(user.role) && /*#__PURE__*/React.createElement("button", {
+      key: ckey + "-edit",
+      onClick: () => setCatModal(cc),
+      title: "Kategorie bearbeiten oder löschen",
+      style: {
+        padding: "5px 11px",
+        borderRadius: 20,
+        border: "1.5px solid #c8102e",
+        background: "#fff",
+        color: "#c8102e",
+        fontSize: 11,
+        fontWeight: 700,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        fontFamily: FONT,
+        flexShrink: 0
+      }
+    }, "✎ Bearbeiten")];
   }), user && isGLRole(user.role) && /*#__PURE__*/React.createElement("button", {
     key: "cc-new",
     onClick: () => setCatModal("new"),
