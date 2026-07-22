@@ -10950,6 +10950,68 @@ function BioTechDatabase() {
       return null;
     }
   });
+  // Presence + Heartbeat immer starten, sobald ein Nutzer da ist (Login ODER Session-Restore nach Reload)
+  React.useEffect(() => {
+    if (!user) return;
+    const username = user.username || user.key || "";
+    if (!username) return;
+    const displayName = (user.first || "").trim() || username;
+    // is_online + last_seen sofort setzen
+    SB.patch("profiles", "id=eq." + encodeURIComponent(username), { is_online: true, last_seen: new Date().toISOString() });
+    // Heartbeat alle 5 Minuten
+    if (window._btu_heartbeat) clearInterval(window._btu_heartbeat);
+    window._btu_heartbeat = setInterval(() => {
+      SB.patch("profiles", "id=eq." + encodeURIComponent(username), { is_online: true, last_seen: new Date().toISOString() });
+    }, 5 * 60 * 1000);
+    // Realtime-Presence-Kanal beitreten
+    try {
+      const SB_URL = "https://mejwpbahcmlkwajkymnj.supabase.co";
+      const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
+      if (presenceChannelRef.current) {
+        try { presenceChannelRef.current.unsubscribe(); } catch {}
+        presenceChannelRef.current = null;
+      }
+      if (window.supabase && window.supabase.createClient) {
+        const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+        const channel = sbClient.channel("btuwdb-presence", { config: { presence: { key: username } } });
+        channel
+          .on("presence", { event: "sync" }, () => {
+            const state = channel.presenceState();
+            setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: "sync", payload: JSON.stringify(state).slice(0, 300) }]);
+            const online = {};
+            Object.entries(state).forEach(([key, presences]) => {
+              if (presences && presences.length > 0) online[key] = presences[0];
+            });
+            setOnlineUsers(online);
+          })
+          .on("presence", { event: "join" }, ({ key, newPresences }) => {
+            setOnlineUsers(prev => ({ ...prev, [key]: newPresences[0] }));
+          })
+          .on("presence", { event: "leave" }, ({ key }) => {
+            setOnlineUsers(prev => { const next = { ...prev }; delete next[key]; return next; });
+          })
+          .subscribe(async (status) => {
+            setPresenceDebug(prev => [...prev.slice(-20), { ts: new Date().toLocaleTimeString(), event: "status", payload: status }]);
+            if (status === "SUBSCRIBED") {
+              await channel.track({ username: username, name: displayName, role: user.role || "", store: user.store || "", since: Date.now() });
+            }
+          });
+        presenceChannelRef.current = channel;
+      } else {
+        setPresenceDebug(prev => [...prev, { ts: new Date().toLocaleTimeString(), event: "ERROR", payload: "supabase-js not loaded" }]);
+      }
+    } catch (err) {
+      setPresenceDebug(prev => [...prev, { ts: new Date().toLocaleTimeString(), event: "CATCH", payload: String(err) }]);
+    }
+    return () => {
+      if (window._btu_heartbeat) { clearInterval(window._btu_heartbeat); window._btu_heartbeat = null; }
+      if (presenceChannelRef.current) {
+        try { presenceChannelRef.current.unsubscribe(); } catch {}
+        presenceChannelRef.current = null;
+      }
+    };
+  }, [user]);
+
   const [loginInput, setLoginInput] = React.useState({ username: "", password: "", password2: "", gebiet: "", name: "", store: "" });
   const [loginStep, setLoginStep] = React.useState("username"); // 'username' | 'register' | 'password'
   const [loginLoading, setLoginLoading] = React.useState(false);
