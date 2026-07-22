@@ -7673,6 +7673,9 @@ function applyProductOverrides(ov) {
   });
 }
 
+// ── Eigene Kategorien (pro Gebiet) ───────────────────────────────────
+window.CUSTOM_CATS = (function(){ try { return JSON.parse(localStorage.getItem("btu_custom_categories") || "[]"); } catch(e){ return []; } })();
+
 // ── Startup: pull overrides + custom products from Supabase ──────────
 (function() {
   // Sofort lokale Overrides anwenden (falls offline / Supabase langsam)
@@ -7681,10 +7684,16 @@ function applyProductOverrides(ov) {
   }, 0);
   Promise.all([
     SB.getConfig("product_overrides"),
-    SB.getConfig("custom_products")
+    SB.getConfig("custom_products"),
+    SB.getConfig("custom_categories")
   ]).then(function(results) {
     var ov = results[0];
     var cp = results[1];
+    var cc = results[2];
+    if (Array.isArray(cc)) {
+      localStorage.setItem("btu_custom_categories", JSON.stringify(cc));
+      window.CUSTOM_CATS = cc;
+    }
     if (ov && typeof ov === "object") {
       localStorage.setItem("btu_product_overrides", JSON.stringify(ov));
       applyProductOverrides(ov);
@@ -11252,6 +11261,7 @@ function BioTechDatabase() {
   const [selectedId, setSelectedId] = React.useState(null);
   const [quizOpen, setQuizOpen] = React.useState(false);
   const [beratOpen, setBeratOpen] = React.useState(false);
+  const [catModal, setCatModal] = React.useState(null); // null | "new" | Kategorie-Objekt
   const [compareIds, setCompareIds] = React.useState([]);
   const [showObjId, setShowObjId] = React.useState(null);
 
@@ -11325,10 +11335,18 @@ function BioTechDatabase() {
   React.useEffect(() => {
     let stopped = false;
     const poll = () => {
-      Promise.all([SB.getConfig("product_overrides"), SB.getConfig("custom_products")]).then(res => {
+      Promise.all([SB.getConfig("product_overrides"), SB.getConfig("custom_products"), SB.getConfig("custom_categories")]).then(res => {
         if (stopped) return;
         let changed = false;
-        const ov = res[0], cp = res[1];
+        const ov = res[0], cp = res[1], cc = res[2];
+        if (Array.isArray(cc)) {
+          const cur = localStorage.getItem("btu_custom_categories") || "[]";
+          if (JSON.stringify(cc) !== cur) {
+            localStorage.setItem("btu_custom_categories", JSON.stringify(cc));
+            window.CUSTOM_CATS = cc;
+            changed = true;
+          }
+        }
         if (ov && typeof ov === "object") {
           const cur = localStorage.getItem("btu_product_overrides") || "{}";
           if (JSON.stringify(ov) !== cur) {
@@ -11379,7 +11397,13 @@ function BioTechDatabase() {
   }, [beratOpen]);
   const filtered = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    const catFilter = p => activeCategory === "Alle" || p.category === activeCategory || (p.tags && p.tags.includes(activeCategory));
+    const catFilter = p => {
+      if (activeCategory && activeCategory.indexOf("cc:") === 0) {
+        var cc = (window.CUSTOM_CATS || []).find(c => "cc:" + c.id === activeCategory);
+        return !!(cc && cc.productIds && cc.productIds.indexOf(p.id) >= 0);
+      }
+      return activeCategory === "Alle" || p.category === activeCategory || (p.tags && p.tags.includes(activeCategory));
+    };
     const favFilter = p => !showFavsOnly || favorites.includes(p.id);
     const dietFn = p => {
       if (!dietFilter) return true;
@@ -12324,7 +12348,54 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       lang: lang,
       text: cat
     }));
-  }))), adminMode && /*#__PURE__*/React.createElement(AdminPanel, {
+  }), (window.CUSTOM_CATS || []).filter(cc => user && (cc.gebiet === user.gebiet || isSuperRole(user.role))).map(cc => {
+    const ckey = "cc:" + cc.id;
+    const active = activeCategory === ckey;
+    return /*#__PURE__*/React.createElement("button", {
+      key: ckey,
+      onClick: () => {
+        setActiveCategory(active ? "Alle" : ckey);
+        setActiveProfile(null);
+        setSearchQuery("");
+        setShowProfiles(false);
+        setSelectedId(null);
+      },
+      onDoubleClick: () => { if (user && isGLRole(user.role)) setCatModal(cc); },
+      title: (user && isGLRole(user.role)) ? "Doppelklick zum Bearbeiten" : (cc.name),
+      style: {
+        padding: "5px 13px",
+        borderRadius: 20,
+        border: "1.5px dashed",
+        borderColor: active ? "#c8102e" : "#e0b4bc",
+        background: active ? "#c8102e" : "#fff",
+        color: active ? "#fff" : "#a03048",
+        fontSize: 11,
+        fontWeight: active ? 700 : 600,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        fontFamily: FONT,
+        transition: "all 0.15s",
+        flexShrink: 0
+      }
+    }, (cc.emoji ? cc.emoji + " " : "") + cc.name);
+  }), user && isGLRole(user.role) && /*#__PURE__*/React.createElement("button", {
+    key: "cc-new",
+    onClick: () => setCatModal("new"),
+    title: "Eigene Kategorie erstellen",
+    style: {
+      padding: "5px 13px",
+      borderRadius: 20,
+      border: "1.5px dashed #ccc",
+      background: "#fafafa",
+      color: "#999",
+      fontSize: 11,
+      fontWeight: 600,
+      cursor: "pointer",
+      whiteSpace: "nowrap",
+      fontFamily: FONT,
+      flexShrink: 0
+    }
+  }, "+ Eigene"))), adminMode && /*#__PURE__*/React.createElement(AdminPanel, {
     t: t,
     lang: lang,
     FONT: FONT,
@@ -12675,6 +12746,12 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         onClose: () => setBeratOpen(false),
         products: PRODUCTS,
         lang: lang
+      }),
+      catModal && user && isGLRole(user.role) && /*#__PURE__*/React.createElement(CustomCatModal, {
+        cat: catModal === "new" ? null : catModal,
+        user: user,
+        onClose: () => setCatModal(null),
+        onSaved: () => { setCatModal(null); setCustomTick(n => n + 1); setActiveCategory("Alle"); }
       }),
       activeView === "mein-quiz" && user && /*#__PURE__*/React.createElement(MeinQuizPage, {
         user: user,
@@ -14775,6 +14852,86 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
 // ═══════════════════════════════════════════════════════════
 // PRODUKTBERATER MODAL
 // ═══════════════════════════════════════════════════════════
+function CustomCatModal(props) {
+  var cat = props.cat; var user = props.user; var onClose = props.onClose; var onSaved = props.onSaved;
+  var CFONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+  var sName = React.useState(cat ? cat.name : ""); var name = sName[0]; var setName = sName[1];
+  var sEmoji = React.useState(cat ? (cat.emoji || "") : "⭐"); var emoji = sEmoji[0]; var setEmoji = sEmoji[1];
+  var sIds = React.useState(cat ? (cat.productIds || []).slice() : []); var ids = sIds[0]; var setIds = sIds[1];
+  var sQ = React.useState(""); var q = sQ[0]; var setQ = sQ[1];
+  var sMsg = React.useState(""); var msg = sMsg[0]; var setMsg = sMsg[1];
+  var EMOJIS = ["⭐","🔥","💪","🏷️","🎁","☀️","❄️","🏆","🚀","💚","🧡","📦"];
+  var ql = q.toLowerCase().trim();
+  var list = PRODUCTS.filter(function(p) {
+    if (p.refOnly) return false;
+    if (!ql) return ids.indexOf(p.id) >= 0 || false;
+    return (p.name + " " + (p.category || "") + " " + (p.subcategory || "")).toLowerCase().indexOf(ql) >= 0;
+  }).slice(0, 40);
+  var toggle = function(pid) {
+    setIds(function(prev) { return prev.indexOf(pid) >= 0 ? prev.filter(function(x){ return x !== pid; }) : prev.concat([pid]); });
+  };
+  var readCats = function() { try { return JSON.parse(localStorage.getItem("btu_custom_categories") || "[]"); } catch(e){ return []; } };
+  var persist = function(next) {
+    localStorage.setItem("btu_custom_categories", JSON.stringify(next));
+    window.CUSTOM_CATS = next;
+    return SB.setConfig("custom_categories", next);
+  };
+  var save = function() {
+    if (!name.trim()) { setMsg("Bitte einen Namen eingeben."); return; }
+    if (ids.length === 0) { setMsg("Bitte mindestens ein Produkt auswählen."); return; }
+    var all = readCats();
+    var entry = {
+      id: cat ? cat.id : ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now())),
+      gebiet: cat ? cat.gebiet : user.gebiet,
+      name: name.trim(),
+      emoji: emoji,
+      productIds: ids,
+      createdBy: cat ? (cat.createdBy || null) : ((user.username || user.key) || null),
+      updated_at: new Date().toISOString()
+    };
+    var next = all.filter(function(c){ return c.id !== entry.id; }).concat([entry]);
+    persist(next).then(function(){ onSaved(); }).catch(function(){ setMsg("Fehler beim Speichern."); });
+  };
+  var remove = function() {
+    if (!cat) return;
+    if (!window.confirm('Kategorie "' + cat.name + '" wirklich löschen?')) return;
+    var next = readCats().filter(function(c){ return c.id !== cat.id; });
+    persist(next).then(function(){ onSaved(); }).catch(function(){ setMsg("Fehler beim Löschen."); });
+  };
+  return React.createElement("div", { style:{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:320, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }, onClick:onClose },
+    React.createElement("div", { style:{ background:"#fff", borderRadius:16, width:"100%", maxWidth:480, maxHeight:"85vh", display:"flex", flexDirection:"column", boxShadow:"0 20px 60px rgba(0,0,0,0.3)", fontFamily:CFONT }, onClick:function(e){ e.stopPropagation(); } },
+      React.createElement("div", { style:{ padding:"16px 20px 10px", display:"flex", justifyContent:"space-between", alignItems:"center" } },
+        React.createElement("div", { style:{ fontWeight:800, fontSize:16, color:"#1a1a1a" } }, cat ? "Kategorie bearbeiten" : "Eigene Kategorie"),
+        React.createElement("button", { onClick:onClose, style:{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#888", lineHeight:1 } }, "×")),
+      React.createElement("div", { style:{ padding:"0 20px", overflowY:"auto", flex:1, minHeight:0 } },
+        React.createElement("input", { value:name, onChange:function(e){ setName(e.target.value); }, placeholder:"Name, z. B. Sommer-Aktion", maxLength:30,
+          style:{ width:"100%", boxSizing:"border-box", padding:"10px 12px", border:"1.5px solid #e0e0e0", borderRadius:10, fontSize:14, fontFamily:CFONT, outline:"none", marginBottom:10 } }),
+        React.createElement("div", { style:{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:12 } },
+          EMOJIS.map(function(em) {
+            return React.createElement("button", { key:em, onClick:function(){ setEmoji(em); },
+              style:{ width:34, height:34, borderRadius:8, border: emoji===em ? "2px solid #c8102e" : "1.5px solid #e0e0e0", background: emoji===em ? "#fff5f5" : "#fff", fontSize:16, cursor:"pointer" } }, em);
+          })),
+        React.createElement("div", { style:{ fontSize:11, fontWeight:800, color:"#999", letterSpacing:0.8, marginBottom:6 } }, "PRODUKTE (" + ids.length + " AUSGEWÄHLT)"),
+        React.createElement("input", { value:q, onChange:function(e){ setQ(e.target.value); }, placeholder:"Produkt suchen...",
+          style:{ width:"100%", boxSizing:"border-box", padding:"8px 12px", border:"1.5px solid #e0e0e0", borderRadius:10, fontSize:13, fontFamily:CFONT, outline:"none", marginBottom:8 } }),
+        !ql && ids.length === 0 && React.createElement("div", { style:{ fontSize:12, color:"#aaa", padding:"8px 0" } }, "Suche Produkte und hake sie an."),
+        list.map(function(p) {
+          var on = ids.indexOf(p.id) >= 0;
+          return React.createElement("div", { key:p.id, onClick:function(){ toggle(p.id); },
+            style:{ display:"flex", alignItems:"center", gap:10, padding:"7px 4px", borderBottom:"1px solid #f5f5f5", cursor:"pointer" } },
+            React.createElement("div", { style:{ width:18, height:18, borderRadius:5, flexShrink:0, border: on ? "none" : "1.5px solid #ccc", background: on ? "#c8102e" : "#fff", color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center" } }, on ? "✓" : ""),
+            React.createElement("div", null,
+              React.createElement("div", { style:{ fontSize:13, fontWeight:600, color:"#1a1a1a" } }, p.name),
+              React.createElement("div", { style:{ fontSize:11, color:"#999" } }, p.category || "")));
+        })),
+      React.createElement("div", { style:{ padding:"12px 20px 16px", borderTop:"1px solid #f0f0f0" } },
+        msg && React.createElement("div", { style:{ fontSize:12, color:"#c8102e", marginBottom:8, fontWeight:600 } }, msg),
+        React.createElement("div", { style:{ display:"flex", gap:8 } },
+          cat && React.createElement("button", { onClick:remove, style:{ padding:"11px 14px", borderRadius:10, border:"1.5px solid #f0c0c8", background:"#fff", color:"#c8102e", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:CFONT } }, "🗑"),
+          React.createElement("button", { onClick:onClose, style:{ flex:1, padding:"11px 0", borderRadius:10, border:"none", background:"#f0f0f0", color:"#555", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:CFONT } }, "Abbrechen"),
+          React.createElement("button", { onClick:save, style:{ flex:2, padding:"11px 0", borderRadius:10, border:"none", background:"#c8102e", color:"#fff", fontSize:13, fontWeight:800, cursor:"pointer", fontFamily:CFONT } }, "💾 Speichern")))));
+}
+
 function ProduktberaterModal(props) {
   var onClose   = props.onClose;
   var products  = props.products;
