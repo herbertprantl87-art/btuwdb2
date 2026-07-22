@@ -11351,6 +11351,32 @@ function BioTechDatabase() {
     const iv = setInterval(poll, 30000);
     return () => { stopped = true; clearInterval(iv); };
   }, []);
+  // ── Berater-Nutzungstracking: Session in Supabase protokollieren ──
+  React.useEffect(() => {
+    if (!beratOpen) return;
+    var sid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+      : String(Date.now()) + "-" + Math.random().toString(36).slice(2, 10);
+    var startMs = Date.now();
+    var uname = user ? ((user.first || "") + " " + (user.last || "")).trim() || user.username || user.key || "Unbekannt" : "Unbekannt";
+    var row = {
+      id: sid,
+      user_key: (user && (user.username || user.key)) || null,
+      user_name: uname,
+      gebiet: (user && user.gebiet) || null,
+      store: (user && user.store) || null,
+      role: (user && user.role) || "mitarbeiter",
+      started_at: new Date(startMs).toISOString()
+    };
+    var writeSession = function() {
+      SB.upsert("advisor_sessions", Object.assign({}, row, {
+        duration_seconds: Math.round((Date.now() - startMs) / 1000),
+        updated_at: new Date().toISOString()
+      })).catch(function(){});
+    };
+    writeSession();
+    var hb = setInterval(writeSession, 15000);
+    return () => { clearInterval(hb); writeSession(); };
+  }, [beratOpen]);
   const filtered = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const catFilter = p => activeCategory === "Alle" || p.category === activeCategory || (p.tags && p.tags.includes(activeCategory));
@@ -15488,6 +15514,11 @@ function AdminPanel({
   t, lang, FONT, FONT_COND, onDeleteAll, onLeave, productCount, currentUser, onCustomTick, onlineUsers, presenceDebug, onMessageSent
 }) {
   const [tab, setTab]               = React.useState("users");
+  const [beratSessions, setBeratSessions] = React.useState(null);
+  React.useEffect(() => {
+    if (tab !== "berater") return;
+    SB.get("advisor_sessions?order=started_at.desc&limit=300&select=*").then(rows => setBeratSessions(rows || []));
+  }, [tab]);
   const [users, setUsers]           = React.useState([]);
   const [expandedUser, setExpanded] = React.useState(null);
   const [tick, setTick]             = React.useState(0);
@@ -15850,13 +15881,13 @@ function AdminPanel({
       // Tab switcher
       React.createElement("div", { style:{ padding:"10px 20px", borderBottom:"1px solid #1a1a1a",
           display:"flex", gap:4, flexShrink:0 } },
-        ["users","editor","cart"].map(t2=>
+        ["users","editor","cart","berater"].map(t2=>
           React.createElement("button", { key:t2, onClick:()=>{setTab(t2);setEditingId(null);},
             style:{ flex:1, padding:"8px 0", borderRadius:8, fontWeight:700, fontSize:11,
                     fontFamily:FONT_SYS, cursor:"pointer", border:"none",
                     background:tab===t2?"#c8102e":"#1a1a1a",
                     color:tab===t2?"#fff":"#555", transition:"all .15s" } },
-            t2==="users"?"👥 Nutzer":t2==="editor"?"✏️ Produkte":"🛒 Warenkorb"
+            t2==="users"?"👥 Nutzer":t2==="editor"?"✏️ Produkte":t2==="cart"?"🛒 Warenkorb":"📊 Berater"
           )
         )
       ),
@@ -15865,6 +15896,38 @@ function AdminPanel({
       React.createElement("div", { style:{ flex:1, overflowY:"auto", padding:"0", minHeight:0, display: tab==="cart" ? "none" : "block" } },
 
         // ── NUTZER TAB ──
+        tab==="berater" && React.createElement("div", { style:{ padding:"14px 20px" } },
+          React.createElement("div", { style:{ fontSize:11, fontWeight:800, color:"#888", letterSpacing:1, marginBottom:10 } }, "📊 BERATER-NUTZUNG"),
+          beratSessions === null && React.createElement("div", { style:{ color:"#555", fontSize:12 } }, "Lade..."),
+          beratSessions && beratSessions.length === 0 && React.createElement("div", { style:{ color:"#555", fontSize:12 } }, "Noch keine Einträge."),
+          beratSessions && beratSessions.length > 0 && (function(){
+            var fmtDur = function(s){ s=s||0; return s>=60 ? Math.floor(s/60)+" min "+(s%60)+" s" : s+" s"; };
+            var fmtDate = function(iso){ try{ var d=new Date(iso); return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"2-digit"})+" "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}); }catch(e){ return iso; } };
+            var totals = {};
+            beratSessions.forEach(function(s){ var k=s.user_name||"Unbekannt"; if(!totals[k]) totals[k]={n:0,sec:0}; totals[k].n++; totals[k].sec+=(s.duration_seconds||0); });
+            var totalRows = Object.keys(totals).sort(function(a,b){ return totals[b].sec-totals[a].sec; });
+            return React.createElement("div", null,
+              React.createElement("div", { style:{ background:"#111", borderRadius:10, padding:"10px 14px", marginBottom:14 } },
+                React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#666", letterSpacing:1, marginBottom:6 } }, "SUMMEN PRO NUTZER"),
+                totalRows.map(function(k){
+                  return React.createElement("div", { key:k, style:{ display:"flex", justifyContent:"space-between", fontSize:12, color:"#ccc", padding:"3px 0" } },
+                    React.createElement("span", { style:{ fontWeight:700 } }, k),
+                    React.createElement("span", { style:{ color:"#888" } }, totals[k].n+"x · "+fmtDur(totals[k].sec)));
+                })
+              ),
+              React.createElement("div", { style:{ fontSize:10, fontWeight:800, color:"#666", letterSpacing:1, marginBottom:6 } }, "EINZELNE SITZUNGEN"),
+              beratSessions.map(function(s){
+                return React.createElement("div", { key:s.id, style:{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"7px 0", borderBottom:"1px solid #1a1a1a" } },
+                  React.createElement("div", null,
+                    React.createElement("div", { style:{ fontSize:12, fontWeight:700, color:"#e0e0e0" } }, s.user_name||"Unbekannt"),
+                    React.createElement("div", { style:{ fontSize:10, color:"#666" } }, (s.gebiet||"")+(s.store?" · "+s.store:""))),
+                  React.createElement("div", { style:{ textAlign:"right" } },
+                    React.createElement("div", { style:{ fontSize:11, color:"#aaa" } }, fmtDate(s.started_at)),
+                    React.createElement("div", { style:{ fontSize:11, fontWeight:700, color:"#4ade80" } }, fmtDur(s.duration_seconds))));
+              })
+            );
+          })()
+        ),
         tab==="users" && React.createElement("div", null,
 
           // Create profile
