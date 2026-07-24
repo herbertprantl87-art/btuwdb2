@@ -7632,14 +7632,18 @@ var SB = (function() {
     });
   }
   function del(table, query) {
-    return fetch(BASE + "/" + table + "?" + query, { method: "DELETE", headers: H }).catch(function() {});
+    return fetch(BASE + "/" + table + "?" + query, { method: "DELETE", headers: H }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t) { throw new Error(table + ": " + r.status + " " + t); });
+    });
   }
   function patch(table, query, data) {
     return fetch(BASE + "/" + table + "?" + query, {
       method: "PATCH",
       headers: Object.assign({}, H, { "Prefer": "return=minimal" }),
       body: JSON.stringify(data)
-    }).catch(function() {});
+    }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t) { throw new Error(table + ": " + r.status + " " + t); });
+    });
   }
   // Load app_config key → value (JSON)
   function getConfig(key) {
@@ -10528,6 +10532,7 @@ var BERAT_CAT_MAP = {
   "Healthy Lifestyle":     ["Food","Nutrition"],
   "Riegel":                ["Food"],
   "Riegel & Snacks":       ["Food","Nutrition"],
+  "Kr\u00e4uter & Pflanzenextrakte": ["Plant Extract","Root Extract","Tree Resin","Mushrooms"],
 
   // ── PROTEIN-UNTERKATEGORIEN ──────────────────────────────────────────────
   "Isolat":                                                     ["Protein"],
@@ -10957,11 +10962,11 @@ function BioTechDatabase() {
     if (!username) return;
     const displayName = (user.first || "").trim() || username;
     // is_online + last_seen sofort setzen
-    SB.patch("profiles", "id=eq." + encodeURIComponent(username), { is_online: true, last_seen: new Date().toISOString() });
+    SB.patch("profiles", "id=eq." + encodeURIComponent(username), { is_online: true, last_seen: new Date().toISOString() }).catch(function(){});
     // Heartbeat alle 5 Minuten
     if (window._btu_heartbeat) clearInterval(window._btu_heartbeat);
     window._btu_heartbeat = setInterval(() => {
-      SB.patch("profiles", "id=eq." + encodeURIComponent(username), { is_online: true, last_seen: new Date().toISOString() });
+      SB.patch("profiles", "id=eq." + encodeURIComponent(username), { is_online: true, last_seen: new Date().toISOString() }).catch(function(){});
     }, 5 * 60 * 1000);
     // Realtime-Presence-Kanal beitreten
     try {
@@ -11203,7 +11208,7 @@ function BioTechDatabase() {
       const _logoutUser = (() => { try { return JSON.parse(sessionStorage.getItem("btu_session") || "null"); } catch { return null; } })();
       if (_logoutUser && (_logoutUser.username || _logoutUser.key)) {
         const _uid = _logoutUser.username || _logoutUser.key;
-        SB.patch("profiles", "id=eq." + encodeURIComponent(_uid), { is_online: false, last_seen: new Date().toISOString() });
+        SB.patch("profiles", "id=eq." + encodeURIComponent(_uid), { is_online: false, last_seen: new Date().toISOString() }).catch(function(){});
       }
     } catch {}
     try {
@@ -12407,7 +12412,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         Object.keys(localStorage).filter(k => k.startsWith("btu_")).forEach(k => localStorage.removeItem(k));
         // Clear all profiles from Supabase (cascade deletes favorites + quiz_results)
         SB.get("profiles?select=id").then(rows => {
-          if (rows) rows.forEach(r => SB.del("profiles", "id=eq." + encodeURIComponent(r.id)));
+          if (rows) rows.forEach(r => SB.del("profiles", "id=eq." + encodeURIComponent(r.id)).catch(function(){}));
         });
         setFavorites([]);
         setUser(null);
@@ -12871,7 +12876,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         if (hasUnread) {
           msgs.forEach(m => {
             if (!m.read && m.to_username === me) {
-              SB.patch("messages","id=eq."+encodeURIComponent(m.id),{read:true});
+              SB.patch("messages","id=eq."+encodeURIComponent(m.id),{read:true}).catch(function(){});
             }
           });
           setInbox(prev => prev.map(m =>
@@ -14872,15 +14877,19 @@ function CustomCatModal(props) {
     setIds(function(prev) { return prev.indexOf(pid) >= 0 ? prev.filter(function(x){ return x !== pid; }) : prev.concat([pid]); });
   };
   var readCats = function() { try { return JSON.parse(localStorage.getItem("btu_custom_categories") || "[]"); } catch(e){ return []; } };
-  var persist = function(next) {
-    localStorage.setItem("btu_custom_categories", JSON.stringify(next));
-    window.CUSTOM_CATS = next;
-    return SB.setConfig("custom_categories", next);
+  var persist = function(applyFn) {
+    // Lost-Update-Schutz: aktuellen Stand aus Supabase laden, Änderung darauf anwenden, dann schreiben
+    return SB.getConfig("custom_categories").then(function(remote) {
+      var base = Array.isArray(remote) ? remote : readCats();
+      var next = applyFn(base);
+      localStorage.setItem("btu_custom_categories", JSON.stringify(next));
+      window.CUSTOM_CATS = next;
+      return SB.setConfig("custom_categories", next);
+    });
   };
   var save = function() {
     if (!name.trim()) { setMsg("Bitte einen Namen eingeben."); return; }
     if (ids.length === 0) { setMsg("Bitte mindestens ein Produkt auswählen."); return; }
-    var all = readCats();
     var entry = {
       id: cat ? cat.id : ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now())),
       gebiet: cat ? cat.gebiet : user.gebiet,
@@ -14891,14 +14900,14 @@ function CustomCatModal(props) {
       createdBy: cat ? (cat.createdBy || null) : ((user.username || user.key) || null),
       updated_at: new Date().toISOString()
     };
-    var next = all.filter(function(c){ return c.id !== entry.id; }).concat([entry]);
-    persist(next).then(function(){ onSaved(); }).catch(function(){ setMsg("Fehler beim Speichern."); });
+    persist(function(base){ return base.filter(function(c){ return c.id !== entry.id; }).concat([entry]); })
+      .then(function(){ onSaved(); }).catch(function(){ setMsg("Fehler beim Speichern."); });
   };
   var remove = function() {
     if (!cat) return;
     if (!window.confirm('Kategorie "' + cat.name + '" wirklich löschen?')) return;
-    var next = readCats().filter(function(c){ return c.id !== cat.id; });
-    persist(next).then(function(){ onSaved(); }).catch(function(){ setMsg("Fehler beim Löschen."); });
+    persist(function(base){ return base.filter(function(c){ return c.id !== cat.id; }); })
+      .then(function(){ onSaved(); }).catch(function(){ setMsg("Fehler beim Löschen."); });
   };
   return React.createElement("div", { style:{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:320, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }, onClick:onClose },
     React.createElement("div", { style:{ background:"#fff", borderRadius:16, width:"100%", maxWidth:480, maxHeight:"85vh", display:"flex", flexDirection:"column", boxShadow:"0 20px 60px rgba(0,0,0,0.3)", fontFamily:CFONT }, onClick:function(e){ e.stopPropagation(); } },
@@ -15289,7 +15298,7 @@ function ProduktberaterModal(props) {
                         try{
                           fetch('https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/cart_events',{
                             method:'POST',
-                            headers:{'apikey':'sb_publishable_z1V4LtNtbgve2XqpY04VaA_Fi7m01iz','Content-Type':'application/json','Prefer':'return=minimal'},
+                            headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE','Content-Type':'application/json','Prefer':'return=minimal'},
                             body:JSON.stringify({product_name:p.name,package_size:curSize?curSize.packageSize:(p.packageSize||''),price:curSize?curSize.price:p.price,lang:beraterLang,username:(function(){try{var u=JSON.parse(sessionStorage.getItem('btu_session')||'null');return u&&u.username?u.username:'anonym';}catch(e){return 'anonym';}}())})
                           }).catch(function(){});
                         }catch(e){}
@@ -15522,7 +15531,7 @@ function CartAnalyticsTab({FONT_SYS}) {
     var cu = null;
     try { cu = JSON.parse(sessionStorage.getItem('btu_session')||'null'); } catch(e){}
     var isSA = !cu || cu.role === 'superadmin';
-    var APIKEY = 'sb_publishable_z1V4LtNtbgve2XqpY04VaA_Fi7m01iz';
+    var APIKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE';
     var SB_BASE = 'https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/';
 
     function processRows(arr) {
@@ -15841,7 +15850,7 @@ function AdminPanel({
       SB.upsert("profiles", { id: newKey, first_name: newFirst, last_name: newLast });
       if (favs.length) SB.upsert("favorites", { profile_id: newKey, product_ids: favs, updated_at: new Date().toISOString() });
       if (quizRow) SB.upsert("quiz_results", quizRow);
-      SB.del("profiles", "id=eq." + encodeURIComponent(u.key));
+      SB.del("profiles", "id=eq." + encodeURIComponent(u.key)).catch(function(){});
       // localStorage migration
       const migrations = [
         ["btu_favs_"+u.key, "btu_favs_"+newKey],
@@ -15894,7 +15903,13 @@ function AdminPanel({
       const existing = JSON.parse(localStorage.getItem("btu_custom_products")||"[]");
       existing.push(prod);
       localStorage.setItem("btu_custom_products", JSON.stringify(existing));
-      SB.setConfig("custom_products", existing);
+      // Lost-Update-Schutz: Remote-Stand laden, Produkt anhängen, dann schreiben
+      SB.getConfig("custom_products").then(remote => {
+        const base = Array.isArray(remote) ? remote.slice() : existing;
+        if (!base.find(p => p.id === prod.id)) base.push(prod);
+        localStorage.setItem("btu_custom_products", JSON.stringify(base));
+        return SB.setConfig("custom_products", base);
+      }).catch(() => setNewProdMsg("Warnung: Sync fehlgeschlagen — Produkt evtl. nur lokal gespeichert."));
       PRODUCTS.push(prod);
       setCustomProds(existing);
       setNewProd(EMPTY_PROD);
@@ -15911,7 +15926,12 @@ function AdminPanel({
       const existing = JSON.parse(localStorage.getItem("btu_custom_products")||"[]");
       const next = existing.filter(p=>p.id!==id);
       localStorage.setItem("btu_custom_products", JSON.stringify(next));
-      SB.setConfig("custom_products", next);
+      // Lost-Update-Schutz: Remote-Stand laden, Produkt dort entfernen, dann schreiben
+      SB.getConfig("custom_products").then(remote => {
+        const base = (Array.isArray(remote) ? remote : existing).filter(p=>p.id!==id);
+        localStorage.setItem("btu_custom_products", JSON.stringify(base));
+        return SB.setConfig("custom_products", base);
+      }).catch(() => window.alert("Warnung: Löschen wurde evtl. nicht synchronisiert."));
       const idx = PRODUCTS.findIndex(p=>p.id===id);
       if (idx>-1) PRODUCTS.splice(idx,1);
       setCustomProds(next);
@@ -15976,7 +15996,13 @@ function AdminPanel({
     }
     const next={...overrides}; if(Object.keys(clean).length) next[pid]=clean; else delete next[pid];
     localStorage.setItem("btu_product_overrides",JSON.stringify(next));
-    SB.setConfig("product_overrides", next);
+    // Lost-Update-Schutz: Remote-Stand laden, nur diesen Eintrag ändern, dann schreiben
+    SB.getConfig("product_overrides").then(remote => {
+      const base = (remote && typeof remote === "object") ? {...remote} : {...next};
+      if(Object.keys(clean).length) base[pid]=clean; else delete base[pid];
+      localStorage.setItem("btu_product_overrides",JSON.stringify(base));
+      return SB.setConfig("product_overrides", base);
+    }).catch(() => setSavedMsg("Warnung: Sync fehlgeschlagen."));
     applyProductOverrides(next);
     setOverrides(next); setEditingId(null);
     if(typeof onCustomTick==="function") onCustomTick();
@@ -15985,7 +16011,13 @@ function AdminPanel({
   const resetOv = pid => {
     const next={...overrides}; delete next[pid];
     localStorage.setItem("btu_product_overrides",JSON.stringify(next));
-    SB.setConfig("product_overrides", next);
+    // Lost-Update-Schutz: Remote-Stand laden, nur diesen Eintrag entfernen, dann schreiben
+    SB.getConfig("product_overrides").then(remote => {
+      const base = (remote && typeof remote === "object") ? {...remote} : {...next};
+      delete base[pid];
+      localStorage.setItem("btu_product_overrides",JSON.stringify(base));
+      return SB.setConfig("product_overrides", base);
+    }).catch(() => {});
     applyProductOverrides(next);
     setOverrides(next); setEditingId(null);
     if(typeof onCustomTick==="function") onCustomTick();
@@ -16316,7 +16348,7 @@ function AdminPanel({
                           if(!window.confirm('Passwort von "'+u.displayName+'" zurücksetzen? Der Nutzer muss beim nächsten Login ein neues Passwort festlegen.')) return;
                           SB.del("app_config","key=eq."+encodeURIComponent("auth_user__"+u.key)).then(()=>{
                             window.alert('Passwort von "'+u.displayName+'" wurde zurückgesetzt.');
-                          });
+                          }).catch(()=>{ window.alert('Zurücksetzen fehlgeschlagen — bitte nochmal versuchen.'); });
                         },
                         style:{ fontSize:11, fontWeight:700, padding:"7px 14px", background:"transparent",
                                 color:"#fbbf24", border:"1px solid #2a1e00", borderRadius:8,
@@ -16745,10 +16777,14 @@ var QZ = (function() {
       method: "PATCH",
       headers: Object.assign({}, H, { "Prefer": "return=minimal" }),
       body: JSON.stringify(data)
-    }).catch(function() {});
+    }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t) { throw new Error(table + ": " + r.status + " " + t); });
+    });
   }
   function del(table, query) {
-    return fetch(BASE + "/" + table + "?" + query, { method: "DELETE", headers: H }).catch(function() {});
+    return fetch(BASE + "/" + table + "?" + query, { method: "DELETE", headers: H }).then(function(r) {
+      if (!r.ok) return r.text().then(function(t) { throw new Error(table + ": " + r.status + " " + t); });
+    });
   }
   return { get: get, post: post, patch: patch, del: del };
 })();
@@ -16904,6 +16940,11 @@ function QuizTaker(props) {
     }];
     var inserted = await QZ.post("new_quiz_results", resultData);
     var resultId = inserted && inserted[0] ? inserted[0].id : null;
+    if (!resultId) {
+      setSaving(false);
+      window.alert("Speichern fehlgeschlagen — bitte Internetverbindung prüfen und nochmal auf Abschließen tippen. Deine Antworten bleiben erhalten.");
+      return;
+    }
     if (resultId) {
       var answerData = questions.map(function(q) {
         return {
@@ -16914,7 +16955,10 @@ function QuizTaker(props) {
           antwort_text: q.typ === "freitext" ? (answers[q.id] || "") : null
         };
       });
-      await QZ.post("quiz_answers", answerData);
+      var savedAnswers = await QZ.post("quiz_answers", answerData);
+      if (savedAnswers === null) {
+        window.alert("Hinweis: Das Ergebnis wurde gespeichert, aber die Einzelantworten konnten nicht übertragen werden.");
+      }
     }
     setPhase("done");
     setSaving(false);
@@ -17168,7 +17212,7 @@ function AuswertungPage(props) {
                           return React.createElement("button", {
                             key: pt,
                             onClick: function() {
-                              QZ.patch("quiz_answers", "id=eq." + a.id, { punkte_freitext: parseInt(pt), bewertet_von: user.username, bewertet_am: new Date().toISOString() });
+                              QZ.patch("quiz_answers", "id=eq." + a.id, { punkte_freitext: parseInt(pt), bewertet_von: user.username, bewertet_am: new Date().toISOString() }).catch(function(){ window.alert("Bewertung konnte nicht gespeichert werden — bitte nochmal versuchen."); });
                             },
                             style: { padding: "4px 10px", background: a.punkte_freitext === parseInt(pt) ? RED : "#e0e0e0",
                                      color: a.punkte_freitext === parseInt(pt) ? "#fff" : "#555",
