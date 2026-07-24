@@ -11315,7 +11315,7 @@ function BioTechDatabase() {
     return detectMode(q);
   }, [searchQuery, activeProfile]);
   const [customTick, setCustomTick] = React.useState(0);
-  // ── Live-Sync: Overrides + Custom-Produkte alle 30s aus Supabase ziehen ──
+  // ── Live-Sync: Overrides + Custom-Produkte alle 10s aus Supabase ziehen ──
   React.useEffect(() => {
     let stopped = false;
     const poll = () => {
@@ -11350,7 +11350,7 @@ function BioTechDatabase() {
         if (changed) setCustomTick(n => n + 1);
       }).catch(() => {});
     };
-    const iv = setInterval(poll, 30000);
+    const iv = setInterval(poll, 10000);
     return () => { stopped = true; clearInterval(iv); };
   }, []);
   // ── Berater-Nutzungstracking: Session in Supabase protokollieren ──
