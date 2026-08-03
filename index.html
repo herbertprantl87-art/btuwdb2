@@ -7659,7 +7659,7 @@ var SB = (function() {
 
 // ── Overrides auf PRODUCTS anwenden (Original in _orig sichern) ──────
 function applyProductOverrides(ov) {
-  var KEYS = ["name","kcalPortion","proteinPortion","price","notes"];
+  var KEYS = ["name","kcalPortion","proteinPortion","price","notes","flavors","packageSize"];
   var NUM_KEYS = { price:1, kcalPortion:1 };
   PRODUCTS.forEach(function(p) {
     if (!p._orig) {
@@ -15986,6 +15986,10 @@ function AdminPanel({
   };
   const saveEdit = pid => {
     const prod=PRODUCTS.find(p=>p.id===pid); const clean={};
+    // Felder, die nicht im Formular stehen (z.B. vom Preis-Sync ergaenzte
+    // Geschmaecker/Groessen), beim Speichern erhalten
+    const prevOv=overrides[pid]||{}; const FORM_KEYS={name:1,kcalPortion:1,proteinPortion:1,price:1,notes:1};
+    Object.keys(prevOv).forEach(function(k){ if(!FORM_KEYS[k]) clean[k]=prevOv[k]; });
     if(prod){
       const base=prod._orig||prod;
       if(editFields.name!==base.name) clean.name=editFields.name;
