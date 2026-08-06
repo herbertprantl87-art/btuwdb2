@@ -10915,6 +10915,7 @@ function BioTechDatabase() {
   React.useEffect(() => {
     const isRtl = (LANGUAGES.find(l => l.code === lang) || {}).rtl;
     document.documentElement.dir = isRtl ? "rtl" : "ltr";
+    window.__btuLang = lang;
   }, [lang]);
 
   // Close language dropdown on outside click
