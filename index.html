@@ -7659,7 +7659,7 @@ var SB = (function() {
 
 // ── Overrides auf PRODUCTS anwenden (Original in _orig sichern) ──────
 function applyProductOverrides(ov) {
-  var KEYS = ["name","kcalPortion","proteinPortion","price","notes","flavors","packageSize"];
+  var KEYS = ["name","kcalPortion","proteinPortion","price","notes","flavors","packageSize","keyIngredients","dosage"];
   var NUM_KEYS = { price:1, kcalPortion:1 };
   PRODUCTS.forEach(function(p) {
     if (!p._orig) {
