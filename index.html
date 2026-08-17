@@ -14897,31 +14897,62 @@ function CustomCatModal(props) {
   // "1000g" und "1000 g" sollen gleich suchen: Zahl/Buchstabe trennen, dann alle Wortteile verlangen
   var splitNumWords = function(str) { return str.replace(/([a-zäöüß%])(\d)/g, "$1 $2").replace(/(\d)([a-zäöüß])/g, "$1 $2"); };
   var qTokens = splitNumWords(ql).split(/\s+/).filter(function(x){ return !!x; });
+  // Alle Eintraege mit demselben Namen sind Groessen-Varianten desselben Produkts
+  var variantsOf = function(name) {
+    return PRODUCTS.filter(function(x){ return !x.refOnly && x.name === name; });
+  };
+  // Waehlbare Groessen eines Produkts: eigene Eintraege je Groesse plus "2000 g / 3000 g" in einem Feld
+  var sizeChoices = function(name) {
+    var out = [], seen = {};
+    variantsOf(name).forEach(function(v) {
+      var raw = v.packageSize || "";
+      var parts = raw && raw !== "–" ? raw.split("/").map(function(x){ return x.trim(); }).filter(function(x){ return !!x; }) : [];
+      if (parts.length === 0) return;
+      parts.forEach(function(sz) {
+        if (seen[sz]) return;
+        seen[sz] = true;
+        out.push({ label: sz, pid: v.id, sub: parts.length > 1 ? sz : null });
+      });
+    });
+    return out;
+  };
+  var selectedVariant = function(name) {
+    var vs = variantsOf(name);
+    for (var i = 0; i < vs.length; i++) { if (ids.indexOf(vs[i].id) >= 0) return vs[i]; }
+    return null;
+  };
   var list = PRODUCTS.filter(function(p) {
     if (p.refOnly) return false;
-    if (!ql) return ids.indexOf(p.id) >= 0 || false;
+    if (!ql) return !!selectedVariant(p.name);
     var hay = splitNumWords((p.name + " " + (p.category || "") + " " + (p.subcategory || "") + " " + (p.packageSize || "")).toLowerCase());
     return qTokens.every(function(tk) { return hay.indexOf(tk) >= 0; });
+  }).filter(function(p, i, arr) {
+    // pro Produktname nur eine Zeile, die Groessen stehen als Auswahl darunter
+    return arr.findIndex(function(x){ return x.name === p.name; }) === i;
   }).slice(0, 40);
-  var toggle = function(pid) {
-    setIds(function(prev) { return prev.indexOf(pid) >= 0 ? prev.filter(function(x){ return x !== pid; }) : prev.concat([pid]); });
+  // Produkt an- oder abwaehlen (immer ueber alle Groessen-Varianten hinweg)
+  var toggle = function(p) {
+    var vIds = variantsOf(p.name).map(function(v){ return v.id; });
+    var on = !!selectedVariant(p.name);
+    setIds(function(prev) {
+      var rest = prev.filter(function(x){ return vIds.indexOf(x) < 0; });
+      return on ? rest : rest.concat([p.id]);
+    });
     setSizes(function(prev) {
-      if (ids.indexOf(pid) < 0) return prev;
-      var r = {}; Object.keys(prev).forEach(function(k){ if (k !== String(pid)) r[k] = prev[k]; });
+      var r = {}; Object.keys(prev).forEach(function(k){ if (vIds.indexOf(Number(k)) < 0 && vIds.indexOf(k) < 0) r[k] = prev[k]; });
       return r;
     });
   };
-  // Packungsgroessen eines Produkts: "2000 g / 3000 g" -> ["2000 g","3000 g"]
-  var sizeOptions = function(p) {
-    var raw = p.packageSize || "";
-    if (!raw || raw === "–") return [];
-    var parts = raw.split("/").map(function(x){ return x.trim(); }).filter(function(x){ return !!x; });
-    return parts.length > 1 ? parts : [];
-  };
-  var pickSize = function(pid, sz) {
+  // Groesse waehlen: schaltet auf den passenden Produkteintrag um bzw. merkt die Groesse
+  var pickSize = function(name, choice) {
+    var vIds = variantsOf(name).map(function(v){ return v.id; });
+    setIds(function(prev) {
+      var rest = prev.filter(function(x){ return vIds.indexOf(x) < 0; });
+      return rest.concat([choice.pid]);
+    });
     setSizes(function(prev) {
-      var r = {}; Object.keys(prev).forEach(function(k){ r[k] = prev[k]; });
-      if (sz === null) { delete r[String(pid)]; } else { r[String(pid)] = sz; }
+      var r = {}; Object.keys(prev).forEach(function(k){ if (vIds.indexOf(Number(k)) < 0 && vIds.indexOf(k) < 0) r[k] = prev[k]; });
+      if (choice.sub) r[String(choice.pid)] = choice.sub;
       return r;
     });
   };
@@ -14977,27 +15008,29 @@ function CustomCatModal(props) {
           style:{ width:"100%", boxSizing:"border-box", padding:"8px 12px", border:"1.5px solid #e0e0e0", borderRadius:10, fontSize:13, fontFamily:CFONT, outline:"none", marginBottom:8 } }),
         !ql && ids.length === 0 && React.createElement("div", { style:{ fontSize:12, color:"#aaa", padding:"8px 0" } }, "Suche Produkte und hake sie an."),
         list.map(function(p) {
-          var on = ids.indexOf(p.id) >= 0;
-          var opts = sizeOptions(p);
-          var curSize = sizes[String(p.id)] || null;
+          var selV = selectedVariant(p.name);
+          var on = !!selV;
+          var choices = sizeChoices(p.name);
+          var curSub = selV ? (sizes[String(selV.id)] || null) : null;
+          var curLabel = selV ? (curSub || (selV.packageSize || "")) : (p.packageSize || "");
           return React.createElement("div", { key:p.id,
             style:{ padding:"7px 4px", borderBottom:"1px solid #f5f5f5" } },
-            React.createElement("div", { onClick:function(){ toggle(p.id); },
+            React.createElement("div", { onClick:function(){ toggle(p); },
               style:{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" } },
               React.createElement("div", { style:{ width:18, height:18, borderRadius:5, flexShrink:0, border: on ? "none" : "1.5px solid #ccc", background: on ? "#c8102e" : "#fff", color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center" } }, on ? "✓" : ""),
               React.createElement("div", null,
                 React.createElement("div", { style:{ fontSize:13, fontWeight:600, color:"#1a1a1a" } },
                   p.name,
-                  p.packageSize && p.packageSize !== "–" ? React.createElement("span", { style:{ fontWeight:700, color:"#c8102e", marginLeft:6 } }, p.packageSize) : null),
+                  curLabel && curLabel !== "–" ? React.createElement("span", { style:{ fontWeight:700, color:"#c8102e", marginLeft:6 } }, curLabel) : null),
                 React.createElement("div", { style:{ fontSize:11, color:"#999" } }, p.category || ""))),
-            on && opts.length > 0 && React.createElement("div", { style:{ display:"flex", gap:6, flexWrap:"wrap", padding:"6px 0 2px 28px" } },
+            on && choices.length > 1 && React.createElement("div", { style:{ display:"flex", gap:6, flexWrap:"wrap", padding:"6px 0 2px 28px" } },
               React.createElement("span", { style:{ fontSize:11, color:"#999", alignSelf:"center" } }, "Größe:"),
-              [null].concat(opts).map(function(sz) {
-                var act = (sz === null && !curSize) || (sz !== null && curSize === sz);
-                return React.createElement("button", { key: sz === null ? "__alle" : sz,
-                  onClick:function(e){ e.stopPropagation(); pickSize(p.id, sz); },
+              choices.map(function(ch) {
+                var act = selV && selV.id === ch.pid && (ch.sub ? curSub === ch.sub : !curSub);
+                return React.createElement("button", { key: ch.label,
+                  onClick:function(e){ e.stopPropagation(); pickSize(p.name, ch); },
                   style:{ padding:"3px 10px", borderRadius:14, border:"1.5px solid", borderColor: act ? "#c8102e" : "#e0e0e0", background: act ? "#c8102e" : "#fff", color: act ? "#fff" : "#666", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:CFONT } },
-                  sz === null ? "alle" : sz);
+                  ch.label);
               })));
         })),
       React.createElement("div", { style:{ padding:"12px 20px 16px", borderTop:"1px solid #f0f0f0" } },
