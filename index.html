@@ -11401,9 +11401,18 @@ function BioTechDatabase() {
   const ccSize = React.useCallback(p => {
     if (!activeCategory || activeCategory.indexOf("cc:") !== 0) return p;
     const cc = (window.CUSTOM_CATS || []).find(c => "cc:" + c.id === activeCategory);
-    const sz = cc && cc.productSizes ? cc.productSizes[String(p.id)] : null;
-    if (!sz || sz === p.packageSize) return p;
-    return Object.assign({}, p, { packageSize: sz });
+    if (!cc) return p;
+    let out = p;
+    // Groesse liegt als eigener Referenz-Eintrag vor: Groesse und Preis von dort uebernehmen
+    const vid = cc.productVariants ? cc.productVariants[String(p.id)] : undefined;
+    if (vid !== undefined && vid !== null) {
+      const v = PRODUCTS.filter(x => x.id === vid)[0];
+      if (v) out = Object.assign({}, out, { packageSize: v.packageSize, price: v.price, priceRange: v.priceRange });
+    }
+    // mehrere Groessen in einem Feld ("2000 g / 3000 g"): nur die gewaehlte anzeigen
+    const sz = cc.productSizes ? cc.productSizes[String(p.id)] : null;
+    if (sz && sz !== out.packageSize) out = Object.assign({}, out, { packageSize: sz });
+    return out;
   }, [activeCategory]);
   const filtered = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -14890,6 +14899,7 @@ function CustomCatModal(props) {
   var sEmoji = React.useState(cat ? (cat.emoji || "") : "⭐"); var emoji = sEmoji[0]; var setEmoji = sEmoji[1];
   var sIds = React.useState(cat ? (cat.productIds || []).slice() : []); var ids = sIds[0]; var setIds = sIds[1];
   var sSizes = React.useState(cat ? Object.assign({}, cat.productSizes || {}) : {}); var sizes = sSizes[0]; var setSizes = sSizes[1];
+  var sVars = React.useState(cat ? Object.assign({}, cat.productVariants || {}) : {}); var variants = sVars[0]; var setVariants = sVars[1];
   var sQ = React.useState(""); var q = sQ[0]; var setQ = sQ[1];
   var sMsg = React.useState(""); var msg = sMsg[0]; var setMsg = sMsg[1];
   var EMOJIS = ["⭐","🔥","💪","🏷️","🎁","☀️","❄️","🏆","🚀","💚","🧡","📦"];
@@ -14897,39 +14907,51 @@ function CustomCatModal(props) {
   // "1000g" und "1000 g" sollen gleich suchen: Zahl/Buchstabe trennen, dann alle Wortteile verlangen
   var splitNumWords = function(str) { return str.replace(/([a-zäöüß%])(\d)/g, "$1 $2").replace(/(\d)([a-zäöüß])/g, "$1 $2"); };
   var qTokens = splitNumWords(ql).split(/\s+/).filter(function(x){ return !!x; });
-  // Alle Eintraege mit demselben Namen sind Groessen-Varianten desselben Produkts
+  // Alle Eintraege mit demselben Namen sind Groessen-Varianten desselben Produkts.
+  // Groessen liegen teils als eigene Produkte, teils als Referenz-Eintraege (refOnly) vor.
   var variantsOf = function(name) {
-    return PRODUCTS.filter(function(x){ return !x.refOnly && x.name === name; });
+    return PRODUCTS.filter(function(x){ return x.name === name; });
   };
-  // Waehlbare Groessen eines Produkts: eigene Eintraege je Groesse plus "2000 g / 3000 g" in einem Feld
+  var baseOf = function(name) {
+    var vs = variantsOf(name);
+    for (var i = 0; i < vs.length; i++) { if (!vs[i].refOnly) return vs[i]; }
+    return vs[0] || null;
+  };
+  // Waehlbare Groessen: je Variante die Packungsgroesse, "2000 g / 3000 g" wird aufgeteilt
   var sizeChoices = function(name) {
     var out = [], seen = {};
     variantsOf(name).forEach(function(v) {
       var raw = v.packageSize || "";
       var parts = raw && raw !== "–" ? raw.split("/").map(function(x){ return x.trim(); }).filter(function(x){ return !!x; }) : [];
-      if (parts.length === 0) return;
       parts.forEach(function(sz) {
         if (seen[sz]) return;
         seen[sz] = true;
-        out.push({ label: sz, pid: v.id, sub: parts.length > 1 ? sz : null });
+        out.push({ label: sz, vid: v.id, isRef: !!v.refOnly, sub: parts.length > 1 ? sz : null });
       });
     });
     return out;
   };
+  // ausgewaehlt ist immer ein normales Produkt; Referenz-Groessen haengen als Variante daran
   var selectedVariant = function(name) {
     var vs = variantsOf(name);
-    for (var i = 0; i < vs.length; i++) { if (ids.indexOf(vs[i].id) >= 0) return vs[i]; }
+    for (var i = 0; i < vs.length; i++) { if (!vs[i].refOnly && ids.indexOf(vs[i].id) >= 0) return vs[i]; }
     return null;
   };
   var list = PRODUCTS.filter(function(p) {
     if (p.refOnly) return false;
     if (!ql) return !!selectedVariant(p.name);
-    var hay = splitNumWords((p.name + " " + (p.category || "") + " " + (p.subcategory || "") + " " + (p.packageSize || "")).toLowerCase());
+    var alleGroessen = variantsOf(p.name).map(function(v){ return v.packageSize || ""; }).join(" ");
+    var hay = splitNumWords((p.name + " " + (p.category || "") + " " + (p.subcategory || "") + " " + alleGroessen).toLowerCase());
     return qTokens.every(function(tk) { return hay.indexOf(tk) >= 0; });
   }).filter(function(p, i, arr) {
     // pro Produktname nur eine Zeile, die Groessen stehen als Auswahl darunter
     return arr.findIndex(function(x){ return x.name === p.name; }) === i;
   }).slice(0, 40);
+  var ohneVarianten = function(obj, vIds) {
+    var r = {};
+    Object.keys(obj).forEach(function(k){ if (vIds.indexOf(Number(k)) < 0 && vIds.indexOf(k) < 0) r[k] = obj[k]; });
+    return r;
+  };
   // Produkt an- oder abwaehlen (immer ueber alle Groessen-Varianten hinweg)
   var toggle = function(p) {
     var vIds = variantsOf(p.name).map(function(v){ return v.id; });
@@ -14938,21 +14960,26 @@ function CustomCatModal(props) {
       var rest = prev.filter(function(x){ return vIds.indexOf(x) < 0; });
       return on ? rest : rest.concat([p.id]);
     });
-    setSizes(function(prev) {
-      var r = {}; Object.keys(prev).forEach(function(k){ if (vIds.indexOf(Number(k)) < 0 && vIds.indexOf(k) < 0) r[k] = prev[k]; });
-      return r;
-    });
+    setSizes(function(prev){ return ohneVarianten(prev, vIds); });
+    setVariants(function(prev){ return ohneVarianten(prev, vIds); });
   };
-  // Groesse waehlen: schaltet auf den passenden Produkteintrag um bzw. merkt die Groesse
+  // Groesse waehlen: eigenes Produkt -> umschalten, Referenz-Groesse -> als Variante merken
   var pickSize = function(name, choice) {
     var vIds = variantsOf(name).map(function(v){ return v.id; });
+    var base = baseOf(name);
+    var zielId = choice.isRef ? (base ? base.id : choice.vid) : choice.vid;
     setIds(function(prev) {
       var rest = prev.filter(function(x){ return vIds.indexOf(x) < 0; });
-      return rest.concat([choice.pid]);
+      return rest.concat([zielId]);
     });
     setSizes(function(prev) {
-      var r = {}; Object.keys(prev).forEach(function(k){ if (vIds.indexOf(Number(k)) < 0 && vIds.indexOf(k) < 0) r[k] = prev[k]; });
-      if (choice.sub) r[String(choice.pid)] = choice.sub;
+      var r = ohneVarianten(prev, vIds);
+      if (choice.sub) r[String(zielId)] = choice.sub;
+      return r;
+    });
+    setVariants(function(prev) {
+      var r = ohneVarianten(prev, vIds);
+      if (choice.isRef) r[String(zielId)] = choice.vid;
       return r;
     });
   };
@@ -14978,6 +15005,7 @@ function CustomCatModal(props) {
       emoji: emoji,
       productIds: ids,
       productSizes: (function(){ var r = {}; ids.forEach(function(pid){ if (sizes[String(pid)]) r[String(pid)] = sizes[String(pid)]; }); return r; })(),
+      productVariants: (function(){ var r = {}; ids.forEach(function(pid){ if (variants[String(pid)] !== undefined) r[String(pid)] = variants[String(pid)]; }); return r; })(),
       createdBy: cat ? (cat.createdBy || null) : ((user.username || user.key) || null),
       updated_at: new Date().toISOString()
     };
@@ -15012,7 +15040,9 @@ function CustomCatModal(props) {
           var on = !!selV;
           var choices = sizeChoices(p.name);
           var curSub = selV ? (sizes[String(selV.id)] || null) : null;
-          var curLabel = selV ? (curSub || (selV.packageSize || "")) : (p.packageSize || "");
+          var curVid = selV && variants[String(selV.id)] !== undefined ? variants[String(selV.id)] : null;
+          var curRef = curVid !== null ? PRODUCTS.filter(function(x){ return x.id === curVid; })[0] : null;
+          var curLabel = curSub || (curRef ? (curRef.packageSize || "") : (selV ? (selV.packageSize || "") : (p.packageSize || "")));
           return React.createElement("div", { key:p.id,
             style:{ padding:"7px 4px", borderBottom:"1px solid #f5f5f5" } },
             React.createElement("div", { onClick:function(){ toggle(p); },
@@ -15026,7 +15056,7 @@ function CustomCatModal(props) {
             on && choices.length > 1 && React.createElement("div", { style:{ display:"flex", gap:6, flexWrap:"wrap", padding:"6px 0 2px 28px" } },
               React.createElement("span", { style:{ fontSize:11, color:"#999", alignSelf:"center" } }, "Größe:"),
               choices.map(function(ch) {
-                var act = selV && selV.id === ch.pid && (ch.sub ? curSub === ch.sub : !curSub);
+                var act = on && (ch.isRef ? curVid === ch.vid : (selV.id === ch.vid && curVid === null)) && (ch.sub ? curSub === ch.sub : !curSub);
                 return React.createElement("button", { key: ch.label,
                   onClick:function(e){ e.stopPropagation(); pickSize(p.name, ch); },
                   style:{ padding:"3px 10px", borderRadius:14, border:"1.5px solid", borderColor: act ? "#c8102e" : "#e0e0e0", background: act ? "#c8102e" : "#fff", color: act ? "#fff" : "#666", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:CFONT } },
