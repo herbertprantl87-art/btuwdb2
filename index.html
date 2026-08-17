@@ -7680,6 +7680,9 @@ function applyProductOverrides(ov) {
 // ── Eigene Kategorien (pro Gebiet) ───────────────────────────────────
 window.CUSTOM_CATS = (function(){ try { return JSON.parse(localStorage.getItem("btu_custom_categories") || "[]"); } catch(e){ return []; } })();
 
+// ── Aktionspreise (Monatsangebote), geliefert vom Preis-Sync ──────────
+window.SALE_PRICES = (function(){ try { return JSON.parse(localStorage.getItem("btu_sale_prices") || "{}"); } catch(e){ return {}; } })();
+
 // ── Startup: pull overrides + custom products from Supabase ──────────
 (function() {
   // Sofort lokale Overrides anwenden (falls offline / Supabase langsam)
@@ -7689,11 +7692,17 @@ window.CUSTOM_CATS = (function(){ try { return JSON.parse(localStorage.getItem("
   Promise.all([
     SB.getConfig("product_overrides"),
     SB.getConfig("custom_products"),
-    SB.getConfig("custom_categories")
+    SB.getConfig("custom_categories"),
+    SB.getConfig("sale_prices")
   ]).then(function(results) {
     var ov = results[0];
     var cp = results[1];
     var cc = results[2];
+    var sp = results[3];
+    if (sp && typeof sp === "object" && !Array.isArray(sp)) {
+      localStorage.setItem("btu_sale_prices", JSON.stringify(sp));
+      window.SALE_PRICES = sp;
+    }
     if (Array.isArray(cc)) {
       localStorage.setItem("btu_custom_categories", JSON.stringify(cc));
       window.CUSTOM_CATS = cc;
@@ -11337,10 +11346,18 @@ function BioTechDatabase() {
   React.useEffect(() => {
     let stopped = false;
     const poll = () => {
-      Promise.all([SB.getConfig("product_overrides"), SB.getConfig("custom_products"), SB.getConfig("custom_categories")]).then(res => {
+      Promise.all([SB.getConfig("product_overrides"), SB.getConfig("custom_products"), SB.getConfig("custom_categories"), SB.getConfig("sale_prices")]).then(res => {
         if (stopped) return;
         let changed = false;
-        const ov = res[0], cp = res[1], cc = res[2];
+        const ov = res[0], cp = res[1], cc = res[2], sp = res[3];
+        if (sp && typeof sp === "object" && !Array.isArray(sp)) {
+          const curSp = localStorage.getItem("btu_sale_prices") || "{}";
+          if (JSON.stringify(sp) !== curSp) {
+            localStorage.setItem("btu_sale_prices", JSON.stringify(sp));
+            window.SALE_PRICES = sp;
+            changed = true;
+          }
+        }
         if (Array.isArray(cc)) {
           const cur = localStorage.getItem("btu_custom_categories") || "[]";
           if (JSON.stringify(cc) !== cur) {
@@ -11412,6 +11429,15 @@ function BioTechDatabase() {
     // mehrere Groessen in einem Feld ("2000 g / 3000 g"): nur die gewaehlte anzeigen
     const sz = cc.productSizes ? cc.productSizes[String(p.id)] : null;
     if (sz && sz !== out.packageSize) out = Object.assign({}, out, { packageSize: sz });
+    // Angebotskategorie: Aktionspreis aus dem Shop anzeigen (Normalpreis durchgestrichen)
+    if (cc.saleCat === true) {
+      const sKey = (vid !== undefined && vid !== null) ? vid : p.id;
+      const sp = (window.SALE_PRICES || {})[String(sKey)];
+      const spPrice = sp && typeof sp.price === "number" ? sp.price : null;
+      if (spPrice !== null && out.price && spPrice < out.price) {
+        out = Object.assign({}, out, { _sale: { price: spPrice, normal: out.price, pct: (typeof sp.pct === "number" ? sp.pct : Math.round((1 - spPrice / out.price) * 100)) } });
+      }
+    }
     return out;
   }, [activeCategory]);
   const filtered = React.useMemo(() => {
@@ -13181,7 +13207,24 @@ function ProductCard({
         fontWeight: 800,
         color: "#c8102e"
       }
-    }, p.price.toFixed(2).replace(".", ","), " \u20AC"), p.packageSize && /*#__PURE__*/React.createElement("span", {
+    }, (p._sale ? p._sale.price : p.price).toFixed(2).replace(".", ","), " \u20AC"), p._sale && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: "#999",
+        textDecoration: "line-through"
+      }
+    }, p._sale.normal.toFixed(2).replace(".", ","), " \u20AC"), p._sale && p._sale.pct > 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: FONT_COND,
+        fontSize: 11,
+        fontWeight: 800,
+        color: "#fff",
+        background: "#c8102e",
+        borderRadius: 10,
+        padding: "1px 7px",
+        letterSpacing: 0.5
+      }
+    }, "-", p._sale.pct, "%"), p.packageSize && /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 11,
         color: "#888"
@@ -14900,6 +14943,7 @@ function CustomCatModal(props) {
   var sIds = React.useState(cat ? (cat.productIds || []).slice() : []); var ids = sIds[0]; var setIds = sIds[1];
   var sSizes = React.useState(cat ? Object.assign({}, cat.productSizes || {}) : {}); var sizes = sSizes[0]; var setSizes = sSizes[1];
   var sVars = React.useState(cat ? Object.assign({}, cat.productVariants || {}) : {}); var variants = sVars[0]; var setVariants = sVars[1];
+  var sSale = React.useState(cat ? (cat.saleCat === true) : false); var saleCat = sSale[0]; var setSaleCat = sSale[1];
   var sQ = React.useState(""); var q = sQ[0]; var setQ = sQ[1];
   var sMsg = React.useState(""); var msg = sMsg[0]; var setMsg = sMsg[1];
   var EMOJIS = ["⭐","🔥","💪","🏷️","🎁","☀️","❄️","🏆","🚀","💚","🧡","📦"];
@@ -15006,6 +15050,7 @@ function CustomCatModal(props) {
       productIds: ids,
       productSizes: (function(){ var r = {}; ids.forEach(function(pid){ if (sizes[String(pid)]) r[String(pid)] = sizes[String(pid)]; }); return r; })(),
       productVariants: (function(){ var r = {}; ids.forEach(function(pid){ if (variants[String(pid)] !== undefined) r[String(pid)] = variants[String(pid)]; }); return r; })(),
+      saleCat: saleCat === true,
       createdBy: cat ? (cat.createdBy || null) : ((user.username || user.key) || null),
       updated_at: new Date().toISOString()
     };
@@ -15031,6 +15076,12 @@ function CustomCatModal(props) {
             return React.createElement("button", { key:em, onClick:function(){ setEmoji(em); },
               style:{ width:34, height:34, borderRadius:8, border: emoji===em ? "2px solid #c8102e" : "1.5px solid #e0e0e0", background: emoji===em ? "#fff5f5" : "#fff", fontSize:16, cursor:"pointer" } }, em);
           })),
+        React.createElement("div", { onClick:function(){ setSaleCat(!saleCat); },
+          style:{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", marginBottom:12, padding:"8px 10px", border:"1.5px solid " + (saleCat ? "#f0c0c8" : "#e0e0e0"), borderRadius:10, background: saleCat ? "#fff5f5" : "#fff" } },
+          React.createElement("div", { style:{ width:18, height:18, borderRadius:5, flexShrink:0, border: saleCat ? "none" : "1.5px solid #ccc", background: saleCat ? "#c8102e" : "#fff", color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center" } }, saleCat ? "✓" : ""),
+          React.createElement("div", null,
+            React.createElement("div", { style:{ fontSize:13, fontWeight:700, color:"#1a1a1a" } }, "Angebotskategorie"),
+            React.createElement("div", { style:{ fontSize:11, color:"#999" } }, "Zeigt Aktionspreise statt Normalpreise"))),
         React.createElement("div", { style:{ fontSize:11, fontWeight:800, color:"#999", letterSpacing:0.8, marginBottom:6 } }, "PRODUKTE (" + ids.length + " AUSGEWÄHLT)"),
         React.createElement("input", { value:q, onChange:function(e){ setQ(e.target.value); }, placeholder:"Produkt suchen...",
           style:{ width:"100%", boxSizing:"border-box", padding:"8px 12px", border:"1.5px solid #e0e0e0", borderRadius:10, fontSize:13, fontFamily:CFONT, outline:"none", marginBottom:8 } }),
