@@ -11397,6 +11397,14 @@ function BioTechDatabase() {
     var hb = setInterval(writeSession, 15000);
     return () => { clearInterval(hb); writeSession(); };
   }, [beratOpen]);
+  // In einer eigenen Kategorie kann pro Produkt eine Packungsgroesse festgelegt sein
+  const ccSize = React.useCallback(p => {
+    if (!activeCategory || activeCategory.indexOf("cc:") !== 0) return p;
+    const cc = (window.CUSTOM_CATS || []).find(c => "cc:" + c.id === activeCategory);
+    const sz = cc && cc.productSizes ? cc.productSizes[String(p.id)] : null;
+    if (!sz || sz === p.packageSize) return p;
+    return Object.assign({}, p, { packageSize: sz });
+  }, [activeCategory]);
   const filtered = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const catFilter = p => {
@@ -12499,7 +12507,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     }
   }, t.noResults), filtered.map(p => /*#__PURE__*/React.createElement(ProductCard, {
     key: p.id,
-    p: p,
+    p: ccSize(p),
     lang: lang,
     open: selectedId === p.id,
     onToggle: () => setSelectedId(selectedId === p.id ? null : p.id),
@@ -14183,6 +14191,10 @@ const PROTEIN_QUIZ_STATIC = [
   }
 ];
 
+// Kategorien, die im Quiz nicht abgefragt werden (Non-Food)
+const QUIZ_SKIP_CATS = ["Bekleidung", "Shaker & Zubehör", "Zubehör"];
+function quizCatOk(p) { return p && QUIZ_SKIP_CATS.indexOf(p.category) < 0; }
+
 function generateQuestions(catFilter, count, lang, t) {
   // ── STATISCHE FRAGEN: Kategorie Protein ─────────────────────────────
   if (catFilter === "Protein") {
@@ -14191,9 +14203,9 @@ function generateQuestions(catFilter, count, lang, t) {
   }
 
   const txCat = cat => translateFieldSync(cat, lang);
-  const pool = PRODUCTS.filter(p => !p.refOnly && (catFilter === "Alle" || p.category === catFilter));
+  const pool = PRODUCTS.filter(p => !p.refOnly && quizCatOk(p) && (catFilter === "Alle" || p.category === catFilter));
   if (pool.length < 4) return [];
-  const allCats = [...new Set(PRODUCTS.filter(p => !p.refOnly).map(p => p.category))];
+  const allCats = [...new Set(PRODUCTS.filter(p => !p.refOnly && quizCatOk(p)).map(p => p.category))];
   const questions = [];
   const qt = t || T["de"];
   for (const p of shuffle(pool)) {
@@ -14355,7 +14367,7 @@ function QuizModal({
 
 const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
   const FONT_COND = "'Barlow Condensed','Barlow',-apple-system,sans-serif";
-  const allCats = ["Alle", ...new Set(PRODUCTS.filter(p => !p.refOnly).map(p => p.category))];
+  const allCats = ["Alle", ...new Set(PRODUCTS.filter(p => !p.refOnly && quizCatOk(p)).map(p => p.category))];
   const [phase, setPhase] = React.useState("setup"); // setup | playing | done
   const [selCat, setSelCat] = React.useState("Alle");
   const [selCount, setSelCount] = React.useState(10);
@@ -14877,17 +14889,41 @@ function CustomCatModal(props) {
   var sName = React.useState(cat ? cat.name : ""); var name = sName[0]; var setName = sName[1];
   var sEmoji = React.useState(cat ? (cat.emoji || "") : "⭐"); var emoji = sEmoji[0]; var setEmoji = sEmoji[1];
   var sIds = React.useState(cat ? (cat.productIds || []).slice() : []); var ids = sIds[0]; var setIds = sIds[1];
+  var sSizes = React.useState(cat ? Object.assign({}, cat.productSizes || {}) : {}); var sizes = sSizes[0]; var setSizes = sSizes[1];
   var sQ = React.useState(""); var q = sQ[0]; var setQ = sQ[1];
   var sMsg = React.useState(""); var msg = sMsg[0]; var setMsg = sMsg[1];
   var EMOJIS = ["⭐","🔥","💪","🏷️","🎁","☀️","❄️","🏆","🚀","💚","🧡","📦"];
   var ql = q.toLowerCase().trim();
+  // "1000g" und "1000 g" sollen gleich suchen: Zahl/Buchstabe trennen, dann alle Wortteile verlangen
+  var splitNumWords = function(str) { return str.replace(/([a-zäöüß%])(\d)/g, "$1 $2").replace(/(\d)([a-zäöüß])/g, "$1 $2"); };
+  var qTokens = splitNumWords(ql).split(/\s+/).filter(function(x){ return !!x; });
   var list = PRODUCTS.filter(function(p) {
     if (p.refOnly) return false;
     if (!ql) return ids.indexOf(p.id) >= 0 || false;
-    return (p.name + " " + (p.category || "") + " " + (p.subcategory || "")).toLowerCase().indexOf(ql) >= 0;
+    var hay = splitNumWords((p.name + " " + (p.category || "") + " " + (p.subcategory || "") + " " + (p.packageSize || "")).toLowerCase());
+    return qTokens.every(function(tk) { return hay.indexOf(tk) >= 0; });
   }).slice(0, 40);
   var toggle = function(pid) {
     setIds(function(prev) { return prev.indexOf(pid) >= 0 ? prev.filter(function(x){ return x !== pid; }) : prev.concat([pid]); });
+    setSizes(function(prev) {
+      if (ids.indexOf(pid) < 0) return prev;
+      var r = {}; Object.keys(prev).forEach(function(k){ if (k !== String(pid)) r[k] = prev[k]; });
+      return r;
+    });
+  };
+  // Packungsgroessen eines Produkts: "2000 g / 3000 g" -> ["2000 g","3000 g"]
+  var sizeOptions = function(p) {
+    var raw = p.packageSize || "";
+    if (!raw || raw === "–") return [];
+    var parts = raw.split("/").map(function(x){ return x.trim(); }).filter(function(x){ return !!x; });
+    return parts.length > 1 ? parts : [];
+  };
+  var pickSize = function(pid, sz) {
+    setSizes(function(prev) {
+      var r = {}; Object.keys(prev).forEach(function(k){ r[k] = prev[k]; });
+      if (sz === null) { delete r[String(pid)]; } else { r[String(pid)] = sz; }
+      return r;
+    });
   };
   var readCats = function() { try { return JSON.parse(localStorage.getItem("btu_custom_categories") || "[]"); } catch(e){ return []; } };
   var persist = function(applyFn) {
@@ -14910,6 +14946,7 @@ function CustomCatModal(props) {
       name: name.trim(),
       emoji: emoji,
       productIds: ids,
+      productSizes: (function(){ var r = {}; ids.forEach(function(pid){ if (sizes[String(pid)]) r[String(pid)] = sizes[String(pid)]; }); return r; })(),
       createdBy: cat ? (cat.createdBy || null) : ((user.username || user.key) || null),
       updated_at: new Date().toISOString()
     };
@@ -14941,12 +14978,27 @@ function CustomCatModal(props) {
         !ql && ids.length === 0 && React.createElement("div", { style:{ fontSize:12, color:"#aaa", padding:"8px 0" } }, "Suche Produkte und hake sie an."),
         list.map(function(p) {
           var on = ids.indexOf(p.id) >= 0;
-          return React.createElement("div", { key:p.id, onClick:function(){ toggle(p.id); },
-            style:{ display:"flex", alignItems:"center", gap:10, padding:"7px 4px", borderBottom:"1px solid #f5f5f5", cursor:"pointer" } },
-            React.createElement("div", { style:{ width:18, height:18, borderRadius:5, flexShrink:0, border: on ? "none" : "1.5px solid #ccc", background: on ? "#c8102e" : "#fff", color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center" } }, on ? "✓" : ""),
-            React.createElement("div", null,
-              React.createElement("div", { style:{ fontSize:13, fontWeight:600, color:"#1a1a1a" } }, p.name),
-              React.createElement("div", { style:{ fontSize:11, color:"#999" } }, p.category || "")));
+          var opts = sizeOptions(p);
+          var curSize = sizes[String(p.id)] || null;
+          return React.createElement("div", { key:p.id,
+            style:{ padding:"7px 4px", borderBottom:"1px solid #f5f5f5" } },
+            React.createElement("div", { onClick:function(){ toggle(p.id); },
+              style:{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" } },
+              React.createElement("div", { style:{ width:18, height:18, borderRadius:5, flexShrink:0, border: on ? "none" : "1.5px solid #ccc", background: on ? "#c8102e" : "#fff", color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center" } }, on ? "✓" : ""),
+              React.createElement("div", null,
+                React.createElement("div", { style:{ fontSize:13, fontWeight:600, color:"#1a1a1a" } },
+                  p.name,
+                  p.packageSize && p.packageSize !== "–" ? React.createElement("span", { style:{ fontWeight:700, color:"#c8102e", marginLeft:6 } }, p.packageSize) : null),
+                React.createElement("div", { style:{ fontSize:11, color:"#999" } }, p.category || ""))),
+            on && opts.length > 0 && React.createElement("div", { style:{ display:"flex", gap:6, flexWrap:"wrap", padding:"6px 0 2px 28px" } },
+              React.createElement("span", { style:{ fontSize:11, color:"#999", alignSelf:"center" } }, "Größe:"),
+              [null].concat(opts).map(function(sz) {
+                var act = (sz === null && !curSize) || (sz !== null && curSize === sz);
+                return React.createElement("button", { key: sz === null ? "__alle" : sz,
+                  onClick:function(e){ e.stopPropagation(); pickSize(p.id, sz); },
+                  style:{ padding:"3px 10px", borderRadius:14, border:"1.5px solid", borderColor: act ? "#c8102e" : "#e0e0e0", background: act ? "#c8102e" : "#fff", color: act ? "#fff" : "#666", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:CFONT } },
+                  sz === null ? "alle" : sz);
+              })));
         })),
       React.createElement("div", { style:{ padding:"12px 20px 16px", borderTop:"1px solid #f0f0f0" } },
         msg && React.createElement("div", { style:{ fontSize:12, color:"#c8102e", marginBottom:8, fontWeight:600 } }, msg),
