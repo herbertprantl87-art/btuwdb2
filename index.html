@@ -11424,6 +11424,10 @@ function BioTechDatabase() {
     // mehrere Groessen in einem Feld ("2000 g / 3000 g"): nur die gewaehlte anzeigen
     const sz = cc.productSizes ? cc.productSizes[String(p.id)] : null;
     if (sz && sz !== out.packageSize) out = Object.assign({}, out, { packageSize: sz });
+    // Produkt gehoert zu einem Kombi-Angebot dieser Kategorie
+    if ((cc.bundles || []).some(b => (b.produkte || []).indexOf(p.id) >= 0)) {
+      out = Object.assign({}, out, { _bundle: true });
+    }
     // Angebotskategorie: Aktionspreis aus dem Shop anzeigen (Normalpreis durchgestrichen)
     if (cc.saleCat === true) {
       const sKey = (vid !== undefined && vid !== null) ? vid : p.id;
@@ -12530,6 +12534,62 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       lang: lang,
       onSelectId: id => setSelectedId(selectedId === id ? null : id)
     });
+  })(), (() => {
+    // Kombi-Angebote der aktiven eigenen Kategorie
+    if (!activeCategory || activeCategory.indexOf("cc:") !== 0) return null;
+    const cc = (window.CUSTOM_CATS || []).find(c => "cc:" + c.id === activeCategory);
+    const bundles = cc && Array.isArray(cc.bundles) ? cc.bundles : [];
+    if (!bundles.length) return null;
+    const eur = n => n.toFixed(2).replace(".", ",") + " \u20AC";
+    return bundles.map((b, bi) => {
+      const teile = (b.produkte || []).map(pid => {
+        const base = PRODUCTS.filter(x => x.id === pid)[0];
+        if (!base) return null;
+        const vid = cc.productVariants ? cc.productVariants[String(pid)] : undefined;
+        const v = (vid !== undefined && vid !== null) ? PRODUCTS.filter(x => x.id === vid)[0] : null;
+        const groesse = (cc.productSizes && cc.productSizes[String(pid)]) || (v ? v.packageSize : base.packageSize) || "";
+        const preis = v && typeof v.price === "number" ? v.price : base.price;
+        return { id: pid, name: base.name, groesse: groesse, preis: preis };
+      }).filter(Boolean);
+      if (teile.length < 2) return null;
+      const summe = teile.every(x => typeof x.preis === "number") ? teile.reduce((s, x) => s + x.preis, 0) : null;
+      const gesamt = typeof b.preis === "number" ? b.preis : null;
+      const pct = (typeof b.pct === "number" && b.pct > 0) ? b.pct
+        : (gesamt !== null && summe ? Math.round((1 - gesamt / summe) * 100) : null);
+      return /*#__PURE__*/React.createElement("div", {
+        key: "bundle-" + (b.id || bi),
+        style: { background: "#fff", border: "1.5px solid #f0c0c8", borderLeft: "5px solid #c8102e",
+                 borderRadius: 12, padding: "12px 14px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }
+      },
+        /*#__PURE__*/React.createElement("div", {
+          style: { fontFamily: FONT_COND, fontSize: 10, fontWeight: 800, letterSpacing: 1.2,
+                   textTransform: "uppercase", color: "#c8102e", marginBottom: 6 }
+        }, "\uD83C\uDF81 Kombi-Angebot"),
+        teile.map((x, i) => /*#__PURE__*/React.createElement("div", {
+          key: x.id,
+          style: { display: "flex", alignItems: "baseline", gap: 6, fontSize: 13, color: "#1a1a1a", marginBottom: 2 }
+        },
+          /*#__PURE__*/React.createElement("span", { style: { color: "#c8102e", fontWeight: 800, width: 10 } }, i === 0 ? "" : "+"),
+          /*#__PURE__*/React.createElement("span", { style: { fontWeight: 700 } }, x.name),
+          x.groesse && x.groesse !== "\u2013" ? /*#__PURE__*/React.createElement("span", { style: { fontSize: 11, color: "#999" } }, x.groesse) : null,
+          typeof x.preis === "number" ? /*#__PURE__*/React.createElement("span", { style: { fontSize: 11, color: "#bbb", marginLeft: "auto" } }, eur(x.preis)) : null)),
+        b.text ? /*#__PURE__*/React.createElement("div", {
+          style: { fontSize: 12, color: "#555", marginTop: 6 }
+        }, b.text) : null,
+        (gesamt !== null || pct !== null) ? /*#__PURE__*/React.createElement("div", {
+          style: { display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }
+        },
+          gesamt !== null ? /*#__PURE__*/React.createElement("span", {
+            style: { fontSize: 17, fontWeight: 800, color: "#c8102e" }
+          }, eur(gesamt)) : null,
+          (gesamt !== null && summe && summe > gesamt) ? /*#__PURE__*/React.createElement("span", {
+            style: { fontSize: 12, color: "#999", textDecoration: "line-through" }
+          }, eur(summe)) : null,
+          pct !== null ? /*#__PURE__*/React.createElement("span", {
+            style: { fontFamily: FONT_COND, fontSize: 11, fontWeight: 800, color: "#fff", background: "#c8102e",
+                     borderRadius: 10, padding: "2px 8px", letterSpacing: 0.5 }
+          }, "-", pct, "%") : null) : null);
+    });
   })(), filtered.length === 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",
@@ -13221,7 +13281,19 @@ function ProductCard({
         padding: "1px 7px",
         letterSpacing: 0.5
       }
-    }, "-", p._sale.pct, "%"), p.packageSize && /*#__PURE__*/React.createElement("span", {
+    }, "-", p._sale.pct, "%"), p._bundle && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: FONT_COND,
+        fontSize: 10,
+        fontWeight: 800,
+        color: "#c8102e",
+        background: "#fff5f5",
+        border: "1px solid #f0c0c8",
+        borderRadius: 9,
+        padding: "1px 6px",
+        letterSpacing: 0.5
+      }
+    }, "\uD83C\uDF81 KOMBI"), p.packageSize && /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 11,
         color: "#888"
@@ -14941,6 +15013,12 @@ function CustomCatModal(props) {
   var sSizes = React.useState(cat ? Object.assign({}, cat.productSizes || {}) : {}); var sizes = sSizes[0]; var setSizes = sSizes[1];
   var sVars = React.useState(cat ? Object.assign({}, cat.productVariants || {}) : {}); var variants = sVars[0]; var setVariants = sVars[1];
   var sSale = React.useState(cat ? (cat.saleCat === true) : false); var saleCat = sSale[0]; var setSaleCat = sSale[1];
+  var sBundles = React.useState(cat && Array.isArray(cat.bundles) ? cat.bundles.slice() : []); var bundles = sBundles[0]; var setBundles = sBundles[1];
+  var sBOpen = React.useState(false); var bOpen = sBOpen[0]; var setBOpen = sBOpen[1];
+  var sBSel = React.useState([]); var bSel = sBSel[0]; var setBSel = sBSel[1];
+  var sBText = React.useState(""); var bText = sBText[0]; var setBText = sBText[1];
+  var sBPreis = React.useState(""); var bPreis = sBPreis[0]; var setBPreis = sBPreis[1];
+  var sBPct = React.useState(""); var bPct = sBPct[0]; var setBPct = sBPct[1];
   var sQ = React.useState(""); var q = sQ[0]; var setQ = sQ[1];
   var sMsg = React.useState(""); var msg = sMsg[0]; var setMsg = sMsg[1];
   var EMOJIS = ["⭐","🔥","💪","🏷️","🎁","☀️","❄️","🏆","🚀","💚","🧡","📦"];
@@ -15048,6 +15126,7 @@ function CustomCatModal(props) {
       productSizes: (function(){ var r = {}; ids.forEach(function(pid){ if (sizes[String(pid)]) r[String(pid)] = sizes[String(pid)]; }); return r; })(),
       productVariants: (function(){ var r = {}; ids.forEach(function(pid){ if (variants[String(pid)] !== undefined) r[String(pid)] = variants[String(pid)]; }); return r; })(),
       saleCat: saleCat === true,
+      bundles: bundles.filter(function(b){ return (b.produkte || []).filter(function(pid){ return ids.indexOf(pid) >= 0; }).length >= 2; }),
       createdBy: cat ? (cat.createdBy || null) : ((user.username || user.key) || null),
       updated_at: new Date().toISOString()
     };
@@ -15079,6 +15158,61 @@ function CustomCatModal(props) {
           React.createElement("div", null,
             React.createElement("div", { style:{ fontSize:13, fontWeight:700, color:"#1a1a1a" } }, "Angebotskategorie"),
             React.createElement("div", { style:{ fontSize:11, color:"#999" } }, "Zeigt Aktionspreise statt Normalpreise"))),
+        React.createElement("div", { style:{ fontSize:11, fontWeight:800, color:"#999", letterSpacing:0.8, marginBottom:6 } }, "KOMBI-ANGEBOTE"),
+        bundles.map(function(b, bi) {
+          var namen = (b.produkte || []).map(function(pid){ var x = PRODUCTS.filter(function(y){ return y.id === pid; })[0]; return x ? x.name : "?"; });
+          return React.createElement("div", { key: b.id || bi,
+            style:{ display:"flex", alignItems:"flex-start", gap:8, padding:"8px 10px", marginBottom:6, border:"1.5px solid #f0c0c8", borderLeft:"4px solid #c8102e", borderRadius:10, background:"#fff8f8" } },
+            React.createElement("div", { style:{ flex:1, minWidth:0 } },
+              React.createElement("div", { style:{ fontSize:12, fontWeight:700, color:"#1a1a1a" } }, namen.join("  +  ")),
+              React.createElement("div", { style:{ fontSize:11, color:"#777", marginTop:2 } },
+                [b.text || "", typeof b.preis === "number" ? b.preis.toFixed(2).replace(".", ",") + " \u20ac" : "", (typeof b.pct === "number" && b.pct > 0) ? "-" + b.pct + "%" : ""].filter(function(x){ return !!x; }).join("  \u00b7  "))),
+            React.createElement("button", { onClick:function(){ setBundles(bundles.filter(function(_, i){ return i !== bi; })); },
+              style:{ background:"none", border:"none", color:"#c8102e", fontSize:16, cursor:"pointer", lineHeight:1, padding:2 } }, "\u00d7"));
+        }),
+        !bOpen && React.createElement("button", { onClick:function(){ if (ids.length < 2) { setMsg("Erst mindestens zwei Produkte ausw\u00e4hlen."); return; } setMsg(""); setBSel([]); setBText(""); setBPreis(""); setBPct(""); setBOpen(true); },
+          style:{ width:"100%", padding:"9px 0", marginBottom:12, borderRadius:10, border:"1.5px dashed #f0c0c8", background:"#fff", color:"#c8102e", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:CFONT } },
+          "+ Produkte kombinieren"),
+        bOpen && React.createElement("div", { style:{ border:"1.5px solid #f0c0c8", borderRadius:10, padding:"10px 12px", marginBottom:12, background:"#fff8f8" } },
+          React.createElement("div", { style:{ fontSize:11, fontWeight:800, color:"#c8102e", letterSpacing:0.8, marginBottom:6 } }, "PRODUKTE F\u00dcR DIE KOMBI"),
+          ids.map(function(pid) {
+            var x = PRODUCTS.filter(function(y){ return y.id === pid; })[0];
+            if (!x) return null;
+            var an = bSel.indexOf(pid) >= 0;
+            var vid = variants[String(pid)];
+            var vp = vid !== undefined && vid !== null ? PRODUCTS.filter(function(y){ return y.id === vid; })[0] : null;
+            var gr = sizes[String(pid)] || (vp ? vp.packageSize : x.packageSize) || "";
+            return React.createElement("div", { key:pid, onClick:function(){ setBSel(an ? bSel.filter(function(v){ return v !== pid; }) : bSel.concat([pid])); },
+              style:{ display:"flex", alignItems:"center", gap:9, padding:"5px 0", cursor:"pointer" } },
+              React.createElement("div", { style:{ width:16, height:16, borderRadius:4, flexShrink:0, border: an ? "none" : "1.5px solid #ccc", background: an ? "#c8102e" : "#fff", color:"#fff", fontSize:11, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center" } }, an ? "\u2713" : ""),
+              React.createElement("div", { style:{ fontSize:12, color:"#1a1a1a", fontWeight: an ? 700 : 500 } }, x.name,
+                gr && gr !== "\u2013" ? React.createElement("span", { style:{ color:"#999", fontWeight:500, marginLeft:5 } }, gr) : null));
+          }),
+          React.createElement("input", { value:bText, onChange:function(e){ setBText(e.target.value); }, placeholder:"Text, z. B. 50% auf den zweiten Artikel", maxLength:80,
+            style:{ width:"100%", boxSizing:"border-box", padding:"8px 10px", border:"1.5px solid #e0e0e0", borderRadius:9, fontSize:12, fontFamily:CFONT, outline:"none", marginTop:8 } }),
+          React.createElement("div", { style:{ display:"flex", gap:8, marginTop:8 } },
+            React.createElement("input", { value:bPreis, onChange:function(e){ setBPreis(e.target.value); }, placeholder:"Gesamtpreis \u20ac", inputMode:"decimal",
+              style:{ flex:1, minWidth:0, boxSizing:"border-box", padding:"8px 10px", border:"1.5px solid #e0e0e0", borderRadius:9, fontSize:12, fontFamily:CFONT, outline:"none" } }),
+            React.createElement("input", { value:bPct, onChange:function(e){ setBPct(e.target.value); }, placeholder:"Rabatt %", inputMode:"numeric",
+              style:{ flex:1, minWidth:0, boxSizing:"border-box", padding:"8px 10px", border:"1.5px solid #e0e0e0", borderRadius:9, fontSize:12, fontFamily:CFONT, outline:"none" } })),
+          React.createElement("div", { style:{ display:"flex", gap:8, marginTop:10 } },
+            React.createElement("button", { onClick:function(){ setBOpen(false); },
+              style:{ flex:1, padding:"8px 0", borderRadius:9, border:"none", background:"#f0f0f0", color:"#555", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:CFONT } }, "Abbrechen"),
+            React.createElement("button", { onClick:function(){
+                if (bSel.length < 2) { setMsg("Bitte mindestens zwei Produkte f\u00fcr die Kombi ausw\u00e4hlen."); return; }
+                var pr = parseFloat(String(bPreis).replace(",", "."));
+                var pc = parseInt(String(bPct).replace(/[^0-9]/g, ""), 10);
+                setBundles(bundles.concat([{
+                  id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()),
+                  produkte: bSel.slice(),
+                  text: bText.trim(),
+                  preis: isNaN(pr) ? null : Math.round(pr * 100) / 100,
+                  pct: isNaN(pc) ? null : pc,
+                  quelle: "manuell"
+                }]));
+                setMsg(""); setBOpen(false);
+              },
+              style:{ flex:2, padding:"8px 0", borderRadius:9, border:"none", background:"#c8102e", color:"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:CFONT } }, "Kombi \u00fcbernehmen"))),
         React.createElement("div", { style:{ fontSize:11, fontWeight:800, color:"#999", letterSpacing:0.8, marginBottom:6 } }, "PRODUKTE (" + ids.length + " AUSGEWÄHLT)"),
         React.createElement("input", { value:q, onChange:function(e){ setQ(e.target.value); }, placeholder:"Produkt suchen...",
           style:{ width:"100%", boxSizing:"border-box", padding:"8px 12px", border:"1.5px solid #e0e0e0", borderRadius:10, fontSize:13, fontFamily:CFONT, outline:"none", marginBottom:8 } }),
