@@ -12551,8 +12551,11 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         const preis = v && typeof v.price === "number" ? v.price : base.price;
         return { id: pid, name: base.name, groesse: groesse, preis: preis };
       }).filter(Boolean);
-      if (teile.length < 2) return null;
-      const summe = teile.every(x => typeof x.preis === "number") ? teile.reduce((s, x) => s + x.preis, 0) : null;
+      const menge = (typeof b.menge === "number" && b.menge > 1) ? b.menge : null;
+      if (teile.length < 2 && !(teile.length === 1 && menge)) return null;
+      const summe = teile.every(x => typeof x.preis === "number")
+        ? teile.reduce((s, x) => s + x.preis, 0) * (teile.length === 1 && menge ? menge : 1)
+        : null;
       const gesamt = typeof b.preis === "number" ? b.preis : null;
       const pct = (typeof b.pct === "number" && b.pct > 0) ? b.pct
         : (gesamt !== null && summe ? Math.round((1 - gesamt / summe) * 100) : null);
@@ -12564,18 +12567,19 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         /*#__PURE__*/React.createElement("div", {
           style: { fontFamily: FONT_COND, fontSize: 10, fontWeight: 800, letterSpacing: 1.2,
                    textTransform: "uppercase", color: "#c8102e", marginBottom: 6 }
-        }, "\uD83C\uDF81 Kombi-Angebot"),
+        }, menge ? "\uD83C\uDF81 Mengen-Angebot" : "\uD83C\uDF81 Kombi-Angebot"),
         teile.map((x, i) => /*#__PURE__*/React.createElement("div", {
           key: x.id,
           style: { display: "flex", alignItems: "baseline", gap: 6, fontSize: 13, color: "#1a1a1a", marginBottom: 2 }
         },
-          /*#__PURE__*/React.createElement("span", { style: { color: "#c8102e", fontWeight: 800, width: 10 } }, i === 0 ? "" : "+"),
+          /*#__PURE__*/React.createElement("span", { style: { color: "#c8102e", fontWeight: 800, minWidth: 10 } },
+            (menge && teile.length === 1) ? (menge + "\u00d7") : (i === 0 ? "" : "+")),
           /*#__PURE__*/React.createElement("span", { style: { fontWeight: 700 } }, x.name),
           x.groesse && x.groesse !== "\u2013" ? /*#__PURE__*/React.createElement("span", { style: { fontSize: 11, color: "#999" } }, x.groesse) : null,
           typeof x.preis === "number" ? /*#__PURE__*/React.createElement("span", { style: { fontSize: 11, color: "#bbb", marginLeft: "auto" } }, eur(x.preis)) : null)),
-        b.text ? /*#__PURE__*/React.createElement("div", {
+        (b.text || (menge && typeof b.gratis === "number" && b.gratis > 0)) ? /*#__PURE__*/React.createElement("div", {
           style: { fontSize: 12, color: "#555", marginTop: 6 }
-        }, b.text) : null,
+        }, b.text || ((menge - b.gratis) + " kaufen, " + b.gratis + " gratis")) : null,
         (gesamt !== null || pct !== null) ? /*#__PURE__*/React.createElement("div", {
           style: { display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }
         },
@@ -15019,6 +15023,8 @@ function CustomCatModal(props) {
   var sBText = React.useState(""); var bText = sBText[0]; var setBText = sBText[1];
   var sBPreis = React.useState(""); var bPreis = sBPreis[0]; var setBPreis = sBPreis[1];
   var sBPct = React.useState(""); var bPct = sBPct[0]; var setBPct = sBPct[1];
+  var sBMenge = React.useState(""); var bMenge = sBMenge[0]; var setBMenge = sBMenge[1];
+  var sBGratis = React.useState(""); var bGratis = sBGratis[0]; var setBGratis = sBGratis[1];
   var sQ = React.useState(""); var q = sQ[0]; var setQ = sQ[1];
   var sMsg = React.useState(""); var msg = sMsg[0]; var setMsg = sMsg[1];
   var EMOJIS = ["⭐","🔥","💪","🏷️","🎁","☀️","❄️","🏆","🚀","💚","🧡","📦"];
@@ -15126,7 +15132,10 @@ function CustomCatModal(props) {
       productSizes: (function(){ var r = {}; ids.forEach(function(pid){ if (sizes[String(pid)]) r[String(pid)] = sizes[String(pid)]; }); return r; })(),
       productVariants: (function(){ var r = {}; ids.forEach(function(pid){ if (variants[String(pid)] !== undefined) r[String(pid)] = variants[String(pid)]; }); return r; })(),
       saleCat: saleCat === true,
-      bundles: bundles.filter(function(b){ return (b.produkte || []).filter(function(pid){ return ids.indexOf(pid) >= 0; }).length >= 2; }),
+      bundles: bundles.filter(function(b){
+        var drin = (b.produkte || []).filter(function(pid){ return ids.indexOf(pid) >= 0; }).length;
+        return drin >= 2 || (drin === 1 && typeof b.menge === "number" && b.menge > 1);
+      }),
       createdBy: cat ? (cat.createdBy || null) : ((user.username || user.key) || null),
       updated_at: new Date().toISOString()
     };
@@ -15166,11 +15175,11 @@ function CustomCatModal(props) {
             React.createElement("div", { style:{ flex:1, minWidth:0 } },
               React.createElement("div", { style:{ fontSize:12, fontWeight:700, color:"#1a1a1a" } }, namen.join("  +  ")),
               React.createElement("div", { style:{ fontSize:11, color:"#777", marginTop:2 } },
-                [b.text || "", typeof b.preis === "number" ? b.preis.toFixed(2).replace(".", ",") + " \u20ac" : "", (typeof b.pct === "number" && b.pct > 0) ? "-" + b.pct + "%" : ""].filter(function(x){ return !!x; }).join("  \u00b7  "))),
+                [(typeof b.menge === "number" && b.menge > 1) ? (b.menge + "\u00d7" + (b.gratis ? ", " + b.gratis + " gratis" : "")) : "", b.text || "", typeof b.preis === "number" ? b.preis.toFixed(2).replace(".", ",") + " \u20ac" : "", (typeof b.pct === "number" && b.pct > 0) ? "-" + b.pct + "%" : ""].filter(function(x){ return !!x; }).join("  \u00b7  "))),
             React.createElement("button", { onClick:function(){ setBundles(bundles.filter(function(_, i){ return i !== bi; })); },
               style:{ background:"none", border:"none", color:"#c8102e", fontSize:16, cursor:"pointer", lineHeight:1, padding:2 } }, "\u00d7"));
         }),
-        !bOpen && React.createElement("button", { onClick:function(){ if (ids.length < 2) { setMsg("Erst mindestens zwei Produkte ausw\u00e4hlen."); return; } setMsg(""); setBSel([]); setBText(""); setBPreis(""); setBPct(""); setBOpen(true); },
+        !bOpen && React.createElement("button", { onClick:function(){ if (ids.length < 1) { setMsg("Erst Produkte ausw\u00e4hlen."); return; } setMsg(""); setBSel([]); setBText(""); setBPreis(""); setBPct(""); setBMenge(""); setBGratis(""); setBOpen(true); },
           style:{ width:"100%", padding:"9px 0", marginBottom:12, borderRadius:10, border:"1.5px dashed #f0c0c8", background:"#fff", color:"#c8102e", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:CFONT } },
           "+ Produkte kombinieren"),
         bOpen && React.createElement("div", { style:{ border:"1.5px solid #f0c0c8", borderRadius:10, padding:"10px 12px", marginBottom:12, background:"#fff8f8" } },
@@ -15191,6 +15200,12 @@ function CustomCatModal(props) {
           React.createElement("input", { value:bText, onChange:function(e){ setBText(e.target.value); }, placeholder:"Text, z. B. 50% auf den zweiten Artikel", maxLength:80,
             style:{ width:"100%", boxSizing:"border-box", padding:"8px 10px", border:"1.5px solid #e0e0e0", borderRadius:9, fontSize:12, fontFamily:CFONT, outline:"none", marginTop:8 } }),
           React.createElement("div", { style:{ display:"flex", gap:8, marginTop:8 } },
+            React.createElement("input", { value:bMenge, onChange:function(e){ setBMenge(e.target.value); }, placeholder:"Menge, z. B. 4", inputMode:"numeric",
+              style:{ flex:1, minWidth:0, boxSizing:"border-box", padding:"8px 10px", border:"1.5px solid #e0e0e0", borderRadius:9, fontSize:12, fontFamily:CFONT, outline:"none" } }),
+            React.createElement("input", { value:bGratis, onChange:function(e){ setBGratis(e.target.value); }, placeholder:"davon gratis", inputMode:"numeric",
+              style:{ flex:1, minWidth:0, boxSizing:"border-box", padding:"8px 10px", border:"1.5px solid #e0e0e0", borderRadius:9, fontSize:12, fontFamily:CFONT, outline:"none" } })),
+          React.createElement("div", { style:{ fontSize:10, color:"#aaa", marginTop:4 } }, "Menge nur bei Mehrfachpack, z. B. 3+1: Menge 4, davon gratis 1"),
+          React.createElement("div", { style:{ display:"flex", gap:8, marginTop:8 } },
             React.createElement("input", { value:bPreis, onChange:function(e){ setBPreis(e.target.value); }, placeholder:"Gesamtpreis \u20ac", inputMode:"decimal",
               style:{ flex:1, minWidth:0, boxSizing:"border-box", padding:"8px 10px", border:"1.5px solid #e0e0e0", borderRadius:9, fontSize:12, fontFamily:CFONT, outline:"none" } }),
             React.createElement("input", { value:bPct, onChange:function(e){ setBPct(e.target.value); }, placeholder:"Rabatt %", inputMode:"numeric",
@@ -15199,13 +15214,20 @@ function CustomCatModal(props) {
             React.createElement("button", { onClick:function(){ setBOpen(false); },
               style:{ flex:1, padding:"8px 0", borderRadius:9, border:"none", background:"#f0f0f0", color:"#555", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:CFONT } }, "Abbrechen"),
             React.createElement("button", { onClick:function(){
-                if (bSel.length < 2) { setMsg("Bitte mindestens zwei Produkte f\u00fcr die Kombi ausw\u00e4hlen."); return; }
+                var mg = parseInt(String(bMenge).replace(/[^0-9]/g, ""), 10);
+                if (bSel.length < 2 && !(bSel.length === 1 && mg > 1)) {
+                  setMsg("Zwei Produkte ausw\u00e4hlen, oder ein Produkt mit einer Menge ab 2.");
+                  return;
+                }
                 var pr = parseFloat(String(bPreis).replace(",", "."));
                 var pc = parseInt(String(bPct).replace(/[^0-9]/g, ""), 10);
+                var gr = parseInt(String(bGratis).replace(/[^0-9]/g, ""), 10);
                 setBundles(bundles.concat([{
                   id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()),
                   produkte: bSel.slice(),
                   text: bText.trim(),
+                  menge: isNaN(mg) ? null : mg,
+                  gratis: isNaN(gr) ? null : gr,
                   preis: isNaN(pr) ? null : Math.round(pr * 100) / 100,
                   pct: isNaN(pc) ? null : pc,
                   quelle: "manuell"
