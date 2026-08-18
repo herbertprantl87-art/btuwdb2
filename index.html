@@ -11429,8 +11429,10 @@ function BioTechDatabase() {
       const sKey = (vid !== undefined && vid !== null) ? vid : p.id;
       const sp = (window.SALE_PRICES || {})[String(sKey)];
       const spPrice = sp && typeof sp.price === "number" ? sp.price : null;
-      if (spPrice !== null && out.price && spPrice < out.price) {
-        out = Object.assign({}, out, { _sale: { price: spPrice, normal: out.price, pct: Math.round((1 - spPrice / out.price) * 100) } });
+      // Normalpreis und Rabatt so anzeigen, wie sie im Shop stehen
+      const spNormal = sp && typeof sp.normal === "number" ? sp.normal : out.price;
+      if (spPrice !== null && spNormal && spPrice < spNormal) {
+        out = Object.assign({}, out, { _sale: { price: spPrice, normal: spNormal, pct: (typeof sp.pct === "number" && sp.pct > 0) ? sp.pct : Math.round((1 - spPrice / spNormal) * 100) } });
       }
     }
     return out;
