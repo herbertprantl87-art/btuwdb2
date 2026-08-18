@@ -7419,6 +7419,14 @@ var PRODUCTS = [
     keyIngredients: [], bcaa: "–", flavors: "–", dosage: "–", notes: "–", studies: [],
   },
   {
+    id: 413, refOnly: true,
+    price: 22.5, priceRange: "€", name: "100% Creatine Monohydrate", packageSize: "300 g aromatisiert",
+    category: "Kreatin", tags: ["Gainer & Masseaufbau"], subcategory: "Aromatisiertes Kreatin-Monohydrat",
+    portionSize: "–", kcalPortion: "–", proteinPortion: "–", proteinPercent: "–",
+    fatPortion: "–", carbsPortion: "–", freeFrom: [], vegan: false, halal: "–",
+    keyIngredients: [], bcaa: "–", flavors: "Ananas-Mango, Orange, Neon Citrus, Pfirsich-Eistee", dosage: "–", notes: "–", studies: [],
+  },
+  {
     id: 392, refOnly: true,
     price: 64.9, priceRange: "€€€", name: "100% Creatine Monohydrate", packageSize: "1000 g",
     category: "Kreatin", tags: ["Gainer & Masseaufbau"], subcategory: "Kreatin Monohydrat",
@@ -11422,7 +11430,7 @@ function BioTechDatabase() {
       const sp = (window.SALE_PRICES || {})[String(sKey)];
       const spPrice = sp && typeof sp.price === "number" ? sp.price : null;
       if (spPrice !== null && out.price && spPrice < out.price) {
-        out = Object.assign({}, out, { _sale: { price: spPrice, normal: out.price, pct: (typeof sp.pct === "number" ? sp.pct : Math.round((1 - spPrice / out.price) * 100)) } });
+        out = Object.assign({}, out, { _sale: { price: spPrice, normal: out.price, pct: Math.round((1 - spPrice / out.price) * 100) } });
       }
     }
     return out;
