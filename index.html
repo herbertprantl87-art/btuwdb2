@@ -14082,8 +14082,19 @@ function pickOthers(arr, exclude, n) {
 }
 function firstSentence(str) {
   if (!str) return "";
-  const m = str.match(/^[^.!?]+[.!?]/);
-  return m ? m[0].trim() : str.split(" ").slice(0, 12).join(" ") + "…";
+  const s = String(str).trim();
+  // Abkuerzungen, nach denen kein Satzende folgt
+  const ABK = /(?:\b(?:z|B|ca|bzw|ggf|inkl|evtl|u|d|h|Nr|Abb|max|min|vgl|ml|mg|g|Vit|Kps|Tbl|St|ca)\.)$/i;
+  const re = /[.!?](?=\s|$)/g;   // Punkt nur werten, wenn Leerzeichen/Ende folgt -> "24.07.2026" bleibt heil
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    const cand = s.slice(0, m.index + 1).trim();
+    if (cand.length < 20) continue;
+    if (ABK.test(cand)) continue;
+    return cand;
+  }
+  const w = s.split(" ");
+  return w.slice(0, 12).join(" ") + (w.length > 12 ? "…" : "");
 }
 function qTpl(tpl, vars) {
   // Simple template: replace {key} with vars[key]
@@ -14320,6 +14331,21 @@ const PROTEIN_QUIZ_STATIC = [
 const QUIZ_SKIP_CATS = ["Bekleidung", "Shaker & Zubehör", "Zubehör"];
 function quizCatOk(p) { return p && QUIZ_SKIP_CATS.indexOf(p.category) < 0; }
 
+// Platzhaltertexte aus dem Preis-Sync duerfen nie als Quiz-Antwort erscheinen
+const QUIZ_BAD_NOTES = /automatisch vom shop übernommen|bitte im admin ergänzen|bitte angabe|laut produktetikett/i;
+function quizNotesOk(p) {
+  if (!p || !p.notes) return false;
+  const n = String(p.notes).trim();
+  if (n.length < 30) return false;
+  return !QUIZ_BAD_NOTES.test(n);
+}
+// Zahlenwert aus Angaben wie "24 g" / "1,5 g" ziehen
+function quizNum(v) {
+  if (v === undefined || v === null) return null;
+  const m = String(v).replace(",", ".").match(/-?\d+(?:\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
+
 function generateQuestions(catFilter, count, lang, t) {
   // ── STATISCHE FRAGEN: Kategorie Protein ─────────────────────────────
   if (catFilter === "Protein") {
@@ -14359,7 +14385,23 @@ function generateQuestions(catFilter, count, lang, t) {
     } else if (qType === 1) {
       const pVal = p.proteinPortion;
       if (!pVal || pVal === "–" || pVal === "0 g") continue;
-      const otherProts = shuffle(pool.filter(x => x.id !== p.id && x.proteinPortion && x.proteinPortion !== "–" && x.proteinPortion !== pVal)).slice(0, 3).map(x => x.proteinPortion);
+      const pNum = quizNum(pVal);
+      if (pNum === null || pNum <= 0) continue;
+      // Distraktoren: echte Werte > 0, untereinander verschieden, nie 0 g
+      const seen = {};
+      const otherProts = [];
+      for (const x of shuffle(pool)) {
+        if (x.id === p.id) continue;
+        const v = x.proteinPortion;
+        if (!v || v === "–" || v === pVal) continue;
+        const n = quizNum(v);
+        if (n === null || n <= 0) continue;
+        const key = String(n);
+        if (seen[key]) continue;
+        seen[key] = 1;
+        otherProts.push(v);
+        if (otherProts.length >= 3) break;
+      }
       if (otherProts.length < 3) continue;
       questions.push({
         question: qTpl(qt.quizQ_protein || "How much protein does '{name}' contain per portion ({size})?", {
@@ -14382,10 +14424,11 @@ function generateQuestions(catFilter, count, lang, t) {
         productName: p.name
       });
     } else if (qType === 2) {
+      if (!quizNotesOk(p)) continue;
       const correctRaw = firstSentence(p.notes);
       if (!correctRaw || correctRaw.length < 20) continue;
       const correct = translateFieldSync(correctRaw, lang);
-      const others = shuffle(pool.filter(x => x.id !== p.id && x.notes)).slice(0, 3).map(x => translateFieldSync(firstSentence(x.notes), lang));
+      const others = shuffle(pool.filter(x => x.id !== p.id && quizNotesOk(x))).slice(0, 3).map(x => translateFieldSync(firstSentence(x.notes), lang));
       if (others.length < 3 || others.some(o => !o || o.length < 10)) continue;
       questions.push({
         question: qTpl(qt.quizQ_notes || "Which statement best describes '{name}'?", {
@@ -14410,7 +14453,11 @@ function generateQuestions(catFilter, count, lang, t) {
       if (matchGoals.length === 0) continue;
       const [goalKey, goalData] = matchGoals[0];
       const stackIds = goalData.stack.map(s => s.id);
-      const wrong3 = shuffle(pool.filter(x => !stackIds.includes(x.id))).slice(0, 3);
+      // Distraktoren muessen zum Ziel klar NICHT passen, sonst ist die Frage unfair
+      // (z. B. Vitamin C 500 bei Ziel Immunsystem)
+      const wrong3 = shuffle(pool.filter(x =>
+        !stackIds.includes(x.id) && getGoalScore(x, goalKey) < 40
+      )).slice(0, 3);
       if (wrong3.length < 3) continue;
       const goalTitle = translateFieldSync(goalData.title.replace("Stack: ", ""), lang);
       questions.push({
