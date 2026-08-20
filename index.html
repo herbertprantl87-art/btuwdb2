@@ -14311,6 +14311,8 @@ function quizNotesOk(p) {
 function quizBeschreibung(notes) {
   if (!notes) return "";
   let rest = String(notes).trim();
+  // Marketing-Frage am Textanfang ueberspringen ("Warum empfehlen wir X?")
+  rest = rest.replace(/^\s*(?:Warum|Wie|Was|Wozu|Wieso|Wann|Wer)\b[^?]{0,120}\?\s*/i, "").trim();
   let out = "";
   for (let i = 0; i < 3 && rest && out.length < 45; i++) {
     const satz = firstSentence(rest);
