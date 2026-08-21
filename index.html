@@ -2130,7 +2130,7 @@ var PRODUCTS = [
     bcaa: "enthalten (BCAAs als Teil des EAA-Profils)",
     flavors: "– (Kapseln), 200 Kapseln / Packung",
     dosage: "5 Kapseln vor oder nach Training mit Wasser. An trainingsfreien Tagen zwischen Mahlzeiten.",
-    notes: "Kapsel-Alternative zum EAA Zero Pulver. Gleiche Aminosäuren, kein Geschmack, praktisch für unterwegs. Ideal für Reisen oder wenn kein Shaker verfügbar. Enthält alle 9 EAA in einer bequemen Kapsel. Kein Zucker, keine Kalorien aus Zusatzstoffen.",
+    notes: "Alle neun essenziellen Aminosäuren in Megakapseln, geschmacksneutral und ohne Anrühren. Gleiche Aminosäuren wie das EAA Zero Pulver, praktisch für unterwegs. Ideal für Reisen oder wenn kein Shaker verfügbar. Enthält alle 9 EAA in einer bequemen Kapsel. Kein Zucker, keine Kalorien aus Zusatzstoffen.",
     studies: [
       { title: "Essential amino acids: master regulators of nutrition (Systematic Review)", journal: "Sci Rep 2016", doi: "10.1038/srep23402", finding: "EAA-Supplementierung unterstützt Proteinbiosynthese und Muskelerholung.", url: "https://doi.org/10.1038/srep23402" },
     ],
@@ -2701,7 +2701,7 @@ var PRODUCTS = [
     bcaa: "–",
     flavors: "Kirsche, Orange – 500 ml = 20 Portionen",
     dosage: "25 ml vor Training (30 min vorher), pur oder mit Wasser. Nicht abends.",
-    notes: "Trinkfertige Version von Thermo Drine – kein Abmessen. Gleiche thermogene Formel. Flüssige Form = schnellste Resorption. L-Carnitin zusätzlich für Fetttransport. Für unterwegs ideal.",
+    notes: "Thermogener Fatburner mit Koffein aus Grüntee, Guarana und Yerba Mate, dazu L-Carnitin für den Fetttransport und B-Vitamine für den Energiestoffwechsel. Die flüssige Form wird am schnellsten aufgenommen. Trinkfertig in der 25-ml-Ampulle, also kein Abmessen – gleiche Formel wie Thermo Drine Kapseln.",
     studies: [],
   },
   {
@@ -3113,7 +3113,7 @@ var PRODUCTS = [
     bcaa: "3000 mg (2:1:1) pro Ampulle",
     flavors: "Limette",
     dosage: "1 Ampulle direkt vor oder während des Trainings trinken. Kein Mischen nötig.",
-    notes: "Fertiggetränk für unterwegs – kein Shaker nötig. Ideal als kompakter BCAA-Boost mit Arginin. Erhältlich als 60 ml Einzelampulle oder 20er-Pack (20 × 60 ml).",
+    notes: "Trinkfertiger BCAA-Shot mit Aminosäuren im Verhältnis 2:1:1 und zusätzlichem Arginin, im 60-ml-Format für unterwegs – kein Shaker nötig. Ideal als kompakter BCAA-Boost mit Arginin. Erhältlich als 60 ml Einzelampulle oder 20er-Pack (20 × 60 ml).",
     studies: [
       { title: "BCAA Supplementation → Muscle Protein Synthesis & Recovery (Meta-Analysis)", journal: "J Int Soc Sports Nutr 2017", doi: "10.1186/s12970-017-0184-9", finding: "BCAA-Einnahme reduziert Muskelkater und unterstützt MPS nach Krafttraining.", url: "https://doi.org/10.1186/s12970-017-0184-9" },
     ],
@@ -3462,7 +3462,7 @@ var PRODUCTS = [
     bcaa: "–",
     flavors: "–",
     dosage: "2 Kapseln täglich, bevorzugt vor dem Training.",
-    notes: "Kapsel-Alternative zu L-Carnitine + Chrome Liquid. Identische Wirkstoffkombination (L-Carnitin + Chrom), aber in Kapselform. Für Nutzer, die keine Flüssigkeiten mögen.",
+    notes: "1000 mg L-Carnitin aus L-Carnitin-L-Tartrat pro 2 Kapseln, kombiniert mit 20 µg Chrom (50 % NRV). Chrom trägt zu einem normalen Makronährstoff-Stoffwechsel und zur Aufrechterhaltung eines normalen Blutzuckerspiegels bei. Wirkstoffgleich mit der Liquid-Variante, nur in Kapselform.",
     studies: [],
   },
 
@@ -14442,11 +14442,30 @@ function quizNotesOk(p) {
 // Beschreibungstext fuer die Quiz-Antwort: erster Satz, und solange der
 // zu kurz ist, den naechsten anhaengen ("12 aktive Wirkstoffe." allein
 // beschreibt kein Produkt eindeutig)
+// Saetze, die nur die Darreichungsform oder den Vergleich mit einem anderen
+// Produkt beschreiben. Als Quiz-Antwort taugen sie nicht ("Trinkfertige
+// Version von Thermo Drine" sagt nichts ueber das Produkt aus).
+const QUIZ_FORMSATZ = /^(?:Trinkfertige[sr]?\b|Kapsel-Alternative|Tablettenform|Pulverform|Fl\u00fcssige[sr]? (?:Form|Version)|Gleiche[sr]? (?:Wirkformel|thermogene|Formel)|Basisversion|PRO-Version|Zuckerfreie Version|Praktisch f\u00fcr|F\u00fcr Personen, die|F\u00fcr Nutzer, die|F\u00fcr unterwegs|Ideal f\u00fcr unterwegs|Alternative zu|Kein Abmessen|Identische)/i;
+// Substanz: Wirkstoff, Menge oder Wirkung
+const QUIZ_SUBSTANZ = /\d|mg|\u00b5g|%|Vitamin|Protein|Amino|Kreatin|Creatin|Carnitin|Arginin|Koffein|Extrakt|Kollagen|Magnesium|Zink|Calcium|Eisen|Omega|Glutamin|Leucin|Ballaststoff|Kohlenhydrat|unterst\u00fctzt|tr\u00e4gt bei|f\u00f6rdert|hilft|reduziert|erh\u00f6ht|liefert|enth\u00e4lt|besteht aus/i;
+
 function quizBeschreibung(notes) {
   if (!notes) return "";
   let rest = String(notes).trim();
   // Marketing-Frage am Textanfang ueberspringen ("Warum empfehlen wir X?")
   rest = rest.replace(/^\s*(?:Warum|Wie|Was|Wozu|Wieso|Wann|Wer)\b[^?]{0,120}\?\s*/i, "").trim();
+  // Fuehrende Formsaetze ueberspringen, solange danach genug Text bleibt
+  for (let i = 0; i < 3; i++) {
+    if (!QUIZ_FORMSATZ.test(rest)) break;
+    const satz = firstSentence(rest);
+    if (!satz) break;
+    // Nennt der Satz trotz Formulierung einen Wirkstoff, bleibt er stehen
+    // ("Trinkfertiges Fluessig-Kollagen" ist eine echte Aussage)
+    if (QUIZ_SUBSTANZ.test(satz)) break;
+    const kuerzer = rest.slice(rest.indexOf(satz) + satz.length).trim();
+    if (kuerzer.length < 45) break;
+    rest = kuerzer;
+  }
   let out = "";
   for (let i = 0; i < 3 && rest && out.length < 45; i++) {
     const satz = firstSentence(rest);
@@ -14455,6 +14474,13 @@ function quizBeschreibung(notes) {
     const pos = rest.indexOf(satz);
     rest = rest.slice(pos + satz.length).trim();
     if (out.length > 200) break;
+  }
+  // Ohne Wirkstoff oder Wirkung ist die Aussage inhaltsleer: weiterlesen
+  for (let i = 0; i < 2 && rest && !QUIZ_SUBSTANZ.test(out) && out.length < 200; i++) {
+    const satz = firstSentence(rest);
+    if (!satz) break;
+    out += " " + satz;
+    rest = rest.slice(rest.indexOf(satz) + satz.length).trim();
   }
   return out.trim();
 }
@@ -14549,6 +14575,9 @@ function generateQuestions(catFilter, count, lang, t) {
       if (!quizNotesOk(p)) continue;
       const correctRaw = quizBeschreibung(p.notes);
       if (!correctRaw || correctRaw.length < 40) continue;
+      // Steht der Produktname in der Antwort, ist die Frage geschenkt
+      const nameKern = String(p.name).toLowerCase().replace(/[^a-z\u00e4\u00f6\u00fc0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+      if (nameKern.length > 4 && correctRaw.toLowerCase().indexOf(nameKern) >= 0) continue;
       const correct = translateFieldSync(correctRaw, lang);
       const others = shuffle(pool.filter(x => x.id !== p.id && quizNotesOk(x) && quizBeschreibung(x.notes).length >= 40)).slice(0, 3).map(x => translateFieldSync(quizBeschreibung(x.notes), lang));
       if (others.length < 3 || others.some(o => !o || o.length < 10)) continue;
