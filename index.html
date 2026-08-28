@@ -7681,8 +7681,26 @@ var SB = (function() {
   var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
   var H    = { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json" };
 
+  // Abruf mit Zeitlimit, bricht ab statt endlos zu warten
+  function fetchTimeout(path, ms) {
+    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var opts = { headers: H };
+    if (ctrl) opts.signal = ctrl.signal;
+    var timer = ctrl ? setTimeout(function() { ctrl.abort(); }, ms) : null;
+    function clear() { if (timer) clearTimeout(timer); }
+    return fetch(BASE + "/" + path, opts).then(function(r) {
+      clear();
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }, function(e) { clear(); throw e; });
+  }
+  // Weich: bei jedem Fehler eine leere Liste, wie bisher
   function get(path) {
-    return fetch(BASE + "/" + path, { headers: H }).then(function(r) { return r.ok ? r.json() : []; }).catch(function() { return []; });
+    return fetchTimeout(path, 20000).catch(function() { return []; });
+  }
+  // Streng: wirft bei Fehler oder Zeitueberschreitung, wird im Login benutzt
+  function getStrict(path, ms) {
+    return fetchTimeout(path, ms || 12000);
   }
   function upsert(table, data) {
     return fetch(BASE + "/" + table, {
@@ -7716,7 +7734,7 @@ var SB = (function() {
   function setConfig(key, value) {
     return upsert("app_config", { key: key, value: value, updated_at: new Date().toISOString() });
   }
-  return { get: get, upsert: upsert, del: del, patch: patch, getConfig: getConfig, setConfig: setConfig };
+  return { get: get, getStrict: getStrict, upsert: upsert, del: del, patch: patch, getConfig: getConfig, setConfig: setConfig };
 })();
 
 // ── Overrides auf PRODUCTS anwenden (Original in _orig sichern) ──────
@@ -11178,10 +11196,17 @@ function BioTechDatabase() {
     if (!username) return;
     setLoginLoading(true);
     setLoginError("");
-    const [rows, profRows] = await Promise.all([
-      SB.get("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value"),
-      SB.get("profiles?id=eq." + encodeURIComponent(username) + "&select=gebiet,role,name,store")
-    ]);
+    let rows, profRows;
+    try {
+      [rows, profRows] = await Promise.all([
+        SB.getStrict("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value"),
+        SB.getStrict("profiles?id=eq." + encodeURIComponent(username) + "&select=gebiet,role,name,store")
+      ]);
+    } catch (e) {
+      setLoginLoading(false);
+      setLoginError("Verbindung zu langsam oder unterbrochen. Bitte nochmal versuchen.");
+      return;
+    }
     setLoginLoading(false);
     if (profRows && profRows[0]) {
       const p = profRows[0];
@@ -11242,10 +11267,17 @@ function BioTechDatabase() {
     setLoginLoading(true);
     setLoginError("");
     const hash = await sha256hex(pw);
-    const [rows, profRows] = await Promise.all([
-      SB.get("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value"),
-      SB.get("profiles?id=eq." + encodeURIComponent(username) + "&select=gebiet,role,name,store")
-    ]);
+    let rows, profRows;
+    try {
+      [rows, profRows] = await Promise.all([
+        SB.getStrict("app_config?key=eq." + encodeURIComponent("auth_user__" + username) + "&select=value"),
+        SB.getStrict("profiles?id=eq." + encodeURIComponent(username) + "&select=gebiet,role,name,store")
+      ]);
+    } catch (e) {
+      setLoginLoading(false);
+      setLoginError("Verbindung zu langsam oder unterbrochen. Bitte nochmal versuchen.");
+      return;
+    }
     const stored = rows && rows[0] ? rows[0].value : null;
     if (!stored || stored.hash !== hash) {
       setLoginLoading(false);
@@ -12841,8 +12873,10 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
           onKeyDown: e => e.key === "Enter" && doCheckUsername(),
           style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
                    border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 16,
-                   fontFamily: FONT, outline: "none", marginBottom: 16 }
+                   fontFamily: FONT, outline: "none", marginBottom: loginError ? 8 : 16 }
         }),
+        loginError && /*#__PURE__*/React.createElement("div",
+          { style: { color: "#c8102e", fontSize: 12, marginBottom: 10 } }, loginError),
         /*#__PURE__*/React.createElement("button", {
           onClick: doCheckUsername,
           disabled: loginLoading || !loginInput.username.trim(),
