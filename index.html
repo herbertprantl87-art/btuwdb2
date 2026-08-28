@@ -7773,15 +7773,21 @@ window.SALE_PRICES = (function(){ try { return JSON.parse(localStorage.getItem("
     SB.getConfig("product_overrides"),
     SB.getConfig("custom_products"),
     SB.getConfig("custom_categories"),
-    SB.getConfig("sale_prices")
+    SB.getConfig("sale_prices"),
+    SB.getConfig("sale_prices_manuell")
   ]).then(function(results) {
     var ov = results[0];
     var cp = results[1];
     var cc = results[2];
     var sp = results[3];
-    if (sp && typeof sp === "object" && !Array.isArray(sp)) {
-      localStorage.setItem("btu_sale_prices", JSON.stringify(sp));
-      window.SALE_PRICES = sp;
+    var spm = results[4];
+    var spOk  = sp  && typeof sp  === "object" && !Array.isArray(sp);
+    var spmOk = spm && typeof spm === "object" && !Array.isArray(spm);
+    if (spOk || spmOk) {
+      // Manuell gepflegte Aktionen gewinnen, der Preis-Sync überschreibt sie nicht
+      var spAll = Object.assign({}, spOk ? sp : {}, spmOk ? spm : {});
+      localStorage.setItem("btu_sale_prices", JSON.stringify(spAll));
+      window.SALE_PRICES = spAll;
     }
     if (Array.isArray(cc)) {
       localStorage.setItem("btu_custom_categories", JSON.stringify(cc));
@@ -11459,15 +11465,18 @@ function BioTechDatabase() {
   React.useEffect(() => {
     let stopped = false;
     const poll = () => {
-      Promise.all([SB.getConfig("product_overrides"), SB.getConfig("custom_products"), SB.getConfig("custom_categories"), SB.getConfig("sale_prices")]).then(res => {
+      Promise.all([SB.getConfig("product_overrides"), SB.getConfig("custom_products"), SB.getConfig("custom_categories"), SB.getConfig("sale_prices"), SB.getConfig("sale_prices_manuell")]).then(res => {
         if (stopped) return;
         let changed = false;
-        const ov = res[0], cp = res[1], cc = res[2], sp = res[3];
-        if (sp && typeof sp === "object" && !Array.isArray(sp)) {
+        const ov = res[0], cp = res[1], cc = res[2], sp = res[3], spm = res[4];
+        const spOk  = sp  && typeof sp  === "object" && !Array.isArray(sp);
+        const spmOk = spm && typeof spm === "object" && !Array.isArray(spm);
+        if (spOk || spmOk) {
+          const spAll = Object.assign({}, spOk ? sp : {}, spmOk ? spm : {});
           const curSp = localStorage.getItem("btu_sale_prices") || "{}";
-          if (JSON.stringify(sp) !== curSp) {
-            localStorage.setItem("btu_sale_prices", JSON.stringify(sp));
-            window.SALE_PRICES = sp;
+          if (JSON.stringify(spAll) !== curSp) {
+            localStorage.setItem("btu_sale_prices", JSON.stringify(spAll));
+            window.SALE_PRICES = spAll;
             changed = true;
           }
         }
