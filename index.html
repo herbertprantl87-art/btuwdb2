@@ -13598,9 +13598,17 @@ function ProductCard({
     color: refColor
   }, p.studies.map((s, i) => {
     const ts = (ptx && ptx.studies && ptx.studies[i]) || {};
-    return /*#__PURE__*/React.createElement("div", {
+    return /*#__PURE__*/React.createElement("a", {
       key: i,
+      href: s.url,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      title: s.url,
       style: {
+        display: "block",
+        color: "inherit",
+        textDecoration: "none",
+        cursor: "pointer",
         background: "#f0f7ff",
         border: "1px solid #bfdbfe",
         borderRadius: 8,
@@ -13628,14 +13636,12 @@ function ProductCard({
         lineHeight: 1.5,
         marginBottom: 6
       }
-    }, "\u2192 ", lang === "de" ? s.finding : ts.finding || s.finding), /*#__PURE__*/React.createElement("a", {
-      href: s.url,
-      target: "_blank",
-      rel: "noopener noreferrer",
+    }, "\u2192 ", lang === "de" ? s.finding : ts.finding || s.finding), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10,
         color: "#2563eb",
-        fontWeight: 600
+        fontWeight: 600,
+        textDecoration: "underline"
       }
     }, "\u2192 ", t.study, " (DOI)"));
   }))) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(BSection, {
@@ -13778,9 +13784,17 @@ function ProductCard({
     color: accent
   }, p.studies.map((s, i) => {
     const ts = (ptx && ptx.studies && ptx.studies[i]) || {};
-    return /*#__PURE__*/React.createElement("div", {
+    return /*#__PURE__*/React.createElement("a", {
       key: i,
+      href: s.url,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      title: s.url,
       style: {
+        display: "block",
+        color: "inherit",
+        textDecoration: "none",
+        cursor: "pointer",
         background: "#f0f7ff",
         border: "1px solid #bfdbfe",
         borderRadius: 8,
@@ -13808,14 +13822,12 @@ function ProductCard({
         lineHeight: 1.5,
         marginBottom: 6
       }
-    }, "\u2192 ", lang === "de" ? s.finding : ts.finding || s.finding), /*#__PURE__*/React.createElement("a", {
-      href: s.url,
-      target: "_blank",
-      rel: "noopener noreferrer",
+    }, "\u2192 ", lang === "de" ? s.finding : ts.finding || s.finding), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10,
         color: "#2563eb",
-        fontWeight: 600
+        fontWeight: 600,
+        textDecoration: "underline"
       }
     }, "\u2192 ", t.study, " ", s.doi ? `(DOI: ${s.doi})` : ""));
   })), OBJECTIONS[p.id] && /*#__PURE__*/React.createElement("div", {
