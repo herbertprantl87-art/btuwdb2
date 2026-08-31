@@ -8237,6 +8237,1764 @@ function canReviewAnswers(role) { return role === 'carmelo' || role === 'superad
 //  EINWAND-DATENBANK (pro Produkt-ID)
 // ═══════════════════════════════════════════════════════════════════════
 var OBJECTIONS = {
+  // ── automatisch ergänzt 31.08.2026: Kundenfragen für alle übrigen Produkte ──
+  2: [ // Iso Whey Zero Black
+    { q: "Wie viel Protein steckt in einer Portion?", a: "27 g Protein pro Portion (30 g), 126 kcal. Die Packung reicht für rund 61 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (25 g) post-workout. Die Packung reicht für rund 61 Tage." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist laktosefrei, glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  3: [ // Iso Whey Zero Clear
+    { q: "Wie viel Protein steckt in einer Portion?", a: "21 g Protein pro Portion (25 g), 87 kcal. Die Packung reicht für rund 16 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion mit 400–500 ml kaltem Wasser. Die Packung reicht für rund 16 Tage." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist laktosefrei, glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  4: [ // Protein Power
+    { q: "Wie viel Protein steckt in einer Portion?", a: "24 g Protein pro Portion (30 g), 115 kcal. Die Packung reicht für rund 17 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (30 g) mit 300 ml Wasser. Die Packung reicht für rund 17 Tage." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  6: [ // Beef Protein
+    { q: "Wie viel Protein steckt in einer Portion?", a: "26 g Protein pro Portion (30 g), 119 kcal. Die Packung reicht für rund 17 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "2 Portionen täglich (2×30 g). Tagesdosis: 60 g." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist laktosefrei, glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  8: [ // Protein Bar
+    { q: "Wie viele Kalorien hat das?", a: "257 kcal pro Portion (70 g (1 Riegel)), 21 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist glutenfrei. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  12: [ // BCAA ZERO
+    { q: "Wofür brauche ich das?", a: "Erweiterte Formel mit Instant-L-Leucin für bessere Löslichkeit. Vegan. Zusätzlich L-Glutamin für Erholung. Vitamin B6 reduziert Müdigkeit. Größte Geschmacksauswahl im BCAA-Segment." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (9 g) vor, während oder nach dem Training in 300–500 ml Wasser. 40 Portionen / Packung." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  13: [ // BCAA 6000
+    { q: "Wofür brauche ich das?", a: "Bequeme Tablettenform für unterwegs. Höchste BCAA-Konzentration im BioTechUSA-Portfolio. Vegan." },
+    { q: "Wie dosiere ich das?", a: "4 Tabletten täglich: 2 vor + 2 nach Training. 25 Portionen / Packung (100 Tabletten)." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  14: [ // BCAA+B6
+    { q: "Wofür brauche ich das?", a: "Ökonomische Großpackung für 170 Tage. Vitamin B6 unterstützt normalen Protein- und Glykogenstoffwechsel sowie energieliefernde Prozesse. Beschichtete Tabletten – leicht zu schlucken." },
+    { q: "Wie dosiere ich das?", a: "2×2 Tabletten täglich (je 1 Portion vor und nach dem Training). 170 Tagesportionen / Packung (340 Tabletten)." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  15: [ // After
+    { q: "Wofür brauche ich das?", a: "Kombination aus EAA + Kreatin + KH für maximale Regeneration. Kreatin erhöht körperliche Leistung bei Schnellkrafttraining (3 g/Tag). Zuckerfrei, aber mit komplexen Kohlenhydraten für Glykogenwiederauffüllung." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (420 g Packung: 20 Portionen) direkt nach dem Training in 300–400 ml Wasser. Trinken innerhalb von 30 min post-workout." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  16: [ // 100% L-Glutamine
+    { q: "Wofür brauche ich das?", a: "100 % Reinheit, keine Zusatzstoffe. L-Glutamin ist die häufigste freie Aminosäure im Blut. Wichtig für Immunsystem, Darmgesundheit und Muskelregeneration. Verfügbar in 240 g (48 Port.) und 500 g (100 Port.)." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (5 g) vor oder nach dem Training. Kann in Wasser, Protein-Shake oder Saft eingerührt werden." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  17: [ // 100% Instant L-Leucine
+    { q: "Wofür brauche ich das?", a: "Leucin ist der stärkste Einzelstimulus für die mTOR-Signalkette → direkte Aktivierung der Proteinbiosynthese. Instant-Form = bessere Löslichkeit als Standard L-Leucin. Vegan, glutenfrei, laktosefrei." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (3 g L-Leucin) vor oder nach dem Training in Wasser oder Protein-Shake. 277 g Packung." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  19: [ // L-Carnitine 100.000 Liquid
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "10 ml (1 Portion) 30 min vor Training, nicht nüchtern" },
+    { q: "Wie wirkt das?", a: "Kombination mit Grüntee (Koffein) für thermogenen Effekt. B-Vitamine unterstützen Energiestoffwechsel." },
+  ],
+  20: [ // ALC
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "2 Kapseln täglich (1 Portion). 30 Portionen / Packung (60 Kapseln)." },
+    { q: "Wie wirkt das?", a: "Acetyliertes L-Carnitin = erhöhte Bioverfügbarkeit. Zusätzliches Zink unterstützt normalen Fettsäure-Stoffwechsel und Testosteronspiegel. Ohne Stimulanzien → geeignet für abendliche Einnahme." },
+  ],
+  22: [ // Black Blood NOX+
+    { q: "Wie viel nehme ich und wann?", a: "1 Portion (10 g) in 200–250 ml Wasser, 20–30 min vor dem Training. 34 Portionen / Packung (340 g)." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Hardcore Pre-Workout mit 5139 mg NOX-Komplex + 1500 mg Kreatin + 150 mg Koffein. Vitamin C (281 % NRV) als Antioxidans. Kombination aus NO-Booster, Energizer und Kraft-Support in einer Formel." },
+  ],
+  23: [ // Amino Energy Zero with electrolytes
+    { q: "Wie viel nehme ich und wann?", a: "1 Portion in 300–400 ml Wasser, 20–30 min vor oder während dem Training. 30 Portionen / Packung (360 g)." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Einzigartiges Produkt: Kombination aus vollständigem EAA-Profil + Koffein + 6 Elektrolyten. Ideal für Ausdauersport, Radfahren, Laufen. Koffein aus 3 Quellen = gleichmäßige Wirkung. Zuckerfrei + glutenfrei." },
+  ],
+  24: [ // AAKG 1000
+    { q: "Wie viel nehme ich und wann?", a: "2 Tabletten täglich (1 Portion), 30–45 min vor dem Training. 50 Tagesportionen / Packung (100 Tabletten)." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Reines AAKG ohne Kreatin oder Koffein. L-Arginin = Vorstufe von Stickstoffmonoxid (NO) → verbesserte Gefäßerweiterung und Nährstoffversorgung. Ideal für Personen, die ein einzelwirkstoffhaltiges Arginin-Produkt bevorzugen." },
+  ],
+  25: [ // Beta Alanine
+    { q: "Wie viel nehme ich und wann?", a: "2–5 g täglich vor dem Training in Wasser oder Shake. 300 g Packung." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Beta-Alanin erhöht die Carnosin-Konzentration in Typ-II-Muskelfasern → puffert Laktatazidose → verzögert Muskelermüdung. Kribbeln (Parästhesie) nach Einnahme ist normal und unbedenklich." },
+  ],
+  26: [ // Citrulline Malate
+    { q: "Wie viel nehme ich und wann?", a: "4–6 g in 200–300 ml Wasser, 30–45 min vor dem Training. 300 g Packung." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "L-Citrullin → L-Arginin → NO-Produktion. Citrullin überwindet Leberabbau besser als direktes Arginin → effektivere NO-Steigerung. Apfelsäure (Malat) unterstützt Krebs-Zyklus und Energieproduktion. Vegan." },
+  ],
+  28: [ // Black Burn Getränkepulver
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "1 Portion in 200–300 ml Wasser, 30 min vor dem Training. 30 Portionen / Packung (210 g)." },
+    { q: "Wie wirkt das?", a: "Gleiche Wirkformel wie Black Burn Kapseln, als Erfrischungsgetränk. Praktisch für Personen, die keine Kapseln mögen. 200 mg Koffein pro Portion – nicht für koffeinempfindliche Personen geeignet." },
+  ],
+  30: [ // Arthro Forte Pack
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "1 Päckchen täglich mit einem Glas Wasser, wenn möglich zur selben Tageszeit" },
+    { q: "Woraus wird das gewonnen?", a: "Glucosamin und Chondroitin stammen üblicherweise aus Schalentieren und Knorpel. Bei Schalentierallergie deshalb nicht geeignet." },
+  ],
+  31: [ // Arthro Forte Getränkepulver
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "1 Portion täglich in 200–300 ml Wasser, zur Mahlzeit. 340 g Packung." },
+    { q: "Woraus wird das gewonnen?", a: "Glucosamin und Chondroitin stammen üblicherweise aus Schalentieren und Knorpel. Bei Schalentierallergie deshalb nicht geeignet." },
+  ],
+  32: [ // Arthro Forte Liquid
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "25 ml täglich, direkt trinken oder in Wasser auflösen. 500 ml Flasche = 20 Tagesportionen." },
+    { q: "Woraus wird das gewonnen?", a: "Glucosamin und Chondroitin stammen üblicherweise aus Schalentieren und Knorpel. Bei Schalentierallergie deshalb nicht geeignet." },
+  ],
+  33: [ // Marine Collagen Getränkepulver
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "12 g täglich in 200–300 ml Wasser, vorzugsweise auf nüchternen Magen. 240 g Packung = 20 Portionen." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+  ],
+  34: [ // Collagen Pulver
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "15 g täglich in 200 ml Wasser oder Saft. 300 g Packung = 20 Portionen." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+  ],
+  35: [ // Collagen Liquid
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "25 ml täglich, direkt trinken. 1000 ml Flasche = 40 Tagesportionen." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+  ],
+  37: [ // One A Day-Multivitamin
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich. 100 Tagesportionen / Packung." },
+    { q: "Brauche ich das überhaupt?", a: "Kompaktes Allroundprodukt. Immunsystem (Vit A, C, D, B6, B12, Zink, Eisen, Selen), Energie (B-Komplex), Knochen (Ca, D, K). Vegan." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  38: [ // One-A-Day Professional
+    { q: "Wann nehme ich das ein?", a: "8 g mit 350 ml Wasser zur Mahlzeit. Nicht nüchtern einnehmen." },
+    { q: "Brauche ich das überhaupt?", a: "Höherer B-Vitamin-Komplex als Basisversion. Als Erfrischungsgetränk trinkbar. Pflanzenextrakte als Zusatz." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  39: [ // Multivitamin for Men
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich. 60 Tagesportionen / Packung." },
+    { q: "Brauche ich das überhaupt?", a: "Spezifisch für aktive Männer. 38 aktive Wirkstoffe. Zusätzlich Aminosäure-Support (L-Glutamin, L-Arginin, Taurin) und Pflanzenextrakte gegenüber Standard-Multivitamin. Laktosefrei." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  40: [ // Daily Pack
+    { q: "Wann nehme ich das ein?", a: "1 Päckchen täglich mit einem Glas Wasser, nicht nüchtern. 30 Tagesportionen." },
+    { q: "Brauche ich das überhaupt?", a: "Full-Range-Paket für maximale Nährstoffabdeckung. Coenzym Q10, OPC, Omega-3 als Extras. 7 verschiedene Darreichungsformen in einem Tagespack." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  41: [ // Active Woman
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich. 60 Tagesportionen / Packung." },
+    { q: "Brauche ich das überhaupt?", a: "Speziell für aktive Frauen. Fokus auf Haut, Haare, Nägel (Biotin, Zink, Vit A, C). Hyaluronsäure + Kollagen intern. Hoher Vitamin-C-Gehalt (200 mg). Folsäure 400 mcg. Laktosefrei, glutenfrei." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  42: [ // B-Complex
+    { q: "Wann nehme ich das ein?", a: "2 x 1 Kapsel täglich mit einem Glas Wasser (Herstellerangabe)." },
+    { q: "Brauche ich das überhaupt?", a: "Mehr als ein reines B-Komplex-Präparat: enthält zusätzlich Spurenelemente (Zink, Selen u.a.) + Pflanzenextrakte. Vitamin B-Komplex: Energie, Nervensystem, Haut-Haare-Nägel. Laktosefrei, glutenfrei." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  43: [ // Ashwagandha
+    { q: "Wofür nimmt man das?", a: "Indischer Ginseng (Ayurveda). Adaptogen: unterstützt Stressresistenz und Erholung. Nicht zur Ginseng-Familie gehörend, aber ähnliche Wirkweise. Traditionell in der ayurvedischen Medizin verwendet." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich. 60 Kapseln / Packung = 60 Tagesportionen." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  46: [ // Black Test
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "3 Kapseln täglich. 30 Tagesportionen / Packung (90 Kapseln)." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  49: [ // Vegan Protein
+    { q: "Wie viel Protein steckt in einer Portion?", a: "19 g Protein pro Portion (25 g), 106 kcal. Die Packung reicht für rund 20 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (25 g) mit 300 ml Wasser oder Pflanzenmilch. Post-workout oder als Mahlzeitenergänzung." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist laktosefrei, glutenfrei, ohne Zucker und vegan. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  50: [ // Hydro Whey Zero
+    { q: "Wie viel Protein steckt in einer Portion?", a: "18 g Protein pro Portion (22 g), 85 kcal. Die Packung reicht für rund 21 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (22 g) in 250 ml Wasser, direkt nach dem Training. An trainingsfreien Tagen morgens. Verfügbar: 454 g / 1816 g." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist laktosefrei, glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  52: [ // Super Burn
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "4 Tabletten täglich in 2 Dosen (2+2). An Trainingstagen: 2 morgens + 2 × 30 min vor Training. An trainingsfreien Tagen: 2 morgens + 2 abends. 120 Tabletten = 30 Portionen." },
+    { q: "Wie wirkt das?", a: "Koffeinfrei – ideal für koffeinempfindliche Personen und für abendliche Einnahme. Carnipure® = weltweit meistuntersuchte L-Carnitin-Form (Lonza-Marke). Cholin ist offiziell EFSA-zugelassen für normalen Fettstoffwechsel." },
+  ],
+  53: [ // Mega Burner
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "3 Kapseln täglich, 30 min vor der Hauptmahlzeit mit einem Glas Wasser. 90 Kapseln = 30 Portionen." },
+    { q: "Wie wirkt das?", a: "Breite metabolische Unterstützung durch 4 Spurenelemente + 5 B-Vitamine + Pflanzenextrakte. Besonders Jod für Schilddrüsenfunktion (reguliert Grundumsatz). Chrom für stabilen Blutzucker → reduziertes Hungergefühl." },
+  ],
+  54: [ // Liquid Amino
+    { q: "Wofür brauche ich das?", a: "Vollständiges Amino-Profil: peptidgebundene AS aus Hydrolysat + freie AS (BCAA + Arginin). Vitamin B6 + B12 gegen Müdigkeit. Trinkfertig – keine Zubereitung. Ideal als schnelle Pre/Post-Workout-Lösung ohne Shaker." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (25 ml) vor dem Training + 1 Portion nach dem Training. An trainingsfreien Tagen morgens und abends." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  56: [ // Ca D3 K2
+    { q: "Wann nehme ich das ein?", a: "1 Kapsel täglich mit einer fettreichen Mahlzeit (D3 und K2 sind fettlösliche Vitamine). 90 Tagesportionen." },
+    { q: "Brauche ich das überhaupt?", a: "Optimale Synergie: D3 erhöht Calcium-Absorption im Darm, K2 sorgt dafür dass das Calcium in die Knochen gelenkt wird und nicht in Arterienwände ablagert (Arteriosklerose-Prävention)." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  57: [ // Multivitamin For Men from organic sources
+    { q: "Wann nehme ich das ein?", a: "½ Tablette täglich zur Mahlzeit. 120 Portionen / Packung." },
+    { q: "Brauche ich das überhaupt?", a: "Multivitamin für Männer aus biologischen Quellen: die Wirkstoffe stammen aus zertifizierten Pflanzen- und Lebensmittelkonzentraten statt aus rein synthetischer Herstellung." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  58: [ // Diet Shake
+    { q: "Wie viel Protein steckt in einer Portion?", a: "15 g Protein pro Portion (30 g), 102 kcal. Die Packung reicht für rund 24 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (30 g) VOR einer Mahlzeit mit mind. 250 ml Wasser. Glucomannan wirkt nur mit viel Flüssigkeit! 1–2 Portionen täglich als Mahlzeitsersatz – immer mit kalorienreduzierter Ernährung kombinieren." },
+    { q: "Was unterscheidet das von anderen Proteinen?", a: "Stärkstes Diät-Argument: EU-rechtlich bestätigte Glucomannan-Aussage – direkt im Verkaufsgespräch nutzbar! Glucomannan quillt im Magen → Sättigungsgefühl. 30 Min. vor Mahlzeit = maximale Wirkung." },
+  ],
+  60: [ // Iso Whey Platinum
+    { q: "Wie viel Protein steckt in einer Portion?", a: "20 g Protein pro Portion (22,5 g), 92 kcal. Die Packung reicht für rund 40 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (30 g) mit 300 ml Wasser, post-workout. Sauberstes Profil für alle mit Soja-Allergie." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist laktosefrei, glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  61: [ // Juicy Isolate
+    { q: "Wie viel Protein steckt in einer Portion?", a: "19 g Protein pro Portion (~25 g), 86 kcal. Die Packung reicht für rund 20 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (25 g) mit 400–500 ml kaltem Wasser. Post-workout oder als Erfrischungsgetränk." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist glutenfrei. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  62: [ // 100% Pure Whey Natural
+    { q: "Wie viel Protein steckt in einer Portion?", a: "21 g Protein pro Portion (28 g), 106 kcal. Die Packung reicht für rund 36 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1–2 Portionen täglich (28 g), mit 200–300 ml Wasser oder Milch. Leicht mit anderen Zutaten mischbar." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist glutenfrei. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  63: [ // Chunky Protein Bar
+    { q: "Wie viele Kalorien hat das?", a: "188 kcal pro Portion (50 g (1 Riegel)), 13 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Weiches Zentrum mit seidiger Schokoladenhülle. Proteinquellen: Whey + Milchprotein + Kollagen + Mandel (vielfältig). Niedriger Zuckergehalt. Mandeln = natürliche Proteinquelle und gesunde Fette." },
+  ],
+  64: [ // Crush Bar
+    { q: "Wie viele Kalorien hat das?", a: "238 kcal pro Portion (64 g (1 Riegel)), 20 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Dekadentester Riegel im Portfolio. Dicker Schokoladenüberzug + Karamellschicht = bestes Geschmackserlebnis. Trotzdem relativ niedrig Zucker dank Maltit. Für bewusste Schokofans." },
+  ],
+  65: [ // Oat & Fruits
+    { q: "Wie viele Kalorien hat das?", a: "272 kcal pro Portion (70 g (1 Riegel)), ~4,7 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Energieriegel mit natürlichen Zutaten – kein klassischer Proteinriegel. Hafer = komplexe Kohlenhydrate für anhaltende Energie. Getrocknete Früchte = natürliche Süße + Mikronährstoffe. Empfohlen vor Ausdauertraining." },
+  ],
+  66: [ // Vegan Protein Bar
+    { q: "Wie viele Kalorien hat das?", a: "198 kcal pro Portion (50 g (1 Riegel)), ~13 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist glutenfrei und vegan. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  67: [ // Creatine pH-X
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Wie nehme ich es ein?", a: "5 Kapseln 80 min vor dem Training mit Wasser. 2600 mg Kreatin / 5 Kapseln (aus 3000 mg CreaBASE)." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+  ],
+  68: [ // Tri Creatine Malate
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Wie nehme ich es ein?", a: "1 Portion (4,5 g) mit 200 ml Wasser oder Fruchtsaft, 20 min vor Training. Stark sauer – am besten mit Orangensaft." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+  ],
+  69: [ // CreaTor
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Wie nehme ich es ein?", a: "6 Kapseln vor dem Training mit einem Glas Wasser. Trainingsfreie Tage: 6 Kapseln zur Hauptmahlzeit." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+  ],
+  70: [ // Crea Zero
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Wie nehme ich es ein?", a: "1 Portion (8 g) in 300 ml Wasser. An Trainingstagen: 2 × 1 Portion, 15 min vor Training. Trainingsfreie Tage: 2 × 1 Portion täglich." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+  ],
+  71: [ // Mega Creatine
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Wie nehme ich es ein?", a: "6 Megakapseln täglich (= ~3 g Kreatin), 30 min vor Training. Keine Ladephase erforderlich." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+  ],
+  72: [ // BCAA + Glutamine Zero
+    { q: "Wofür brauche ich das?", a: "Kombination BCAA + Glutamin in einer Portion. L-Glutamin = häufigste freie Aminosäure im Blut, wichtig für Immun- und Darmgesundheit sowie Regeneration. BCAA für MPS-Stimulation, Glutamin für Schutz." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (12 g) vor, während oder nach dem Training in 400–500 ml Wasser. 40 Portionen / Packung." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  73: [ // BCAA 8:1:1 ZERO
+    { q: "Wofür brauche ich das?", a: "Extrem Leucin-betontes BCAA-Verhältnis 8:1:1 statt Standard 2:1:1. Leucin ist der Hauptaktivator des mTOR-Signalwegs → Proteinbiosynthese. Für Athleten, die maximale mTOR-Aktivierung suchen." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (10 g) mit 400 ml Wasser, vor oder nach Training." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  74: [ // EAA
+    { q: "Wofür brauche ich das?", a: "Alle neun essenziellen Aminosäuren in Megakapseln, geschmacksneutral und ohne Anrühren. Gleiche Aminosäuren wie das EAA Zero Pulver, praktisch für unterwegs. Ideal für Reisen oder wenn kein Shaker verfügbar." },
+    { q: "Wie dosiere ich das?", a: "5 Kapseln vor oder nach Training mit Wasser. An trainingsfreien Tagen zwischen Mahlzeiten." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  75: [ // Mega Amino
+    { q: "Wofür brauche ich das?", a: "Umfassendstes Amino-Produkt: vollständiges Profil aus Sojaprotein + Soja = alle essentiellen und nicht-essentiellen Aminosäuren. Keine freien Aminosäuren (langsamer verfügbar als EAA-Pulver), aber günstigste Aminosäurenquelle pro Gramm." },
+    { q: "Wie dosiere ich das?", a: "4 Tabletten täglich (2 Portionen à 2 Tabletten). Post-workout oder zwischen Mahlzeiten. 125 Tagesportionen." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  76: [ // Glutamine Zero
+    { q: "Wofür brauche ich das?", a: "Aromatisierte Version des 100% L-Glutamine. Identischer Wirkstoff, aber angenehmer Fruchtgeschmack → leichter zu trinken. Ideal für die, denen neutrales Glutaminpulver nicht schmeckt. 83 % Glutamin = gute Reinheit trotz Aromen." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (6 g) in 300–400 ml Wasser, vor oder nach Training. Kann in Wasser oder BCAA-Shake eingerührt werden." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  77: [ // L-Tyrosine
+    { q: "Wofür brauche ich das?", a: "L-Tyrosin = Vorstufe von Dopamin, Noradrenalin und Schilddrüsenhormonen. Verbessert mentale Leistung unter Stress und Schlafentzug. Häufig in Pre-Workout-Formeln (z.B. Black Blood NOX+). Als Einzelprodukt für präzise Dosierung. Vegan." },
+    { q: "Wie dosiere ich das?", a: "1–2 Kapseln täglich (500–1000 mg), 30–60 min vor Training oder mentalem Stress." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  78: [ // L-Tryptophan
+    { q: "Wofür brauche ich das?", a: "L-Tryptophan = einzige Vorstufe von Serotonin und Melatonin. Unterstützt natürlichen Schlaf und ausgeglichene Stimmung. Abends einzunehmen für besseren Schlaf und Erholung. Synergistisch mit Casein-Protein (Abendprotein)." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel (500 mg) täglich vor dem Schlafen oder bei Bedarf." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  79: [ // L-Lysine
+    { q: "Wofür brauche ich das?", a: "L-Lysin = essentielle Aminosäure mit schwachem Vorkommen in pflanzlichen Proteinen. Wichtige Funktion: Kollagenbiosynthese (zusammen mit Vitamin C) → Sehnen, Bänder, Knorpel, Haut." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel (500 mg) täglich oder nach Bedarf. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  81: [ // Vitamin C 1000
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich. Nicht gleichzeitig mit Eisenpräparaten (erhöht Eisenaufnahme). 250 Tagesportionen." },
+    { q: "Brauche ich das überhaupt?", a: "Hochdosis Vitamin C (1000 mg = 1250 % NRV) + natürliche Bioflavonoide als Synergisten für bessere Bioverfügbarkeit. Vitamin C: Kollagenbildung, Immunsystem, antioxidativer Schutz, Eisenaufnahme." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  82: [ // Calcium Zinc Magnesium
+    { q: "Wann nehme ich das ein?", a: "2 Tabletten täglich mit reichlich Wasser. Nicht gleichzeitig mit Eisenpräparaten." },
+    { q: "Brauche ich das überhaupt?", a: "Mineralstoffdreieck: Calcium (Knochen, Muskelkontraktionen), Zink (Testosteron, Immunsystem, Proteinsynthese), Magnesium (Muskelfunktion, Energiestoffwechsel, Schlaf). 3-in-1-Kombination günstiger als drei Einzelprodukte." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  83: [ // Tribooster
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "2 Tabletten täglich (1 Portion), 30–60 min vor Training. 60 Tagesportionen." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  84: [ // Super Lipo
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "4 Tabletten täglich in 2 Dosen (2+2). Trainingstage: 2 morgens + 2 vor Training. Trainingsfreie Tage: 2 morgens + 2 abends. Nicht nüchtern." },
+    { q: "Wie wirkt das?", a: "Koffeinfrei – geeignet für koffeinempfindliche Personen und abendliche Einnahme. Lipotrope Formel: Lecithin + L-Carnitin + CLA = Unterstützung des Fetttransports und -abbaus ohne Stimulanzien." },
+  ],
+  85: [ // Hyaluronic & Collagen
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "2 Kapseln täglich zur Mahlzeit. 60 Tagesportionen." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+  ],
+  86: [ // Chondroitin Glucosamine
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "3 Kapseln täglich mit Wasser. 20 Tagesportionen / Packung." },
+    { q: "Woraus wird das gewonnen?", a: "Glucosamin und Chondroitin stammen üblicherweise aus Schalentieren und Knorpel. Bei Schalentierallergie deshalb nicht geeignet." },
+  ],
+  87: [ // MSM + Vitamin C
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "1–2 TL (5–10 g) täglich in Wasser oder Saft. Post-workout oder morgens." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+  ],
+  88: [ // Muscle Mass
+    { q: "Wie viele Kalorien bringt eine Portion?", a: "371 kcal pro Portion (100 g)." },
+    { q: "Werde ich davon fett?", a: "Nur bei zu großem Überschuss. Der Gainer ist für alle, die über normales Essen nicht auf ihre Kalorien kommen." },
+    { q: "Wann trinke ich das?", a: "100 g mit 450–500 ml Wasser. Trainingstage: morgens + post-workout. Trainingsfreie Tage: morgens + abends." },
+  ],
+  89: [ // Carbox
+    { q: "Wie viele Kalorien bringt eine Portion?", a: "190 kcal pro Portion (50 g)." },
+    { q: "Werde ich davon fett?", a: "Nur bei zu großem Überschuss. Der Gainer ist für alle, die über normales Essen nicht auf ihre Kalorien kommen." },
+    { q: "Wann trinke ich das?", a: "50 g mit 400–500 ml Wasser vor oder nach Training. Ideal mit Kreatin kombiniert." },
+  ],
+  91: [ // Supernova
+    { q: "Wie viel nehme ich und wann?", a: "9,4 g in 200 ml Wasser, 15 min vor Training. Die Packung reicht für rund 32 Tage." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Umfassendster BTU-Pre-Workout: NO-Booster (Arginin+Citrullin), Ausdauer (Beta-Alanin), Energie (Koffein+Taurin), Kraft (Kreatin). Taurin+Koffein = synergistischer Fokusschub. 200 mg Koffein = starker Booster. Nicht für Koffeinempfindliche." },
+  ],
+  92: [ // IsoTonic
+    { q: "Wie viel nehme ich und wann?", a: "12 g in 600 ml Wasser (2 % Lösung). Während Ausdauertraining >60 min trinken." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Isotonisch = gleicher osmotischer Druck wie Blut → optimale Resorption ohne Magenbelastung. Für Laufen, Radfahren, Triathlon, Mannschaftssport. Elektrolyte ersetzen Schweißverluste." },
+  ],
+  93: [ // Fat-X
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "2 Tabletten täglich zu den Mahlzeiten. Koffeinfrei – jederzeit einsetzbar." },
+    { q: "Wie wirkt das?", a: "Stimulanzienfreieste BTU-Fatburner-Formel. Für Einstieg oder Ergänzung. Inulin für Sättigungsgefühl, HCA hemmt Fettspeicherung, Chrom stabilisiert Blutzucker. Langzeitsicher. Für empfindliche Personen und Abendeinnahme." },
+  ],
+  94: [ // Thermo Drine
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "Start: 1 Kapsel/Tag, dann auf 2 steigern. Max. 3 Kapseln/Tag. Nicht abends. Viel Wasser trinken." },
+    { q: "Wie wirkt das?", a: "Stärkster stimulanzienhaltiger Fatburner. 4 natürliche Koffeinquellen = gleichmäßiger Wirkverlauf ohne harten Peak. Yerba Mate = Thermogenese + Konzentration. Harntreibend → täglich ≥2 L Wasser." },
+  ],
+  95: [ // Thermo Drine Liquid
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "25 ml vor Training (30 min vorher), pur oder mit Wasser. Nicht abends." },
+    { q: "Wie wirkt das?", a: "Thermogener Fatburner mit Koffein aus Grüntee, Guarana und Yerba Mate, dazu L-Carnitin für den Fetttransport und B-Vitamine für den Energiestoffwechsel. Die flüssige Form wird am schnellsten aufgenommen." },
+  ],
+  96: [ // Synephrine
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich. Nicht mit anderen Stimulanzien kombinieren." },
+    { q: "Wie wirkt das?", a: "Natürliches Alkaloid aus Bitterorange. Strukturähnlich zu Ephedrin, ohne dessen Kardiorisiken. Thermogen: erhöht Grundumsatz und Fettoxidation ohne starke Stimulation." },
+  ],
+  97: [ // HCA
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "2 Kapseln, 30–60 min vor den Hauptmahlzeiten." },
+    { q: "Wie wirkt das?", a: "Reines HCA-Einzelprodukt. Hemmt Citrat-Lyase → reduziert Fetteinlagerung aus überschüssigen KH. Erhöht Serotoninausstoß → natürliche Appetitreduktion. Kein Stimulans." },
+  ],
+  98: [ // Fiber Complex
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "4 Kautabletten täglich mit mindestens 300 ml Wasser, vor Mahlzeiten für Sättigungseffekt." },
+    { q: "Wie wirkt das?", a: "Ballaststoffkomplex für Gewichtsmanagement. Flohsamenschalen quellen auf → Volumen → Sättigungsgefühl. Inulin = Präbiotikum für gesunden Darm. Pektin reguliert Blutzuckerkurve. Als Kautablette praktisch ohne Schlucken." },
+  ],
+  99: [ // Vegan Multivitamin
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich nach der Mahlzeit. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Brauche ich das überhaupt?", a: "Identische Formel wie One-A-Day, aber explizit für vegane Ernährung: erhöhter B12- und B2-Gehalt deckt typische Mangelrisiken bei Veganern. Alle Inhaltsstoffe ohne tierische Quellen." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  100: [ // Multivitamin Brausetablette
+    { q: "Wann nehme ich das ein?", a: "1 Tablette in 200 ml Wasser auflösen, täglich trinken." },
+    { q: "Brauche ich das überhaupt?", a: "Für Personen, die keine Tabletten schlucken mögen. Prickelnd-fruchtig, schnelle Resorption in Flüssigkeit. Zuckerfrei. Weniger Mineralien als One-A-Day (nur Ca + Mg), dafür praktischer für Reisen und unterwegs." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  101: [ // L-Carnitine 1000
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "1–2 Tabletten täglich, 30 min vor Training. Nicht auf nüchternem Magen." },
+    { q: "Wie wirkt das?", a: "Tablettenform von L-Carnitin für präzise Dosierung ohne Flüssigkeit. L-Carnitin-L-Tartrat = beste Bioverfügbarkeit für sportliche Anwendung. Für tägliche Grundversorgung oder als Ergänzung zu anderen Fatburnern." },
+  ],
+  102: [ // Peanut Butter
+    { q: "Wie viele Kalorien hat das?", a: "190 kcal pro Portion (32 g (2 EL)), ~8 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist ohne Zucker und vegan. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  103: [ // Protein Cream
+    { q: "Wie viele Kalorien hat das?", a: "144 kcal pro Portion (30 g (2 EL)), ~5 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Proteinreiche Schokoladen-Alternative. 17 % Protein aus Molke, Maltit statt Zucker, kein Palmöl. Knusprige Getreidestücke für Textur. Salted Caramel und Weiße Schokolade = Bestseller. Für bewusste Schokoladen-Liebhaber." },
+  ],
+  104: [ // Protein Pancake
+    { q: "Wie viele Kalorien hat das?", a: "158 kcal pro Portion (40 g), 21 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "60 % Protein in Frühstücksform. Hafermehl für langanhaltende Energie. Kein Zucker. Deutlich proteinreicher als konventionelle Pfannkuchen. Ideal zum Frühstück in Diät- und Aufbauphasen. Kombinierbar mit Protein Cream oder Peanut Butter." },
+  ],
+  105: [ // Zero Drops
+    { q: "Hat das Kalorien?", a: "Praktisch keine. Die Süßkraft kommt aus Süßstoff, nicht aus Zucker." },
+    { q: "Wie viel nehme ich?", a: "3–5 Tropfen in Wasser, Shakes, Haferflocken, Quark oder Joghurt. Sehr konzentriert." },
+    { q: "Wofür kann ich das verwenden?", a: "0 Kalorien, 0 Zucker. Hochkonzentriert: wenige Tropfen genügen. Sucralose + Stevia = kein Bittergeschmack. Ideal für Diätphasen als Geschmacksverstärker. Schokolade und Karamell = Bestseller. Nicht für heiße Speisen." },
+  ],
+  106: [ // Taurine
+    { q: "Wofür brauche ich das?", a: "Taurin = bedingt essentielle Aminosäure (in Energy Drinks verbreitet). Osmotische Regulation, Neurotransmitter (Fokus + Kognition), antioxidativ, herzprotektiv. Synergistisch mit Koffein. Als Einzelprodukt für präzise Dosierung. Vegan." },
+    { q: "Wie dosiere ich das?", a: "1–2 Kapseln täglich, vor Training. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  107: [ // HMB
+    { q: "Wofür brauche ich das?", a: "HMB = aktiver Leucin-Metabolit. Anti-katabol: hemmt Proteinabbau in Muskelzellen. Besonders wirksam bei Anfängern, Älteren und in Diätphasen. Verhindert Muskelschwund bei Kalorienreduktion. Synergistisch mit Kreatin und Leucin." },
+    { q: "Wie dosiere ich das?", a: "3 Kapseln täglich (1,5 g HMB). Post-workout oder aufgeteilt über den Tag." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  108: [ // Crispy Protein Bar
+    { q: "Wie viele Kalorien hat das?", a: "150 kcal pro Portion (40 g (1 Riegel)), ~8 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Kompaktester Riegel (40 g). Extrudiertes Milchprotein = einzigartige luftig-knusprige Textur. Leichter als Zero Bar (40 g vs. 50 g). Weißer Überzug für visuellen Kontrast. Für leichtere Zwischenmahlzeit." },
+  ],
+  110: [ // Magnesium Bisglycinate
+    { q: "Wann nehme ich das ein?", a: "3 Kapseln täglich, vorzugsweise abends. Magnesium fördert Entspannung und Schlafqualität." },
+    { q: "Brauche ich das überhaupt?", a: "Premium-Magnesium aus der Linie mit Vitaminen und Mineralstoffen aus biologischen Quellen. Bisglycinat-Form = chelatiert (an Glycin gebunden) → beste Verträglichkeit (kein Durchfall wie bei Oxid/Citrat), höchste Bioverfügbarkeit (~80 %)." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  111: [ // Liposomal Vitamin C
+    { q: "Wann nehme ich das ein?", a: "1 Kapsel täglich mit Wasser. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Brauche ich das überhaupt?", a: "Liposomales Vitamin C = Vitamin C eingeschlossen in Fettkügelchen (Liposomen) aus Phospholipiden → umgeht begrenzte Darmabsorption normaler Ascorbinsäure. Bioverfügbarkeit bis zu 90 % vs. ~30 % bei Standard-Ascorbinsäure." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  112: [ // Hair, Skin & Nails
+    { q: "Wann nehme ich das ein?", a: "1 Kapsel täglich zur Hauptmahlzeit mit einem großen Glas Wasser." },
+    { q: "Brauche ich das überhaupt?", a: "Umfassendster Beauty-Komplex: Biotin + Zink + Selen für Haare/Nägel, Vitamin C + Kupfer für Kollagen + Haut, Leinsamenöl für Fettsäurenversorgung der Haut. L-Methionin als Schwefelaminosäure = Keratin-Grundbaustein." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  113: [ // Rhodiola
+    { q: "Wofür nimmt man das?", a: "Rhodiola rosea = Adaptogen aus den arktischen Bergregionen. Klinisch am besten untersuchtes Adaptogen für physischen Stress. Rosavine + Salidroside = aktive Wirkkomponenten." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich, morgens oder vor dem Training." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  114: [ // Mushroom Complex
+    { q: "Wofür nimmt man das?", a: "Adaptogene Heilpilze erleben weltweiten Boom. Reishi = 'Pilz der Unsterblichkeit' in TCM, starke immunmodulierende Beta-Glucane. Lion's Mane = einziger Pilz mit nachgewiesenem NGF-Einfluss → Nervengesundheit, Gedächtnis." },
+    { q: "Wie dosiere ich das?", a: "2 Kapseln täglich mit Wasser, zur Mahlzeit. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  115: [ // Milk Thistle
+    { q: "Wofür nimmt man das?", a: "Silymarin = bioaktiver Wirkstoffkomplex der Mariendistel. Wissenschaftlich am besten belegter natürlicher Leberschutzstoff. Mechanismus: Hemmt Eindringen von Toxinen in Leberzellen, fördert Zellregeneration, antioxidativ." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich, zur Mahlzeit. Kurweise über 4–8 Wochen oder als Dauerergänzung." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  116: [ // Zenaya
+    { q: "Wofür nimmt man das?", a: "Premium-Adaptogen-Komplex: 7 der meistuntersuchten Stressresistenz-Pflanzen in einer Kapsel. KSM-66® = patentierter Ashwagandha-Vollspektrum-Extrakt. Panax Ginseng + Eleutherococcus = zwei Ginseng-Arten für synergistische Wirkung." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich, morgens zur Mahlzeit. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  117: [ // Liquid Curcuma
+    { q: "Wofür nimmt man das?", a: "NovaSOL® = patentiertes mizellares Kurkuma-System → Bioverfügbarkeit ~185× höher als Standard-Kurkuma-Pulver." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich. Die Packung reicht für rund 30 Tage." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  118: [ // Maca
+    { q: "Wofür nimmt man das?", a: "Maca = Kreuzblütler aus den peruanischen Anden (3500–4500 m). Adaptogen + Energiebooster + natürlicher Libido-Support. Enthält Glucosinolate + Macamide = einzigartige Bioaktivstoffe." },
+    { q: "Wie dosiere ich das?", a: "1–2 Megakapseln täglich, morgens oder vor Training." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  119: [ // L-Arginin
+    { q: "Wofür brauche ich das?", a: "L-Arginin = direkte Vorstufe von Stickstoffmonoxid (NO). NO → Gefäßerweiterung → bessere Durchblutung, Pump, Nährstoffversorgung der Muskeln. Als Einzelwirkstoff in Kapseln – für präzise Dosierung ohne die anderen Wirkstoffe im AAKG 1000." },
+    { q: "Wie dosiere ich das?", a: "3 Kapseln täglich (1500 mg L-Arginin), 30–45 min vor Training." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  121: [ // Pump Caffeine Free
+    { q: "Wie viel nehme ich und wann?", a: "11 g in 200 ml Wasser, 15–20 min vor Training. Ohne Koffein – auch abends verwendbar." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Koffeinfreie Alternative zu Black Blood CAF+. Gleiche Pump- und Fokus-Wirkung durch Citrullin, AAKG und Beta-Alanin – ohne Koffein. Ashwagandha für mentale Klarheit statt Stimulanz." },
+  ],
+  123: [ // Black Blood Shot
+    { q: "Wie viel nehme ich und wann?", a: "1 Ampulle direkt vor Training trinken. Kein Mischen nötig. Sofortwirkung." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Trinkfertige Version von Black Blood. Kein Abmessen, kein Mischen – Kappe auf und trinken. Ideal für unterwegs, Wettkampftag oder wenn kein Shaker zur Hand ist. Gleiche Wirkformel wie Black Blood CAF+: 200 mg Koffein + Taurin-Synergie." },
+  ],
+  124: [ // Caffeine + Taurine
+    { q: "Wie viel nehme ich und wann?", a: "2 Kapseln 15–30 min vor Training mit Wasser. Nicht abends." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Die reinste Pre-Workout-Formel: nur Koffein + Taurin – sonst nichts. Ideal für: Personen die keine Pulver wollen, präzise Dosierungskontrolle, Sportler die nur den Stimulanz-Effekt ohne Pump-Komponenten wollen." },
+  ],
+  125: [ // Creatine Candy
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Wie nehme ich es ein?", a: "4 Stück täglich (3 g Kreatin). Kein Wasser nötig – einfach kauen und schlucken." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+  ],
+  126: [ // Creatine Zero Effervescent
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Wie nehme ich es ein?", a: "1 Tablette in 200 ml Wasser auflösen, täglich. Vor oder nach Training – timing ist egal." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+  ],
+  129: [ // TST + GH
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "4 Kapseln täglich: 2 morgens, 2 abends. Abends vor Schlaf für GH-Puls-Unterstützung." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  130: [ // Tribulus Maximus
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "1–3 Kapseln täglich, morgens zur Mahlzeit. Nicht auf nüchternem Magen." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  131: [ // Zinc Duo
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich zur Mahlzeit. Nicht gleichzeitig mit Calcium (hemmt Zink-Absorption)." },
+    { q: "Brauche ich das überhaupt?", a: "Premium-Zink mit zwei hochwertigen Chelat-Formen. Zinkoxid (billig, ~10% BV) ist Standard – Bisglycinat + Citrat sind 6–8× besser absorbierbar. Zink ist entscheidend für: Testosteron-Synthese, Immunsystem, Wundheilung, Enzymfunktionen." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  132: [ // Multi Mineral Complex
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich zur Mahlzeit. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Brauche ich das überhaupt?", a: "Reines Mineralstoff-Supplement ohne Vitamine – ideal als Ergänzung zu Vitamin-Supplementen oder für Personen die nur Mineralien auffüllen wollen. 10 essenzielle Mineralien in einer Tablette." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  133: [ // Multivitamin For Women
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich nach der Mahlzeit. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Brauche ich das überhaupt?", a: "Unterschied zu Active Woman: Multivitamin for Women ist die Basis-Version. Active Woman hat zusätzlich pflanzliche Extrakte (Heidelbeere, Granatapfel, Rosmarinsäure) für umfassendere Frauengesundheit." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  134: [ // One-A-Day 50+ For Men
+    { q: "Wann nehme ich das ein?", a: "1 Paket täglich zur Hauptmahlzeit. 30-Tage-Versorgung." },
+    { q: "Brauche ich das überhaupt?", a: "Speziell für Männer ab 50 formuliert: erhöhte Dosen der kritischsten Nährstoffe für diese Altersgruppe. Vitamin D3 + K2 gemeinsam für Knochendichte. B12 erhöht (Aufnahme sinkt mit Alter). Lycopin für Prostataversorgung." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  135: [ // Iron Professional
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich zur Mahlzeit. Nicht mit Kalzium, Kaffee oder Tee kombinieren (hemmt Eisenaufnahme)." },
+    { q: "Brauche ich das überhaupt?", a: "Eisen für: Frauen (Menstruation-Verluste), Veganer (kein Hämeisen aus Fleisch), Leistungssportler (Fußläufer haben höhere Verluste), Schwangere." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  136: [ // Lifelong 360°
+    { q: "Wann nehme ich das ein?", a: "3 Kapseln täglich zur Hauptmahlzeit. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Brauche ich das überhaupt?", a: "All-in-One-Gesundheitsformel – das kompletteste BTU-Supplement. Vitamine + Mineralien + Omega 3 + Q10 + Pflanzenextrakte in einem Produkt. Für Personen die nur eine Packung für alles wollen." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  137: [ // MultiSalt
+    { q: "Wann nehme ich das ein?", a: "1–2 Tabletten während langer Ausdauereinheiten mit viel Wasser. Bei Hitze: 1 Tablette je 500 ml Schweiß." },
+    { q: "Brauche ich das überhaupt?", a: "Reine Elektrolyt-Tabletten ohne Kalorien oder Aromen. Ideal für Ausdauersportler die gezielt Elektrolyte auffüllen ohne extra KH. Günstiger und flexibler als fertige Elektrolytgetränke." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  138: [ // CLA 400
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "2 Kapseln täglich zu den Mahlzeiten. Langfristige Einnahme (3–6 Monate) für sichtbare Ergebnisse." },
+    { q: "Wie wirkt das?", a: "CLA = natürlich vorkommende trans-Fettsäure in Milch und Fleisch von Wiederkäuern. Mechanismus: moduliert Fettmetabolismus-Gene, kann Fettmasse reduzieren und Muskelmasse leicht erhöhen. Kein Stimulans – sicher dauerhaft einnehmbar." },
+  ],
+  139: [ // Carni Elite
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "1 Ampulle täglich, 30 min vor Training. Pur trinken oder mit Wasser." },
+    { q: "Wie wirkt das?", a: "Premium-Carnitin mit 3 verschiedenen L-Carnitin-Formen für breites Wirkprofil. L-Carnitin-Tartrat: Muskelregeneration + Fettstoffwechsel. Acetyl-L-Carnitin: überquert Blut-Hirn-Schranke → Fokus + kognitive Energie." },
+  ],
+  140: [ // L-Carnitine Drink Powder
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "~7 g in 200 ml Wasser, 30 min vor Cardio oder Mahlzeit." },
+    { q: "Wie wirkt das?", a: "L-Carnitin als aromatisiertes Pulver – eine Alternative zur Ampulle (L-Carnitine 3000). Gleiche Dosis (3000 mg), angenehm süßlich, günstiger pro Portion als Ampullen. Ideal für tägliche Einnahme über längeren Zeitraum." },
+  ],
+  141: [ // Liver Aid
+    { q: "Wofür nimmt man das?", a: "Kombinierter Leberschutz-Komplex. Silymarin (Mariendistel) = Nr. 1 belegter natürlicher Leberschutzstoff. Artischocke fördert Gallenproduktion und Leberzellregeneration. Löwenzahn diuretisch – hilft Leber bei Entgiftung." },
+    { q: "Wie dosiere ich das?", a: "2 Kapseln täglich zu den Mahlzeiten. Kurweise 8–12 Wochen." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  142: [ // Shilajit
+    { q: "Wofür nimmt man das?", a: "Shilajit = natürliches Harz aus dem Gebirge (Jahrmillionen alter pflanzlicher Materie). Enthält Fulvinsäure als wichtigsten Wirkstoff: verbessert Mineralien-Transport in Zellen, starkes Antioxidans." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich morgens. Am besten täglich und über mehrere Wochen, sonst zeigt sich kein Effekt." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  143: [ // GABA
+    { q: "Wann nehme ich das ein?", a: "2 Kapseln täglich, 30–60 min vor dem Schlafen." },
+    { q: "Brauche ich das überhaupt?", a: "GABA = wichtigster inhibitorischer Neurotransmitter. Oral eingenommen überquert es die Blut-Hirn-Schranke begrenzt, wirkt aber über enterisches Nervensystem und vagalen Nerv." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  144: [ // Zero Sauce
+    { q: "Hat das Kalorien?", a: "Praktisch keine. Die Süßkraft kommt aus Süßstoff, nicht aus Zucker." },
+    { q: "Wie viel nehme ich?", a: "Beliebig dosieren – kalorienfreier Genuss ohne Einschränkung." },
+    { q: "Wofür kann ich das verwenden?", a: "Kalorienfreie Soße als Ketchup-/Mayo-Ersatz. Für Diätphasen und Definitionsperioden: Mahlzeiten schmackhafter machen ohne Kalorien. Ideal zu Chicken Breast, Reis, Proteinkuchen, Pancakes. Keine Zucker, keine Kalorien – nur Geschmack." },
+  ],
+  145: [ // Zero Syrup
+    { q: "Hat das Kalorien?", a: "Praktisch keine. Die Süßkraft kommt aus Süßstoff, nicht aus Zucker." },
+    { q: "Wie viel nehme ich?", a: "Beliebig – als Sirup über Pancakes, in Shakes oder Joghurt." },
+    { q: "Wofür kann ich das verwenden?", a: "Zero Drops in Sirupform – dickflüssiger für Pancakes, Eisporridge, Haferflocken. Maple-Geschmack = Protein-Pancake-Klassiker ohne Kalorien. Karamell über Quark, Schokolade in Shakes." },
+  ],
+  146: [ // Flavour Power
+    { q: "Hat das Kalorien?", a: "Praktisch keine. Die Süßkraft kommt aus Süßstoff, nicht aus Zucker." },
+    { q: "Wie viel nehme ich?", a: "1–2 g in Quark, Haferflocken, Shakes, Joghurt oder Backwaren einrühren. Sehr konzentriert." },
+    { q: "Wofür kann ich das verwenden?", a: "Hochkonzentriertes Aromapulver – die Alternative zu Zero Drops. Für Personen die keine Tropfen mögen oder feste Aromen für Backwaren brauchen. Funktioniert bei Hitze (im Gegensatz zu Sucralose in Drops ist hier die Hitzestabilität besser)." },
+  ],
+  147: [ // Rice Pudding
+    { q: "Wie viele Kalorien hat das?", a: "146 kcal pro Portion (40 g (4 EL Pulver)), ~2,4 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist laktosefrei, glutenfrei, ohne Zucker und vegan. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  148: [ // Protein Oatmeal
+    { q: "Wie viele Kalorien hat das?", a: "~190 kcal pro Portion (50 g), ~15 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Klassische Haferflocken mit doppeltem Proteingehalt. 30% Protein statt üblicher 12–15% in normalem Hafer. Beta-Glucan aus Hafer: belegt cholesterinsenkend + präbiotisch. Ideales Frühstück für Sportler: langsame KH + hohe Proteindichte." },
+  ],
+  149: [ // Oat & Fruits Zero
+    { q: "Wie viele Kalorien hat das?", a: "~170 kcal pro Portion (50 g), ~7 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  150: [ // Energy Gel PRO
+    { q: "Wie viel nehme ich und wann?", a: "1 Gel direkt aus dem Sachet während Training. Mit Wasser nachspülen. Ab 45–60 min Belastung alle 30–45 min." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "PRO-Version mit BCAAs zusätzlich zu Standard-Gel. Für Wettkampfausdauersport: Laufen, Triathlon, Radfahren ab 45 min Belastung. Keine Zubereitung – direkt aus dem Sachet. Isotonisch formuliert. Koffein-Version für letzten Schub im Rennen." },
+  ],
+  151: [ // AAKG 7800
+    { q: "Wie viel nehme ich und wann?", a: "3 Tabletten 30–45 min vor Training. Doppelt so stark wie AAKG 1000 (24 Tabletten nötig – nicht praktisch)." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Megadosis-AAKG in 3 Tabletten – praktischste AAKG-Supplemetierung im Portfolio. AAKG 1000 = 1 g/Tablette (3 g/3 Tabletten). AAKG 7800 = 7,8 g/3 Tabletten. Alpha-Ketoglutarat verbessert Arginin-Bioverfügbarkeit." },
+  ],
+  152: [ // Ashwa+
+    { q: "Wofür nimmt man das?", a: "Ashwa+ ist die BTU-Eigenentwicklung: KSM-66 Ashwagandha PLUS Magnesium + B6 + Zink in einer Kapsel. Direkter Vorteil gegenüber reinem Ashwagandha (id 44): Synergistische Wirkung. Magnesium + B6 verstärken Cortisol-Senkung." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich morgens oder abends zur Mahlzeit." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  153: [ // GH Hormon Regulator
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "4 Kapseln abends vor dem Schlafen (30–60 min). Nüchtern oder leichter Magen für beste Wirkung." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  154: [ // Magna Shot
+    { q: "Wie viel nehme ich und wann?", a: "1 Shot (100 ml) 15–20 min vor Training oder als Energie-Boost. Kein Mischen nötig." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Kompakter Energy-Shot im 100-ml-Format. Weniger Koffein als Black Blood Shot (80 mg vs. 200 mg) – milder, für leichteres Pre-Workout-Boost oder als Ersatz für Energy Drinks. Kein Zucker." },
+  ],
+  155: [ // Whey Shake
+    { q: "Wie viel Protein steckt in einer Portion?", a: "~23 g Protein pro Portion (33 g), ~125 kcal. Die Packung reicht für rund 30 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "33 g mit 250 ml Wasser oder Milch. Post-workout oder zwischen Mahlzeiten." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  157: [ // 100% Creatine Monohydrate Yuzu
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Wie nehme ich es ein?", a: "5 g in 250 ml Wasser täglich. Timing egal. Kein Laden nötig." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+  ],
+  158: [ // Iso Whey Zero Natural
+    { q: "Wie viel Protein steckt in einer Portion?", a: "20 g Protein pro Portion (25 g), 94 kcal. Die Packung reicht für rund 36 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (25 g) mit 200 ml Wasser, post-workout oder morgens." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist laktosefrei, glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  159: [ // Micellar Casein
+    { q: "Wie viel Protein steckt in einer Portion?", a: "22 g Protein pro Portion (30 g), 105 kcal. Die Packung reicht für rund 30 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (25 g) vor dem Schlafen mit 300 ml Wasser oder Milch. Kann auch zwischen Mahlzeiten genommen werden." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist glutenfrei und ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  161: [ // Wave Shaker
+    { q: "Woraus besteht das?", a: "Material: PP-Polypropylen (BPA- und DEHP-frei), lebensmittelsicher, EU-Fertigung." },
+    { q: "Wofür brauche ich das?", a: "Der BTU-Standard-Shaker. Eingebauter gewölbter Siebeinsatz löst Pulver klumpenfrei auf. Doppelter Schraubverschluss (Deckel + Kappe) – auslaufsicher. Mikrowellen- und gefrierkompatibel. Spülmaschinenfest. 5+ Farben." },
+    { q: "Kann ich das in die Spülmaschine geben?", a: "Ja, im Oberkorb. Nach dem Ausspülen offen trocknen lassen, dann bleibt nichts zurück." },
+  ],
+  162: [ // Wave Plus Shaker
+    { q: "Woraus besteht das?", a: "Material: PP-Polypropylen (BPA- und DEHP-frei), EU-Fertigung." },
+    { q: "Wofür brauche ich das?", a: "Wave Plus = 3-Kammer-Shaker: 600 ml Trinken + 200 ml Pulverfach + 150 ml Tablettenbox. Alles für ein Training in einem Shaker. Mix & Match: Kammern sind austauschbar kombinierbar. Gleicher eingebauter Siebeinsatz wie Wave Shaker." },
+    { q: "Kann ich das in die Spülmaschine geben?", a: "Ja, im Oberkorb. Nach dem Ausspülen offen trocknen lassen, dann bleibt nichts zurück." },
+  ],
+  163: [ // Wave Plus Compact Shaker
+    { q: "Wofür brauche ich das?", a: "Kleinster Shaker im Wave-Sortiment – für Reisen, Handtasche, kleine Sporttasche. Supplement-Fach trotzdem vorhanden. Für Kunden die nicht den großen 600-ml-Shaker brauchen. Passt in alle Flaschenhalter." },
+    { q: "Kann ich das in die Spülmaschine geben?", a: "Ja, im Oberkorb. Nach dem Ausspülen offen trocknen lassen, dann bleibt nichts zurück." },
+    { q: "Was zeichnet das Modell aus?", a: "Kompakt-Shaker mit Fach (500 ml + 150 ml, reisefreundlich, BPA-frei)" },
+  ],
+  164: [ // Wave+ Nano Shaker
+    { q: "Wofür brauche ich das?", a: "Kleinster Shaker in der Wave-Familie. Für eine Portion oder als Shot-Shaker für Ampullen und kleine Portionen. 4 Farben. Ideal als Ergänzungsprodukt zum Hauptshaker. Beliebtes kleines Mitbringsel/Add-on bei Produktkäufen." },
+    { q: "Kann ich das in die Spülmaschine geben?", a: "Ja, im Oberkorb. Nach dem Ausspülen offen trocknen lassen, dann bleibt nichts zurück." },
+    { q: "Was zeichnet das Modell aus?", a: "Mini-Shaker (300 ml + 150 ml Fach, BPA-frei)" },
+  ],
+  165: [ // Gallon 2200 ml
+    { q: "Woraus besteht das?", a: "Material: LDPE (BPA- und DHP-frei)." },
+    { q: "Wofür brauche ich das?", a: "Die Gallon-Flasche für Sportler die ihr tägliches Trinkziel sichtbar tracken wollen. 2,2 Liter übertrifft die empfohlene Tagesmenge. Auch als IsoTonic- oder Amino-Energy-Träger für längere Sessions ideal. Beliebtes Gym-Accessoire." },
+    { q: "Was zeichnet das Modell aus?", a: "Gallon-Wasserflasche (2,2 Liter, BPA- und DHP-frei, breite Öffnung)" },
+  ],
+  201: [ // Anabole Androgene Steroide (AAS)
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. Kunden fragen im Laden oft nach 'echten Steroiden', 'Testo-Kuren' oder verwenden Begriffe wie 'Saft', 'Gear', 'Pins', 'Cruise & Blast'." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  202: [ // SARMs (Selective Androgen Receptor Modulators)
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. SARMs werden im Internet massiv als 'legale Steroide' oder 'natürliche Alternativen' vermarktet. Das ist falsch. Sie sind weder AMG-konform noch als NEM legal." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  203: [ // Peptid-Hormone (EPO, HCG, LH, Insulin)
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. Kunden fragen gelegentlich nach HCG 'für die PCT' – das ist ein klares Signal für laufenden AAS-Missbrauch. Korrekte Reaktion: Keine Empfehlung, auf Arzt verweisen." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  204: [ // Clenbuterol & Verbotene Beta-2-Agonisten
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. Kunden fragen nach 'Clen' als Fatburner – populär aus Bodybuilding-Foren. Risiken: Herzrhythmusstörungen, Krämpfe, Hypertonie, Zittern. KEINE Empfehlung." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  205: [ // Diuretika & Maskierungsmittel
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. Bodybuilder nutzen Diuretika zur Wasserausschwemmung vor Wettkämpfen ('Stage-Lean'). Risiko: Elektrolytentgleisung, Herzstillstand (bekannt von Bodybuilder-Todesfällen auf der Bühne)." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  206: [ // Verbotene Stimulanzien (WADA S6)
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. Kunden fragen manchmal nach 'starken Pre-Workouts' und meinen DMAA-haltige Produkte. Diese sind in DE seit 2012 verboten." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  211: [ // HGH / Somatotropin (Wachstumshormon)
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. HGH-Kunden verwenden Begriffe wie 'Wachstumshormon', 'GH-Kur', 'Somatropin', 'blaue Tops/grüne Tops' (Farbe der Injektionsnadel-Kappe)." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  212: [ // GH-Releasing-Peptide (GHRP & GHRH-Analoga)
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. Kunden fragen oft nach 'GHRP' oder 'CJC' als 'günstigere GH-Alternative'. Klare Antwort: illegal, WADA-verboten, kein Produkt im BTU-Portfolio." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  213: [ // MK-677 / Ibutamoren (Orales GH-Sekretagogum)
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. MK-677 ist das am häufigsten gefragte Graumarktprodukt im Bereich Muskelaufbau. Kunden nennen es 'MK', 'Ibuta', 'das orale GH'." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  214: [ // IGF-1, Mechano-Wachstumsfaktoren & Analoga
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. Kunden sprechen von 'IGF', 'LR3', 'MGF'. Seltener als HGH/SARMs, aber in ernsthaften Bodybuilding-Kreisen verbreitet. Das Hypoglykämie-Risiko ist real und mit dem von Insulin vergleichbar." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  215: [ // Legale Alternativen – Was BTU für GH & Testosteron bietet
+    { q: "Ist das erlaubt?", a: "Nein. Die Substanz steht auf der WADA-Verbotsliste und ist in Deutschland verschreibungspflichtig oder nicht zugelassen. Wir verkaufen und empfehlen sie nicht." },
+    { q: "Warum steht das dann in der Datenbank?", a: "Zur Aufklärung im Beratungsgespräch. Wenn Kunden nach HGH, Steroiden oder SARMs fragen: ehrlich sein. Keine BTU-Alternative repliziert die Wirkung." },
+    { q: "Was kann ich stattdessen empfehlen?", a: "Legale Wege: ausreichend Protein, Kreatin, Schlaf und ein sauberer Trainingsplan. Bei medizinischen Fragen an den Arzt verweisen." },
+  ],
+  216: [ // Protein Bar
+    { q: "Wie viele Kalorien hat das?", a: "128 kcal pro Portion (35 g (1 Riegel)), ~11 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist glutenfrei. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  217: [ // Protein Max
+    { q: "Wie viele Kalorien hat das?", a: "180 kcal pro Portion (45 g (1 Riegel)), ~13 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist glutenfrei. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  218: [ // BCAA Shot
+    { q: "Wofür brauche ich das?", a: "Trinkfertiger BCAA-Shot mit Aminosäuren im Verhältnis 2:1:1 und zusätzlichem Arginin, im 60-ml-Format für unterwegs – kein Shaker nötig. Ideal als kompakter BCAA-Boost mit Arginin." },
+    { q: "Wie dosiere ich das?", a: "1 Ampulle direkt vor oder während des Trainings trinken. Kein Mischen nötig." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  219: [ // Liquid BCAA
+    { q: "Wofür brauche ich das?", a: "Trinkfertige BCAA-Lösung mit zusätzlichen Aminosäuren (AAKG, Lysin, Ornithin) und B-Vitaminen. Praktisch für Nutzer, die kein Pulver mögen. 1000-ml-Flasche reicht für ~33 Tage." },
+    { q: "Wie dosiere ich das?", a: "Tagesdosis: 2 × 30 ml (morgens und nach dem Training). Pur oder in Wasser einrühren." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  220: [ // Glutamine Peptide
+    { q: "Wofür brauche ich das?", a: "Glutaminpeptide haben höhere Bioverfügbarkeit als freies L-Glutamin, da sie als Di-/Tripeptide im Darm stabiler sind. 180 Mega-Kapseln reichen für 20 Portionen." },
+    { q: "Wie dosiere ich das?", a: "9 Kapseln täglich mit viel Wasser. Auf Trainingstagen nach dem Training." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  221: [ // CA-HMB 3000
+    { q: "Wofür brauche ich das?", a: "Pulverform von HMB. HMB ist ein Leucin-Metabolit und hemmt den Muskelprotein-Abbau (Antikatabolikum). Besonders relevant bei Kaloriendefizit, intensivem Training oder für Einsteiger. Pulver erlaubt flexiblere Dosierung als Kapseln." },
+    { q: "Wie dosiere ich das?", a: "3 g täglich mit Wasser oder Saft. Kann auf 1–3 Einnahmen aufgeteilt werden." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  222: [ // NAC
+    { q: "Wofür brauche ich das?", a: "NAC ist Vorläufer von Glutathion – dem körpereigenen Hauptantioxidans. Unterstützt oxidativen Stress-Schutz, Lebergesundheit und Immunfunktion. Relevant für intensiv Trainierende und Personen mit erhöhtem Oxidationsstress." },
+    { q: "Wie dosiere ich das?", a: "1 Tablette täglich mit viel Wasser zur Mahlzeit." },
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+  ],
+  223: [ // AAKG Shock
+    { q: "Wie viel nehme ich und wann?", a: "9,5 ml unverdünnt direkt vor dem Training. Fertiggetränk – kein Mischen nötig." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Konzentriertes AAKG-Fertiggetränk. 1000-ml-Flasche reicht für ~105 Portionen. Ideal als Pump-Booster für Kunden ohne Pulverprodukte. Magnesium unterstützt Muskelfunktion. Günstigste AAKG-Option im Sortiment." },
+  ],
+  224: [ // Thermo Shot
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "1 Portion (30 ml) ca. 30 Min. vor dem Training. Max. 2 Portionen täglich." },
+    { q: "Wie wirkt das?", a: "Kompakter RTD-Shot für Fettverbrennung und Pre-Workout. Kombiniert L-Carnitin, Koffein (Guarana + Grüner Kaffee), L-Citrullin und Kreatin. Enthält Synephrin – nicht für Kinder, Schwangere und Herzpatienten." },
+  ],
+  225: [ // Desert
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "2 × 1 Kapsel täglich (morgens und mittags). Viel Wasser trinken." },
+    { q: "Wie wirkt das?", a: "Entwässerungskomplex mit natürlichen Pflanzenstoffen (Löwenzahn, Wacholder, Petersilie) plus Magnesium und Koffein. Kurzfristige Unterstützung bei Wassereinlagerungen, z. B. vor Wettkämpfen. Kein Dauereinsatz empfohlen." },
+  ],
+  226: [ // Pyruvate
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "3 Kapseln täglich aufgeteilt über den Tag. Mit viel Wasser." },
+    { q: "Wie wirkt das?", a: "Pyruvat ist Zwischenprodukt im Energiestoffwechsel (Glykolyse). Wird als Ergänzung zur Unterstützung des Fettabbaus und der Ausdauer eingesetzt. Evidenzlage moderat – am besten kombiniert mit Low-Carb-Ernährung und Training." },
+  ],
+  227: [ // Chromium Picolinate
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich zur Mahlzeit. Die Packung reicht für rund 60 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Hochdosiertes Chrom-Picolinat. Chrom trägt zu normalem Makronährstoff-Stoffwechsel und zur Aufrechterhaltung eines normalen Blutzuckerspiegels bei. Relevant bei Low-Carb-Diäten und für Diabetiker-Prävention." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  228: [ // Glucomannan + Chromium
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "3 × 2,5 g täglich je 30 Min. vor den Mahlzeiten in mind. 300 ml Wasser auflösen." },
+    { q: "Wie wirkt das?", a: "Glucomannan ist laut EFSA-Zulassung nachweislich wirksam zur Gewichtskontrolle bei kalorienreduzierter Ernährung (3 g/Tag). Einziges EU-zugelassenes Supplement für Gewichtsreduktions-Claim." },
+  ],
+  229: [ // L-Carnitine Effervescent
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "1 Brausetablette in 200 ml Wasser auflösen. Täglich, bevorzugt vor dem Training." },
+    { q: "Wie wirkt das?", a: "Erfrischende L-Carnitin-Brausetabletten. 335 mg L-Carnitin pro Tablette – für Einsteiger oder als On-the-Go-Option. L-Carnitin-L-Tartrat ist stabiler als freies Carnitin. Alternative zu Ampullen und Kapseln." },
+  ],
+  230: [ // L-Carnitine + Chrome Liquid
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "15 ml täglich vor dem Training pur oder mit Wasser. Flasche schütteln." },
+    { q: "Wie wirkt das?", a: "Flüssiges Carnitin mit hochdosiertem Chrom (375 % NRW) und Vitamin B5. Chrom unterstützt Insulinstoffwechsel, B5 den Energiestoffwechsel. Gute Bioverfügbarkeit im Liquid-Format." },
+  ],
+  231: [ // L-Carnitine + Chrome Caps
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "2 Kapseln täglich, bevorzugt vor dem Training." },
+    { q: "Wie wirkt das?", a: "1000 mg L-Carnitin aus L-Carnitin-L-Tartrat pro 2 Kapseln, kombiniert mit 20 µg Chrom (50 % NRV). Chrom trägt zu einem normalen Makronährstoff-Stoffwechsel und zur Aufrechterhaltung eines normalen Blutzuckerspiegels bei." },
+  ],
+  232: [ // Eggshell Membrane
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "1 Kapsel täglich zu einer Mahlzeit. Die Packung reicht für rund 60 Tage." },
+    { q: "Woraus wird das gewonnen?", a: "Glucosamin und Chondroitin stammen üblicherweise aus Schalentieren und Knorpel. Bei Schalentierallergie deshalb nicht geeignet." },
+  ],
+  233: [ // MSM Chondroitin Glucosamine
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "2 Tabletten täglich zur Mahlzeit. Die Packung reicht für rund 30 Tage." },
+    { q: "Woraus wird das gewonnen?", a: "Glucosamin und Chondroitin stammen üblicherweise aus Schalentieren und Knorpel. Bei Schalentierallergie deshalb nicht geeignet." },
+  ],
+  234: [ // GH
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "4 Kapseln täglich, bevorzugt auf nüchternen Magen oder vor dem Schlafengehen." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  235: [ // Panax Ginseng
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "1 Kapsel täglich. Die Packung reicht für rund 60 Tage." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  236: [ // Saw Palmetto
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "2 Kapseln täglich zur Mahlzeit. Die Packung reicht für rund 30 Tage." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  237: [ // Fenugreek
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "2 Kapseln täglich zur Mahlzeit. Die Packung reicht für rund 30 Tage." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  238: [ // Aquamin Calcium
+    { q: "Wann nehme ich das ein?", a: "1 Portion (8 g) täglich in Wasser einrühren. Die Packung reicht für rund 30 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Premium-Calcium-Supplement mit Aquamin® F – mariner Calciumkomplex aus Meeresalgen mit natürlich vorhandenen Begleitmineralien (Magnesium, Spurenelemente). Bessere Bioverfügbarkeit als Calciumcarbonat. Vegan. Enthält Matcha." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  239: [ // Omega-3 Triglycerides
+    { q: "Wann nehme ich das ein?", a: "2 Softgelkapseln täglich zur Mahlzeit. Die Packung reicht für rund 30 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Premium-Omega-3 in natürlicher Triglyzerid-Form (höhere Bioverfügbarkeit als Ethylester). Sehr hoher Omega-3-Gehalt: 80 % pro Gramm Fischöl (vs. ~30 % bei Standard-Fischöl). EPA:DHA = 4:3. Für Herz, Gehirn und Entzündungsregulation." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  240: [ // One-A-Day Kids
+    { q: "Wann nehme ich das ein?", a: "1 Kautablette täglich für Kinder ab 3 Jahren." },
+    { q: "Brauche ich das überhaupt?", a: "Multivitamin-Kautabletten für Kinder mit 13 Vitaminen + Mangan, Selen, Zink. Erdbeere-Himbeere-Geschmack. Ohne Aspartam. 90 Stück = 3 Monate Vorrat." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  241: [ // Vitabolic
+    { q: "Wann nehme ich das ein?", a: "1 Tablette täglich zur Mahlzeit. Die Packung reicht für rund 30 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "All-in-One-Multivitamin mit sehr hohem B12 (200 µg = 8000 %) und Vitamin E. Enthält Rutin, Bioflavonoide und Inositol als Extras. 30 Tage Vorrat." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  242: [ // Vitamin Complex
+    { q: "Wann nehme ich das ein?", a: "1 Kapsel täglich zur Mahlzeit. Die Packung reicht für rund 60 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Kompaktes Multivitamin-Mineral-Präparat. Alle 13 Vitamine + 7 Mineralien in einer Kapsel. Basis-Supplement für tägliche Mikronährstoff-Versorgung. 2 Monate Vorrat pro Packung." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  243: [ // Vitamin C 500
+    { q: "Wann nehme ich das ein?", a: "1 Kautablette täglich. Die Packung reicht für rund 120 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Vitamin-C-Kautabletten mit 500 mg pro Tablette. 3 Geschmacksrichtungen in einer Packung. Ideal für Kunden, die keine großen Tabletten schlucken möchten. 120 Tabletten = 4 Monate Vorrat." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  244: [ // Vitamin C Effervescent
+    { q: "Wann nehme ich das ein?", a: "1 Brausetablette in 200 ml Wasser auflösen, täglich." },
+    { q: "Brauche ich das überhaupt?", a: "Erfrischende Vitamin-C-Brausetabletten mit 1000 mg. Schnelle Resorption durch flüssige Einnahme. 20 Tabletten." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  245: [ // Magnesium+Chelate
+    { q: "Wann nehme ich das ein?", a: "1 Kapsel täglich. Die Packung reicht für rund 60 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Cheliertes Magnesium in Kapselform. Cheliert = an Aminosäuren gebunden → deutlich bessere Bioverfügbarkeit als Magnesiumoxid oder -carbonat. Gut verträglich, kaum abführende Wirkung." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  246: [ // Neuro
+    { q: "Wann nehme ich das ein?", a: "2 Kapseln täglich, bevorzugt morgens. Die Packung reicht für rund 30 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Umfassender Nootropika-Komplex mit Ginkgo, Bacopa, Rhodiola, Grüntee und Guarana plus B-Vitaminen und Mineralien. Unterstützt Konzentration, Gedächtnis und mentale Klarheit. Niedrige Koffeinmenge (~20 mg) – auch nachmittags einnehmbar." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  247: [ // Men's Arginine
+    { q: "Ist das ein Steroid?", a: "Nein. Es sind pflanzliche Extrakte und Mikronährstoffe, frei verkäuflich und nicht auf der WADA-Liste." },
+    { q: "Wie nehme ich es ein?", a: "6 Kapseln täglich aufgeteilt auf 2 Einnahmen (morgens und mittags)." },
+    { q: "Wie schnell wirkt das?", a: "Wer einen Mangel hat, etwa bei Zink oder Vitamin D, merkt am ehesten etwas. Bei gutem Ausgangswert sind die Effekte klein." },
+  ],
+  248: [ // Valeriana Forte
+    { q: "Wofür nimmt man das?", a: "Pflanzlicher Schlaf- und Anti-Stress-Komplex ohne Melatonin. Baldrian + Melisse + Hopfen = klassische schlaffördernde Kombination. Rhodiola als Adaptogen. Magnesium und B6 für Nervensystem." },
+    { q: "Wie dosiere ich das?", a: "2–3 Tabletten täglich, bevorzugt 30–60 Min. vor dem Schlafengehen." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  249: [ // Vitamin E
+    { q: "Wann nehme ich das ein?", a: "1 Softgelkapsel täglich zur fetthaltigen Mahlzeit (fettlöslich)." },
+    { q: "Brauche ich das überhaupt?", a: "Hochdosiertes Vitamin E in Softgelform. 200 mg für oxidativen Stressschutz, Zellmembranen und Muskelregeneration. Relevant bei intensivem Sport. Immer mit fetthaltiger Mahlzeit nehmen." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  250: [ // Night
+    { q: "Wann nehme ich das ein?", a: "2 Kapseln 30–60 Min. vor dem Schlafen einnehmen." },
+    { q: "Brauche ich das überhaupt?", a: "Schlafformel ohne synthetisches Melatonin. Sauerkirsche enthält natürliches Melatonin und ist klinisch schlaffördernd belegt. L-Tryptophan = Vorläufer von Serotonin und endogenem Melatonin. Keine Abhängigkeit, kein Morning-After-Effekt." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  251: [ // Q10 Coenzyme
+    { q: "Wann nehme ich das ein?", a: "1 Kapsel täglich zur fetthaltigen Mahlzeit. Die Packung reicht für rund 60 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Reines CoQ10, 100 mg pro Kapsel. CoQ10 ist Schlüsselmolekül der mitochondrialen Energieproduktion (ATP-Synthese) und fettlösliches Antioxidans. Besonders relevant ab 40, für Statinnutzer und intensiv Trainierende." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  252: [ // H2O Q10
+    { q: "Wann nehme ich das ein?", a: "1 Softgelkapsel täglich zur Mahlzeit. Die Packung reicht für rund 60 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "CoQ10 kombiniert mit Antioxidantien-Komplex. Synergistische Schutzwirkung: CoQ10 schützt Mitochondrien, Vit C und E schützen wässrige und fettlösliche Phasen, Selen aktiviert Glutathionperoxidase. Für intensiv Trainierende und Ältere." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  253: [ // Digestion & Metabolism
+    { q: "Wann nehme ich das ein?", a: "2 Tabletten täglich zur Mahlzeit. Die Packung reicht für rund 30 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Verdauungsunterstützungs-Komplex mit Pflanzenextrakten (Knoblauch, Ingwer, Kurkuma, Zimt) und Verdauungsenzymen (Bromelain, Papain). Kurkuma 200 mg Curcuminoide – entzündungshemmend. Ideal nach Diätphase oder bei empfindlicher Verdauung." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  254: [ // Pumpkin Seed Oil
+    { q: "Wann nehme ich das ein?", a: "1 Softgelkapsel täglich zur Mahlzeit. Die Packung reicht für rund 60 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Kaltgepresstes Kürbiskernöl reich an ungesättigten Fettsäuren, Vitamin E, Phytosterolen und Cucurbitin. Unterstützt Prostatagesundheit und Haarwachstum. Ergänzend zu Saw Palmetto für männliche Prostata-Unterstützung." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  255: [ // Immune+Biotiq
+    { q: "Wann nehme ich das ein?", a: "1 Immune-Kapsel + 1 Biotiq-Kapsel täglich. Kühl lagern." },
+    { q: "Brauche ich das überhaupt?", a: "Doppelpack aus probiotischen Kapseln und Immun-Kapseln. 10 Mrd. KBE aus 4 klinisch erprobten Stämmen + Pflanzenstoffe + Vit C/D/Zink. Ideal während Erkältungssaison oder nach Antibiotikabehandlung." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  256: [ // Biotiq C
+    { q: "Wann nehme ich das ein?", a: "1 Kapsel täglich, morgens auf nüchternen Magen. Kühl lagern." },
+    { q: "Brauche ich das überhaupt?", a: "Einfaches Probiotikum mit 10 Mrd. KBE aus 4 klinisch erprobten Stämmen plus Vitamin C. Günstigere Alternative zum Immune+Biotiq-Kombipack. Für tägliche Darm-Mikrobiom-Pflege." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  257: [ // Ginkgo Biloba
+    { q: "Wofür nimmt man das?", a: "Standardisierter Ginkgo-Extrakt (24 % Flavonolglykoside, 6 % Terpenolide). Unterstützt Hirndurchblutung, Konzentration und kognitive Leistung. Auch für periphere Durchblutung. 90 Tabletten = 3 Monate." },
+    { q: "Wie dosiere ich das?", a: "1 Tablette täglich. Die Packung reicht für rund 90 Tage." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  258: [ // Green Coffee
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wie dosiere ich das?", a: "2 Kapseln täglich vor dem Frühstück. Die Packung reicht für rund 60 Tage." },
+    { q: "Wie wirkt das?", a: "Grüner Kaffee-Extrakt mit 50 % Chlorogensäure. Chlorogensäure hemmt Glukose-6-Phosphatase und verlangsamt Glukoseaufnahme – dadurch blutzuckersenkende und fettverbrennende Wirkung. Chrom für Insulinstoffwechsel." },
+  ],
+  259: [ // Resveratrol
+    { q: "Wofür nimmt man das?", a: "Hochdosiertes trans-Resveratrol (bioaktive Form aus Rotwein/Weintrauben). Aktiviert Sirtuine (Longevity-Gene). Antioxidativ, entzündungshemmend, kardioprotektiv. Relevant für Anti-Aging, Herzgesundheit und Insulinsensitivität." },
+    { q: "Wie dosiere ich das?", a: "1 Kapsel täglich. Die Packung reicht für rund 60 Tage." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  260: [ // Spirulina
+    { q: "Wofür nimmt man das?", a: "Spirulina-Mikroalge: ~55–70 % Protein, Eisen, B12 (für Veganer!), Chlorophyll, Phycocyanin (starkes Antioxidans). Natürliche vegane Protein- und Eisenquelle." },
+    { q: "Wie dosiere ich das?", a: "2 × 4 Tabletten täglich zu den Mahlzeiten. Die Packung reicht für rund 12 Tage." },
+    { q: "Gibt es Wechselwirkungen?", a: "Wer Medikamente nimmt oder schwanger ist, klärt die Einnahme vorher ärztlich ab." },
+  ],
+  261: [ // Cranberry Complex
+    { q: "Wann nehme ich das ein?", a: "2 Tabletten täglich. Die Packung reicht für rund 30 Tage." },
+    { q: "Brauche ich das überhaupt?", a: "Harnwegs- und Immununterstützung. Cranberry (PAC 38 mg) hemmt Bakterienadhäsion an Harnwegswänden. Brennnessel unterstützt Entwässerung und Nierenfunktion. Vitamin C als Antioxidans." },
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+  ],
+  262: [ // Clear Collagen
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "11 g in 400–500 ml kaltem Wasser auflösen. Tagesdosis: 2 Portionen (22 g)." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+  ],
+  263: [ // Collagen & Hyaluronic Powder
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "15 g täglich in 200–300 ml Wasser einrühren. Die Packung reicht für rund 20 Tage." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+  ],
+  264: [ // Collagen & Hyaluronic Caps
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Wie nehme ich es ein?", a: "1 Kapsel täglich. Die Packung reicht für rund 30 Tage." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+  ],
+  265: [ // Protein Muesli Bar
+    { q: "Wie viele Kalorien hat das?", a: "105 kcal pro Portion (30 g (1 Riegel)), ~3 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Getreideriegel mit erhöhtem Proteingehalt (10 g/100 g) und Vitaminen (Folsäure, Vit D, Eisen). Niedriger GI durch Hafer. Eher gesunder Snack als Performance-Riegel. 28er-Display." },
+  ],
+  266: [ // Nuts & Fruits Bar
+    { q: "Wie viele Kalorien hat das?", a: "202 kcal pro Portion (40 g (1 Riegel)), ~6 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Natürlicher Nuss-Frucht-Riegel ohne Süßungsmittel. Hoher natürlicher Zuckergehalt durch Früchte (37 g/100 g). 16 g Protein/100 g = gute natürliche Quelle. Schokoladenüberzug. 28er-Display." },
+  ],
+  267: [ // Nuts & Honey Bar
+    { q: "Wie viele Kalorien hat das?", a: "190 kcal pro Portion (35 g (1 Riegel)), ~7 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Honig-Nuss-Riegel mit natürlicher Süße (nur Honig). 37 g Fett/100 g durch Nüsse. 20 g Protein/100 g. Energiedicht für Ausdauersportler. 28er-Display." },
+  ],
+  268: [ // Oat & Nuts Bar
+    { q: "Wie viele Kalorien hat das?", a: "340 kcal pro Portion (70 g (1 Riegel)), ~4 g Protein." },
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Was ist das Besondere daran?", a: "Hafer-Nuss-Riegel mit Ballaststoffen und ölhaltigen Samen. Sättigend durch Hafer-Beta-Glucan. Natürliche Energiequelle. Größere Alternative zum Oat & Fruits." },
+  ],
+  269: [ // Protein Tortilla Chips
+    { q: "Wofür ist das gedacht?", a: "Proteinreiche Tortilla-Chips aus Hafer und Erbsenprotein. 16 g Protein/100 g, 4,4 g Ballaststoffe/100 g, nur 1,4 g Zucker/100 g. Vegan. Für Kunden, die Chips-Cravings gesund stillen wollen." },
+    { q: "Wie nehme ich es ein?", a: "Als Snack zu jeder Tageszeit. 1 Portion: 25 g." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist ohne Zucker und vegan. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  270: [ // Protein Crispies
+    { q: "Wofür ist das gedacht?", a: "Glutenfreies, proteinreiches Frühstückszereal aus Milchprotein-Bällchen. 34 g Protein/100 g Produkt. Hoher Zuckergehalt (26 g/100 g) – süßes Genuss-Frühstück mit deutlich mehr Protein als normale Cornflakes." },
+    { q: "Wie nehme ich es ein?", a: "1 Portion (30 g) mit 100 ml Milch (1,5 % Fett). Als Frühstück oder Zwischenmahlzeit." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist glutenfrei. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  271: [ // Fiber Mix
+    { q: "Wofür ist das gedacht?", a: "Fünffach-Ballaststoffkomplex. Enthält 4 g Glucomannan/Tag = EFSA-zugelassene Dosis für Körpergewichtskontrolle. 86 g Ballaststoffe/100 g. WICHTIG: Immer mit ausreichend Flüssigkeit nehmen (Erstickungsgefahr ohne Wasser)." },
+    { q: "Wie nehme ich es ein?", a: "3 × 5 g täglich je 30 Min. vor den Mahlzeiten in mind. 300 ml Wasser auflösen." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist laktosefrei, glutenfrei, ohne Zucker und vegan. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  272: [ // Instant Oats
+    { q: "Wofür ist das gedacht?", a: "Klassische Instant-Haferflocken. 10 g Ballaststoffe/100 g (Beta-Glucan). Niedriger GI. Günstigste Kohlenhydrat-/Sättigungsquelle im BTU-Sortiment. Kein Zuckerzusatz." },
+    { q: "Wie nehme ich es ein?", a: "100 g mit heißem Wasser oder Milch zubereiten. Morgens oder als Pre-Workout-Carbs." },
+    { q: "Ist das für mich geeignet?", a: "Das Produkt ist ohne Zucker und vegan. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  273: [ // Protein Brownie
+    { q: "Wofür ist das gedacht?", a: "Protein-Brownie-Backmischung. Süßungsmittel statt Zucker. Enthält hydrolysiertes Kollagen für Textur und Gelenksupport. Für Kunden, die Backen als gesunde Snack-Alternative wollen." },
+    { q: "Wie nehme ich es ein?", a: "120 g Backmischung + 30 g Öl + 80 ml Wasser verrühren. Im Ofen 170°C ca. 25–30 Min. Ergibt 5 Portionen." },
+    { q: "Welche Sorten gibt es?", a: "Erhältlich in: Schokolade." },
+  ],
+  274: [ // Protein Ice Cream
+    { q: "Wofür ist das gedacht?", a: "Proteinreiches Eiscreme-Pulver. Nach dem Einfrieren wie Speiseeis konsumieren. 52 g Protein/100 g Pulver. Kreative süße Post-Workout-Alternative." },
+    { q: "Wie nehme ich es ein?", a: "50 g Pulver mit 150–200 ml Milch oder Wasser mischen, einfrieren (mind. 4 h). Vor Verzehr leicht antauen." },
+    { q: "Welche Sorten gibt es?", a: "Erhältlich in: Schokolade, Erdbeere." },
+  ],
+  275: [ // Hot Chocolate
+    { q: "Wofür ist das gedacht?", a: "Proteinreicher heißer Kakao. 54 g Protein/100 g. Abends nach dem Training als wärmende Alternative zum Protein-Shake. Molken- + Milchprotein für gestaffelte Resorption. Echtes Kakaopulver." },
+    { q: "Wie nehme ich es ein?", a: "30 g in 200 ml heißem Wasser oder Milch einrühren." },
+    { q: "Welche Sorten gibt es?", a: "Erhältlich in: Schokolade." },
+  ],
+  276: [ // Multi Hypotonic
+    { q: "Wann nehme ich das?", a: "10 ml in 300–500 ml Wasser verdünnen. Während Training oder Sport trinken." },
+    { q: "Wie viele Kohlenhydrate sind drin?", a: "~7,7 g Kohlenhydrate pro Portion (10 ml in 300–500 ml Wasser)." },
+    { q: "Für welche Belastung ist das gedacht?", a: "Hochkonzentriertes Sportgetränk für 100 Portionen. Hypotone Formel für schnellere Wasseraufnahme. Enthält Vitamine, Elektrolyte, L-Carnitin, Taurin und L-Glutamin. 5 Geschmacksrichtungen." },
+  ],
+  277: [ // Energy Gel
+    { q: "Wann nehme ich das?", a: "1 Gel 5–10 Min. vor oder während der Belastung. Mit Wasser trinken." },
+    { q: "Wie viele Kohlenhydrate sind drin?", a: "~13 g (Glucose + Fructose + Maltodextrin) Kohlenhydrate pro Portion (40 g (1 Beutel))." },
+    { q: "Für welche Belastung ist das gedacht?", a: "Basisversion des Energy Gel (ohne L-Arginin). Dreifach-Kohlenhydrat-Mix für schnelle und anhaltende Energie. MCT-Öl als Energiequelle. L-Carnitin für Fettstoffwechsel. Ideal für Läufe ab 60 Min., Radfahren, Triathlon." },
+  ],
+  278: [ // Energy Shot
+    { q: "Wann nehme ich das?", a: "1 Ampulle (25 ml) pur 30 Min. vor dem Training. Als Einzel- oder 20er-Pack." },
+    { q: "Wie viele Kohlenhydrate sind drin?", a: "~10,5 g (Glucose + Fructose + Maltodextrin) Kohlenhydrate pro Portion (25 ml)." },
+    { q: "Für welche Belastung ist das gedacht?", a: "Kompakter Energie-Shot mit Dreifach-Kohlenhydratmix + Taurin + L-Arginin + Guarana (12,5 mg Koffein). Glucuronolacton unterstützt Entgiftung. Inositol für Zellmembranen." },
+  ],
+  279: [ // Recovery Gel
+    { q: "Wann nehme ich das?", a: "1 Gel direkt nach dem Training. Mit Wasser trinken." },
+    { q: "Wie viele Kohlenhydrate sind drin?", a: "~11 g (Maltodextrin + Glucose + Fructose) Kohlenhydrate pro Portion (40 g (1 Beutel))." },
+    { q: "Für welche Belastung ist das gedacht?", a: "Recovery-Gel für Regeneration direkt post-workout. Kombination aus schnellen Kohlenhydraten (Glykogenauffüllung) + Proteinhydrolysat + BCAAs (MPS) + L-Glutamin (Immunschutz). Ergänzung zum Energy Gel PRO für die Post-Phase." },
+  ],
+  280: [ // Protein Coffee
+    { q: "Wie viel Protein steckt in einer Portion?", a: "21 g Protein pro Portion (30 g (1 Messlöffel in 200 ml Wasser)), 115 kcal. Die Packung reicht für rund 15 Portionen." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (30 g) in 200 ml Wasser einrühren. Kalt oder warm bis max. 60°C genießen. 1 Portion täglich." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist ohne Zucker. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  281: [ // Mug Cake
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Wie bereite ich das zu?", a: "Zubereitung nach Packungsangabe. Mit Milch wird es cremiger, mit Wasser kalorienärmer." },
+  ],
+  283: [ // MagnaShot
+    { q: "Für welche Belastung ist das gedacht?", a: "Für längere oder intensive Einheiten, in denen Flüssigkeit, Elektrolyte und Energie knapp werden." },
+  ],
+  291: [ // ALA Alpha Lipoic Acid
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+    { q: "Wie lange reicht eine Packung?", a: "50 Portionen pro Packung. Bei täglicher Einnahme reicht das rund 1 Monat." },
+    { q: "Ist das vegan?", a: "Ja, das Produkt ist vegan." },
+  ],
+  295: [ // Immune + Biotiq
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+    { q: "Wie lange reicht eine Packung?", a: "18 Portionen pro Packung. Bei täglicher Einnahme reicht das rund 1 Monat." },
+    { q: "Ist das vegan?", a: "Ja, das Produkt ist vegan." },
+  ],
+  296: [ // Melatonin
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+    { q: "Wie lange reicht eine Packung?", a: "90 Portionen pro Packung. Bei täglicher Einnahme reicht das rund 3 Monate." },
+    { q: "Ist das vegan?", a: "Ja, das Produkt ist vegan." },
+  ],
+  306: [ // Bottle BioTech 750ml
+    { q: "Woraus besteht das?", a: "Material: LDPE (BPA-frei)." },
+    { q: "Wofür brauche ich das?", a: "BioTechUSA Squeeze-Trinkflasche 750 ml. Drei Farboptionen. Kein Mischen – reine Trinkflasche." },
+    { q: "Was zeichnet das Modell aus?", a: "Trinkflasche (750 ml, Squeeze-Flasche, BPA-frei)" },
+  ],
+  307: [ // Shaker FC Barcelona
+    { q: "Wofür brauche ich das?", a: "Exklusiver FC-Barcelona-Lizenz-Shaker. Gleiche Funktion wie Wave Shaker. Collector's Item. Limitierter Artikel." },
+    { q: "Was zeichnet das Modell aus?", a: "Lizenz-Shaker FC Barcelona (600 ml, BPA-frei, Siebeinsatz)" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  308: [ // NEU! Shaker Dubai Chocolate
+    { q: "Wofür brauche ich das?", a: "NEU! Sonderedition Wave-Shaker im Dubai-Chocolate-Design. Passend zum Iso Whey Zero Dubai Chocolate. Limited Edition." },
+    { q: "Was zeichnet das Modell aus?", a: "Sonderedition-Shaker (Dubai-Chocolate-Design, BPA-frei)" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  309: [ // NEU! Shaker Menta Lime
+    { q: "Wofür brauche ich das?", a: "NEU! Sonderedition Wave-Shaker im Menta-Lime-Design. Passend zur EAA ZERO Mint-Lime. Limited Edition." },
+    { q: "Was zeichnet das Modell aus?", a: "Sonderedition-Shaker (Menta-Lime-Design, BPA-frei)" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  310: [ // AMY women leggings
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Brown." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  311: [ // ASA men tank top
+    { q: "Welche Größen gibt es?", a: "Verfügbar in L, XL, 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  312: [ // AVA women knitted top
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS-S, S-M, M-L. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Beige, Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  313: [ // BLOOM women long-sleeve t-shirt
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  314: [ // ARENA women jogger
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, Peacock Blue." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  315: [ // BACKLESS MEDIUM SUPPORT SPORTS BRA
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  316: [ // BELLA female sports bra with cross strap
+    { q: "Welche Größen gibt es?", a: "Dieses Modell führen wir in Größe XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Ink Blue." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  317: [ // BOOTY BOOST SCRUNCH LEGGINGS
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Blue." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  318: [ // BOW women bra
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Fuchsia." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  319: [ // Body adapt women long jumpsuit
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  320: [ // CLARA female sports bra with mesh
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, Olive." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  321: [ // CLARA women top
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Dark Grey, Green, Grey, Khaki, Pink, Purple." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  322: [ // COURT women sportsbra
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, Modiran." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  323: [ // CROSSOVER SEAMLESS LIFT UP LEGGINGS
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS-S, S-M, M-L. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  324: [ // Crossover women shorts
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  325: [ // DERBY men sweater
+    { q: "Welche Größen gibt es?", a: "Dieses Modell führen wir in Größe S. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  326: [ // DEUCE women short
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Indigo, Papaya." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  327: [ // DORA women tank top
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  328: [ // DWAYNE men sweater
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XL, 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  329: [ // BioTechUSA Face Mask
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+    { q: "Wie fällt die Passform aus?", a: "Die Passform unterscheidet sich je nach Modell. Am sichersten ist Anprobieren im Store, sonst die Größentabelle auf dem Etikett nutzen." },
+  ],
+  330: [ // GARY men t-shirt
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  331: [ // GEAR women tank top
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  332: [ // GLADYS women sweater
+    { q: "Welche Größen gibt es?", a: "Dieses Modell führen wir in Größe 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in White." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  333: [ // GRANDSLAM women top
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, White." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  334: [ // HURDLE women sportsbra
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  335: [ // JOHNNY male bodybuilding tank top
+    { q: "Welche Größen gibt es?", a: "Dieses Modell führen wir in Größe XXXL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  336: [ // KENJI men short
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, XXL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  337: [ // LACROSSE women leggings
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  338: [ // LANE women short
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in White." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  339: [ // LAYLA women sweater
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Beige, Black, Coral, Green." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  340: [ // LEAGUE women crop-sweater
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  341: [ // LUCY women full-zip hoodie
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  342: [ // MATHEO men sweater
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  343: [ // MEDIUM SUPPORT PADDED TOP
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, White." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  344: [ // MELANIE female leggings
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, Dark Grey, Green, Grey, Olive, Pink, Yellow." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  345: [ // RUSH men knitted t-shirt
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, XXL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Beige, Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  346: [ // SEAMLESS LONG-SLEEVE CROP TOP
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS-S, S-M, M-L. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, Brown." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  347: [ // SHANIQUE women hoodie
+    { q: "Welche Größen gibt es?", a: "Dieses Modell führen wir in Größe XS. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  348: [ // SHAPING SEAMLESS LIFT UP LEGGINGS
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS-S, S-M, M-L. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Brown." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  349: [ // SIDEBACK men leggings
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  350: [ // SMASH women jacket
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS-S, M-L. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in White." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  351: [ // Seamless shaping women short jumpsuit
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS-S, S-M, M-L. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  352: [ // Shaping women biker shorts
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  353: [ // TERRY men sweater
+    { q: "Welche Größen gibt es?", a: "Dieses Modell führen wir in Größe 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  354: [ // THOMAS men jacket
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, XL, 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  355: [ // ZANE men jogger
+    { q: "Welche Größen gibt es?", a: "Dieses Modell führen wir in Größe 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Grey." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  356: [ // basic oversized men's t-shirt
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, 2XL. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in Black, Blue Depths, White." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  357: [ // women OVERSIZED t-shirt
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M. Im Zweifel im Store anprobieren, die Passform fällt je nach Modell unterschiedlich aus." },
+    { q: "In welchen Farben?", a: "Erhältlich in White." },
+    { q: "Wie pflege ich das Teil?", a: "Waschen nach Pflegeetikett, in der Regel bei 30 Grad auf links. Nicht in den Trockner, das schont Druck und Elastan." },
+  ],
+  358: [ // BODYBUILDING leather belt
+    { q: "Woraus besteht das?", a: "Material: Echtleder." },
+    { q: "Wofür brauche ich das?", a: "BioTechUSA BODYBUILDING Ledergürtel für Kniebeugen, Kreuzheben und andere Compound-Übungen." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL." },
+  ],
+  359: [ // FITNESS belt with velcro
+    { q: "Wofür brauche ich das?", a: "BioTechUSA FITNESS Trainingsgürtel mit Klettverschluss. Für allgemeines Krafttraining." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in XS, S, M, L, XL, XXL." },
+    { q: "Was zeichnet das Modell aus?", a: "Trainingsgürtel mit Klettverschluss" },
+  ],
+  360: [ // JAKE uniszex gloves
+    { q: "Wofür brauche ich das?", a: "BioTechUSA JAKE Unisex Trainingshandschuhe." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, XXL." },
+    { q: "Was zeichnet das Modell aus?", a: "Trainingshandschuhe (Unisex)" },
+  ],
+  361: [ // KYLE uniszex leather gloves with wrist grip
+    { q: "Wofür brauche ich das?", a: "BioTechUSA KYLE Leder-Trainingshandschuhe mit Handgelenkstütze." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, XXL." },
+    { q: "Was zeichnet das Modell aus?", a: "Lederhandschuhe mit Handgelenk-Stütze (Unisex)" },
+  ],
+  362: [ // MARY women's leather gloves with wrist grip
+    { q: "Wofür brauche ich das?", a: "BioTechUSA MARY Damen Leder-Trainingshandschuhe mit Handgelenkstütze." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L." },
+    { q: "Was zeichnet das Modell aus?", a: "Damen Lederhandschuhe mit Handgelenk-Stütze" },
+  ],
+  363: [ // POWERLIFTING leather belt
+    { q: "Wofür brauche ich das?", a: "BioTechUSA POWERLIFTING Ledergürtel. Gleichmäßige Breite für Wettkampf und Maximallasten." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL." },
+    { q: "Was zeichnet das Modell aus?", a: "Powerlifting-Ledergürtel (wettkampftauglich)" },
+  ],
+  364: [ // ROY men gloves
+    { q: "Wofür brauche ich das?", a: "BioTechUSA ROY Herren Trainingshandschuhe." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, XXL." },
+    { q: "Was zeichnet das Modell aus?", a: "Herren Trainingshandschuhe" },
+  ],
+  365: [ // TORONTO uniszex leather gloves
+    { q: "Wofür brauche ich das?", a: "BioTechUSA TORONTO Unisex Leder-Trainingshandschuhe." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L, XL, XXL." },
+    { q: "Was zeichnet das Modell aus?", a: "Unisex Leder-Trainingshandschuhe" },
+  ],
+  366: [ // TRACY women's gloves
+    { q: "Wofür brauche ich das?", a: "BioTechUSA TRACY Damen Trainingshandschuhe." },
+    { q: "Welche Größen gibt es?", a: "Verfügbar in S, M, L." },
+    { q: "Was zeichnet das Modell aus?", a: "Damen Trainingshandschuhe" },
+  ],
+  367: [ // Uniszex Grip pad
+    { q: "Wofür brauche ich das?", a: "BioTechUSA Unisex Grip Pads. Alternative zu Handschuhen beim Zug- und Drücktraining." },
+    { q: "Was zeichnet das Modell aus?", a: "Griff-Pads (Griffschutz, Unisex)" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  368: [ // Uniszex Knee wraps
+    { q: "Wofür brauche ich das?", a: "BioTechUSA Unisex Kniebandagen 200 cm. Für Kniebeugen – erhöht Stabilität." },
+    { q: "Was zeichnet das Modell aus?", a: "Kniebandagen (200 cm, elastisch)" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  369: [ // Uniszex Lifting straps
+    { q: "Wofür brauche ich das?", a: "BioTechUSA Unisex Lifting Straps. Verbessern den Griff bei Kreuzheben, Rudern, Latziehen." },
+    { q: "Was zeichnet das Modell aus?", a: "Zughilfen (Unisex)" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  370: [ // Uniszex Wrist wraps with velcro
+    { q: "Wofür brauche ich das?", a: "BioTechUSA Unisex Handgelenkbandagen. Stabilisieren das Handgelenk beim Drücktraining." },
+    { q: "Was zeichnet das Modell aus?", a: "Handgelenkbandagen mit Klettverschluss (Unisex)" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  371: [ // Pillbox Biotech
+    { q: "Wofür brauche ich das?", a: "BioTechUSA Pillendose für Supplements, Vitamine und Kapseln. Kompakt und reisefreundlich." },
+    { q: "Was zeichnet das Modell aus?", a: "Pillendose / Tablettenbox" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  372: [ // Towel BioTech
+    { q: "Wofür brauche ich das?", a: "BioTechUSA Sporttuch 100×50 cm. Hygieneunterlage für Geräte oder als Handtuch beim Training." },
+    { q: "Was zeichnet das Modell aus?", a: "Sporttuch (100×50 cm)" },
+    { q: "Wie reinige ich das?", a: "Nach Gebrauch ausspülen und offen trocknen lassen. Kunststoffteile vertragen den Oberkorb der Spülmaschine, Leder wird nur feucht abgewischt." },
+  ],
+  373: [ // Iso Whey Zero Clear
+    { q: "Wie viel Protein steckt in einer Portion?", a: "20 g Protein pro Portion (25 g), 88 kcal." },
+    { q: "Wann nehme ich das am besten?", a: "1 Portion (25 g) in 400–500 ml kaltem Wasser mischen. Ergibt ein klares, spritziges Getränk ohne Milchgeschmack." },
+    { q: "Ist das für mich verträglich?", a: "Das Produkt ist laktosefrei und glutenfrei. Alles Weitere steht auf der Zutatenliste." },
+  ],
+  374: [ // Iso Whey Zero
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  375: [ // Iso Whey Zero
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  379: [ // Hydro Whey Zero
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  380: [ // Iso Whey Platinum
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  381: [ // Iso Whey Platinum
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  382: [ // Vegan Protein
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  383: [ // Vegan Protein
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  384: [ // Protein Power
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  385: [ // Protein Power
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  386: [ // Micellar Casein
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  387: [ // Beef Protein
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  388: [ // Beef Protein
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  389: [ // Hyper Mass
+    { q: "Werde ich davon fett?", a: "Nur bei zu großem Überschuss. Der Gainer ist für alle, die über normales Essen nicht auf ihre Kalorien kommen." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das mit Milch mischen?", a: "Ja, das erhöht Kalorien und Cremigkeit. Mit Wasser bleibt es leichter verdaulich." },
+  ],
+  390: [ // Muscle Mass
+    { q: "Werde ich davon fett?", a: "Nur bei zu großem Überschuss. Der Gainer ist für alle, die über normales Essen nicht auf ihre Kalorien kommen." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das mit Milch mischen?", a: "Ja, das erhöht Kalorien und Cremigkeit. Mit Wasser bleibt es leichter verdaulich." },
+  ],
+  391: [ // 100% Creatine Monohydrate
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+    { q: "Muss ich Einnahmepausen machen?", a: "Nein. Die Dauereinnahme ist gut untersucht und in der empfohlenen Menge unbedenklich." },
+  ],
+  392: [ // 100% Creatine Monohydrate
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+    { q: "Muss ich Einnahmepausen machen?", a: "Nein. Die Dauereinnahme ist gut untersucht und in der empfohlenen Menge unbedenklich." },
+  ],
+  393: [ // Creatine pH-X
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+    { q: "Muss ich Einnahmepausen machen?", a: "Nein. Die Dauereinnahme ist gut untersucht und in der empfohlenen Menge unbedenklich." },
+  ],
+  394: [ // Mega Creatine
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+    { q: "Muss ich Einnahmepausen machen?", a: "Nein. Die Dauereinnahme ist gut untersucht und in der empfohlenen Menge unbedenklich." },
+  ],
+  395: [ // BCAA ZERO
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  396: [ // EAA ZERO
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  397: [ // EAA ZERO
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  398: [ // Black Blood CAF+
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist der Unterschied zu einem Kaffee?", a: "Koffein steckt in beidem. Dazu kommen hier Stoffe wie Beta-Alanin oder Citrullin, die auf Pump und Durchhaltevermögen zielen." },
+    { q: "Muss ich das jedes Mal nehmen?", a: "Nein. Wer es nur für harte Einheiten nutzt, spürt mehr davon. Bei täglicher Einnahme gewöhnt sich der Körper an das Koffein." },
+  ],
+  399: [ // Black Blood NOX+
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist der Unterschied zu einem Kaffee?", a: "Koffein steckt in beidem. Dazu kommen hier Stoffe wie Beta-Alanin oder Citrullin, die auf Pump und Durchhaltevermögen zielen." },
+    { q: "Muss ich das jedes Mal nehmen?", a: "Nein. Wer es nur für harte Einheiten nutzt, spürt mehr davon. Bei täglicher Einnahme gewöhnt sich der Körper an das Koffein." },
+  ],
+  400: [ // Nitrox Therapy
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist der Unterschied zu einem Kaffee?", a: "Koffein steckt in beidem. Dazu kommen hier Stoffe wie Beta-Alanin oder Citrullin, die auf Pump und Durchhaltevermögen zielen." },
+    { q: "Muss ich das jedes Mal nehmen?", a: "Nein. Wer es nur für harte Einheiten nutzt, spürt mehr davon. Bei täglicher Einnahme gewöhnt sich der Körper an das Koffein." },
+  ],
+  401: [ // Pump Caffeine Free
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist der Unterschied zu einem Kaffee?", a: "Koffein steckt in beidem. Dazu kommen hier Stoffe wie Beta-Alanin oder Citrullin, die auf Pump und Durchhaltevermögen zielen." },
+    { q: "Muss ich das jedes Mal nehmen?", a: "Nein. Wer es nur für harte Einheiten nutzt, spürt mehr davon. Bei täglicher Einnahme gewöhnt sich der Körper an das Koffein." },
+  ],
+  402: [ // IsoTonic
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  404: [ // Diet Shake
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Kann ich das abends nehmen?", a: "Wenn Koffein enthalten ist, besser nicht. Sonst leidet der Schlaf und damit die Regeneration." },
+    { q: "Wie lange kann ich das nehmen?", a: "Über eine Diätphase von einigen Wochen. Danach lohnt eine Pause." },
+  ],
+  405: [ // Protein Pancake
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  408: [ // Iso Whey Zero
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  409: [ // Nitrox Therapy
+    { q: "Wie viel nehme ich und wann?", a: "1 Portion (20 g) vor dem Training in Wasser. Die Packung reicht für rund 17 Tage." },
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist da drin?", a: "Pre-Workout-Getränkepulver ohne Koffein. Setzt auf L-Arginin für die Durchblutung und Beta-Alanin für die Pufferkapazität im Muskel. Die Wahl für abends oder für Kunden, die Koffein meiden – im Gegensatz zu Black Blood CAF+ oder SuperNova." },
+  ],
+  410: [ // Iso Whey Platinum
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  413: [ // 100% Creatine Monohydrate
+    { q: "Muss ich eine Ladephase machen?", a: "Nein. 3 bis 5 g täglich reichen, die Speicher sind nach etwa drei bis vier Wochen voll. Eine Ladephase geht schneller, ist aber nicht nötig." },
+    { q: "Lagert das Wasser ein?", a: "Kreatin zieht Wasser in die Muskelzelle, nicht unter die Haut. Auf der Waage können ein bis zwei Kilo dazukommen, das ist Zellwasser." },
+    { q: "Welche Sorten gibt es?", a: "Erhältlich in: Ananas-Mango, Orange, Neon Citrus, Pfirsich-Eistee." },
+  ],
+  414: [ // Iso Whey Zero Black
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  415: [ // Iso Whey Zero Black
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  416: [ // 100% Pure Whey
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  417: [ // 100% Pure Whey
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  419: [ // 100% Pure Whey
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  420: [ // BCAA ZERO
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  421: [ // BCAA+B6
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  422: [ // BCAA+B6
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  423: [ // 100% L-Glutamine
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  424: [ // Citrulline Malate
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist der Unterschied zu einem Kaffee?", a: "Koffein steckt in beidem. Dazu kommen hier Stoffe wie Beta-Alanin oder Citrullin, die auf Pump und Durchhaltevermögen zielen." },
+    { q: "Muss ich das jedes Mal nehmen?", a: "Nein. Wer es nur für harte Einheiten nutzt, spürt mehr davon. Bei täglicher Einnahme gewöhnt sich der Körper an das Koffein." },
+  ],
+  425: [ // Clear Collagen Professional
+    { q: "Wie lange dauert es, bis ich etwas merke?", a: "In Studien zeigen sich Effekte nach etwa acht bis zwölf Wochen täglicher Einnahme. Vorher lohnt sich die Bewertung nicht." },
+    { q: "Woraus wird das gewonnen?", a: "Kollagen stammt aus tierischer Quelle, meist Rind oder Fisch. Für vegane Kunden ist es deshalb nichts." },
+    { q: "Wann nehme ich es am besten?", a: "Der Zeitpunkt spielt keine große Rolle, wichtig ist die tägliche Einnahme über mehrere Wochen." },
+  ],
+  426: [ // Hyper Mass
+    { q: "Werde ich davon fett?", a: "Nur bei zu großem Überschuss. Der Gainer ist für alle, die über normales Essen nicht auf ihre Kalorien kommen." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das mit Milch mischen?", a: "Ja, das erhöht Kalorien und Cremigkeit. Mit Wasser bleibt es leichter verdaulich." },
+  ],
+  427: [ // Hyper Mass
+    { q: "Werde ich davon fett?", a: "Nur bei zu großem Überschuss. Der Gainer ist für alle, die über normales Essen nicht auf ihre Kalorien kommen." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das mit Milch mischen?", a: "Ja, das erhöht Kalorien und Cremigkeit. Mit Wasser bleibt es leichter verdaulich." },
+  ],
+  428: [ // Hyper Mass
+    { q: "Werde ich davon fett?", a: "Nur bei zu großem Überschuss. Der Gainer ist für alle, die über normales Essen nicht auf ihre Kalorien kommen." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das mit Milch mischen?", a: "Ja, das erhöht Kalorien und Cremigkeit. Mit Wasser bleibt es leichter verdaulich." },
+  ],
+  429: [ // Liquid Amino
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  430: [ // Mega Omega 3
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+    { q: "Auf leeren Magen oder zum Essen?", a: "Zu einer Mahlzeit ist es besser verträglich, fettlösliche Vitamine brauchen sogar etwas Fett." },
+    { q: "Wie lange sollte ich das nehmen?", a: "Über mehrere Wochen, sonst zeigt sich kein Effekt. Bei Verdacht auf Mangel lohnt ein Bluttest." },
+  ],
+  431: [ // 100% Pure Whey Natural
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  432: [ // 100% Pure Whey Natural
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  433: [ // 100% Pure Whey Natural
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  434: [ // Mega Amino
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  435: [ // Mega Amino
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  436: [ // Vitamin C 1000
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+    { q: "Auf leeren Magen oder zum Essen?", a: "Zu einer Mahlzeit ist es besser verträglich, fettlösliche Vitamine brauchen sogar etwas Fett." },
+    { q: "Wie lange sollte ich das nehmen?", a: "Über mehrere Wochen, sonst zeigt sich kein Effekt. Bei Verdacht auf Mangel lohnt ein Bluttest." },
+  ],
+  437: [ // Vitamin C 1000
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+    { q: "Auf leeren Magen oder zum Essen?", a: "Zu einer Mahlzeit ist es besser verträglich, fettlösliche Vitamine brauchen sogar etwas Fett." },
+    { q: "Wie lange sollte ich das nehmen?", a: "Über mehrere Wochen, sonst zeigt sich kein Effekt. Bei Verdacht auf Mangel lohnt ein Bluttest." },
+  ],
+  438: [ // L-Carnitine 1000
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wann nehme ich es am besten?", a: "Vor dem Training oder vor einer Ausdauereinheit." },
+    { q: "Ist das ein Stimulans?", a: "Nein. L-Carnitin macht nicht wach, es transportiert Fettsäuren in die Zelle." },
+  ],
+  439: [ // Peanut Butter
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Wann passt das am besten?", a: "Als Zwischenmahlzeit, unterwegs oder wenn keine Zeit für eine Mahlzeit bleibt." },
+  ],
+  440: [ // Protein Cream
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Wann passt das am besten?", a: "Als Zwischenmahlzeit, unterwegs oder wenn keine Zeit für eine Mahlzeit bleibt." },
+  ],
+  441: [ // Vitamin D3
+    { q: "Kann ich zu viel davon nehmen?", a: "Bei der angegebenen Dosierung nicht. Wer mehrere Präparate kombiniert, sollte die Gesamtmenge im Blick behalten." },
+    { q: "Auf leeren Magen oder zum Essen?", a: "Zu einer Mahlzeit ist es besser verträglich, fettlösliche Vitamine brauchen sogar etwas Fett." },
+    { q: "Wie lange sollte ich das nehmen?", a: "Über mehrere Wochen, sonst zeigt sich kein Effekt. Bei Verdacht auf Mangel lohnt ein Bluttest." },
+  ],
+  443: [ // L-Arginin
+    { q: "Kann ich das mit meinem Protein kombinieren?", a: "Ja. Aminosäuren und Protein stören sich nicht. Wer täglich genug Protein isst, deckt vieles davon schon ab, der Zusatz wirkt vor allem rund ums Training." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Brauche ich das, wenn ich genug Protein esse?", a: "Dann ist der Zusatznutzen klein. Interessant wird es bei Diät, hohem Trainingsumfang oder Training auf nüchternen Magen." },
+  ],
+  444: [ // Carni Elite
+    { q: "Nehme ich damit automatisch ab?", a: "Nein. Ohne Kaloriendefizit passiert nichts. Das Produkt unterstützt, den Unterschied macht die Ernährung." },
+    { q: "Wann nehme ich es am besten?", a: "Vor dem Training oder vor einer Ausdauereinheit." },
+    { q: "Ist das ein Stimulans?", a: "Nein. L-Carnitin macht nicht wach, es transportiert Fettsäuren in die Zelle." },
+  ],
+  445: [ // Rice Pudding
+    { q: "Ersetzt das eine Mahlzeit?", a: "Als Zwischenmahlzeit oder unterwegs ja. Eine vollständige Mahlzeit mit Gemüse und Beilage ersetzt es nicht." },
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Wann passt das am besten?", a: "Als Zwischenmahlzeit, unterwegs oder wenn keine Zeit für eine Mahlzeit bleibt." },
+  ],
+  446: [ // Whey Shake
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  447: [ // Whey Shake
+    { q: "Ist das vegan?", a: "Nein. Für vegane Kunden führen wir eigene pflanzliche Alternativen." },
+    { q: "Kann ich das auch an trainingsfreien Tagen nehmen?", a: "Ja. Entscheidend ist die Proteinmenge über den Tag, nicht der Trainingstag." },
+    { q: "Ersetzt der Shake eine Mahlzeit?", a: "Als Ergänzung ja, als Dauerlösung nein. Feste Mahlzeiten liefern mehr als Protein allein." },
+  ],
+  448: [ // Nitrox Therapy
+    { q: "Kann ich das abends nehmen?", a: "Besser nicht kurz vor dem Schlafen. Koffein wirkt mehrere Stunden nach. Für späte Einheiten gibt es koffeinfreie Varianten." },
+    { q: "Was ist der Unterschied zu einem Kaffee?", a: "Koffein steckt in beidem. Dazu kommen hier Stoffe wie Beta-Alanin oder Citrullin, die auf Pump und Durchhaltevermögen zielen." },
+    { q: "Muss ich das jedes Mal nehmen?", a: "Nein. Wer es nur für harte Einheiten nutzt, spürt mehr davon. Bei täglicher Einnahme gewöhnt sich der Körper an das Koffein." },
+  ],
   1: [ // Iso Whey Zero
     { q: "Ist das für Frauen geeignet?", a: "Ja – besonders beliebt bei Frauen. Wenig Kalorien, kein Fett, kein Zucker. Kein Muskelaufbau-Zwang, nur Protein." },
     { q: "Was ist der Unterschied zu Pure Whey?", a: "Iso Whey Zero = Isolat: >90% Protein, fast kein Fett/Zucker. Pure Whey = Konzentrat: günstiger, aber weniger rein." },
