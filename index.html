@@ -14143,6 +14143,25 @@ function BioTechDatabase() {
     setInboxReplyText("");
   };
   const [activeView, setActiveView] = React.useState(null); // null | 'mein-quiz' | 'auswertung' | 'quiz-creator'
+  // Sperrt die Wissensdatenbank, solange in einem anderen Fenster ein Quiz laeuft
+  const [quizLock, setQuizLock] = React.useState(false);
+  React.useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") return;
+    if (!window.__btuTab) window.__btuTab = Math.random().toString(36).slice(2);
+    let ch;
+    try { ch = new BroadcastChannel("btu-quiz"); } catch (e) { return; }
+    let letzte = 0;
+    const tick = setInterval(() => {
+      if (letzte && Date.now() - letzte > 8000) { letzte = 0; setQuizLock(false); }
+    }, 2000);
+    ch.onmessage = (ev) => {
+      const d = ev.data;
+      if (!d || d.tab === window.__btuTab) return;
+      if (d.typ === "laeuft") { letzte = Date.now(); setQuizLock(true); }
+      else if (d.typ === "ende") { letzte = 0; setQuizLock(false); }
+    };
+    return () => { clearInterval(tick); try { ch.close(); } catch (e) {} };
+  }, []);
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
   const userMenuRef = React.useRef(null);
   React.useEffect(() => {
@@ -15773,6 +15792,17 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         onClose: () => setCatModal(null),
         onSaved: () => { setCatModal(null); setCustomTick(n => n + 1); setActiveCategory("Alle"); }
       }),
+      quizLock && /*#__PURE__*/React.createElement("div", {
+        style: { position: "fixed", inset: 0, background: "rgba(18,18,22,0.95)", zIndex: 209,
+                 display: "flex", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }
+      },
+        /*#__PURE__*/React.createElement("div", { style: { maxWidth: 380, color: "#fff" } },
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 44, marginBottom: 14 } }, "\uD83D\uDD12"),
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 19, fontWeight: 800, marginBottom: 10 } }, "Quiz l\u00e4uft"),
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.85)" } },
+            "In einem anderen Fenster l\u00e4uft gerade ein Quiz. Die Wissensdatenbank ist so lange gesperrt und steht nach dem Abschlie\u00dfen wieder zur Verf\u00fcgung.")
+        )
+      ),
       activeView === "mein-quiz" && user && /*#__PURE__*/React.createElement(MeinQuizPage, {
         user: user,
         onBack: () => setActiveView(null)
@@ -20312,6 +20342,71 @@ function QuizTaker(props) {
   var sIdx = React.useState(0); var idx = sIdx[0]; var setIdx = sIdx[1];
   var sAnswers = React.useState({}); var answers = sAnswers[0]; var setAnswers = sAnswers[1];
   var sSaving = React.useState(false); var saving = sSaving[0]; var setSaving = sSaving[1];
+  var sWarn = React.useState(null); var warn = sWarn[0]; var setWarn = sWarn[1];
+
+  // Messwerte je Frage, landen beim Abschliessen im Feld meta
+  var metaRef = React.useRef({});
+  var awayRef = React.useRef(0);
+  var wechselRef = React.useRef(0);
+  var tippRef = React.useRef({});
+  function mm(qId) {
+    if (!metaRef.current[qId]) metaRef.current[qId] = { wechsel: 0, abwesend: 0, paste: 0, tippzeit: 0, zeichen: 0, sprung: 0 };
+    return metaRef.current[qId];
+  }
+
+  // Fensterwechsel: erst ab 3 Sekunden, nur bei Freitext. 1. und 2. Mal loescht das
+  // aktuelle Feld, beim 3. Mal beginnt das Quiz von vorn.
+  React.useEffect(function() {
+    if (phase !== "playing") return;
+    function raus() { if (!awayRef.current) awayRef.current = Date.now(); }
+    function rein() {
+      if (!awayRef.current) return;
+      var weg = Math.round((Date.now() - awayRef.current) / 1000);
+      awayRef.current = 0;
+      var qq = questions[idx];
+      if (!qq) return;
+      var m = mm(qq.id);
+      m.abwesend += weg;
+      if (qq.typ !== "freitext" || weg < 3) return;
+      m.wechsel += 1;
+      wechselRef.current += 1;
+      if (wechselRef.current >= 3) {
+        setAnswers({});
+        setIdx(0);
+        tippRef.current = {};
+        wechselRef.current = 0;
+        setWarn({ art: "hart" });
+      } else {
+        setAnswers(function(a) { var n = Object.assign({}, a); n[qq.id] = ""; return n; });
+        setWarn({ art: "feld" });
+      }
+    }
+    function sicht() { if (document.hidden) raus(); else rein(); }
+    document.addEventListener("visibilitychange", sicht);
+    window.addEventListener("blur", raus);
+    window.addEventListener("focus", rein);
+    return function() {
+      document.removeEventListener("visibilitychange", sicht);
+      window.removeEventListener("blur", raus);
+      window.removeEventListener("focus", rein);
+    };
+  }, [phase, idx, questions]);
+
+  // Meldet anderen Tabs derselben Seite, dass gerade ein Quiz laeuft
+  React.useEffect(function() {
+    if (phase !== "playing") return;
+    if (typeof BroadcastChannel === "undefined") return;
+    if (!window.__btuTab) window.__btuTab = Math.random().toString(36).slice(2);
+    var ch;
+    try { ch = new BroadcastChannel("btu-quiz"); } catch (e) { return; }
+    function melden() { try { ch.postMessage({ typ: "laeuft", tab: window.__btuTab }); } catch (e) {} }
+    melden();
+    var iv = setInterval(melden, 2500);
+    return function() {
+      clearInterval(iv);
+      try { ch.postMessage({ typ: "ende", tab: window.__btuTab }); ch.close(); } catch (e) {}
+    };
+  }, [phase]);
 
   React.useEffect(function() {
     QZ.get("questions?quiz_id=eq." + quiz.id + "&order=reihenfolge.asc").then(function(rows) {
@@ -20324,6 +20419,16 @@ function QuizTaker(props) {
     setAnswers(function(prev) { return Object.assign({}, prev, { [qId]: idx }); });
   }
   function handleText(qId, val) {
+    var jetzt = Date.now();
+    var t = tippRef.current[qId] || (tippRef.current[qId] = { last: 0, sum: 0 });
+    var m = mm(qId);
+    var vorher = answers[qId] || "";
+    var delta = val.length - vorher.length;
+    if (delta > m.sprung) m.sprung = delta;
+    if (t.last && jetzt - t.last < 5000) t.sum += jetzt - t.last;
+    t.last = jetzt;
+    m.tippzeit = Math.round(t.sum / 1000);
+    m.zeichen = val.length;
     setAnswers(function(prev) { return Object.assign({}, prev, { [qId]: val }); });
   }
 
@@ -20360,10 +20465,16 @@ function QuizTaker(props) {
           question_id: q.id,
           typ: q.typ,
           antwort_mc: q.typ === "mc" ? (answers[q.id] !== undefined ? answers[q.id] : null) : null,
-          antwort_text: q.typ === "freitext" ? (answers[q.id] || "") : null
+          antwort_text: q.typ === "freitext" ? (answers[q.id] || "") : null,
+          meta: metaRef.current[q.id] || null
         };
       });
       var savedAnswers = await QZ.post("quiz_answers", answerData);
+      if (savedAnswers === null) {
+        // Faellt zurueck, solange die Spalte meta in Supabase noch fehlt
+        var ohneMeta = answerData.map(function(a) { var c = Object.assign({}, a); delete c.meta; return c; });
+        savedAnswers = await QZ.post("quiz_answers", ohneMeta);
+      }
       if (savedAnswers === null) {
         window.alert("Hinweis: Das Ergebnis wurde gespeichert, aber die Einzelantworten konnten nicht übertragen werden.");
       }
@@ -20449,6 +20560,10 @@ function QuizTaker(props) {
             value: answers[q.id] || "",
             onChange: function(e) { handleText(q.id, e.target.value); },
             placeholder: "Antworte in vollständigen Sätzen…",
+            onPaste: function(e) { e.preventDefault(); mm(q.id).paste += 1; setWarn({ art: "paste" }); },
+            onDrop: function(e) { e.preventDefault(); mm(q.id).paste += 1; setWarn({ art: "paste" }); },
+            onDragOver: function(e) { e.preventDefault(); },
+            onContextMenu: function(e) { e.preventDefault(); },
             rows: 4,
             style: { width: "100%", boxSizing: "border-box", padding: "12px 16px", border: "2px solid #e9d5ff", borderRadius: 12, fontSize: 16, fontFamily: FONT, resize: "vertical", outline: "none", lineHeight: 1.6, background: "#faf5ff" }
           }),
@@ -20465,6 +20580,27 @@ function QuizTaker(props) {
               disabled: !canNext || saving,
               style: { flex: 1, padding: "14px 0", background: canNext ? RED : "#ccc", color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: canNext ? "pointer" : "default", fontFamily: FONT, minHeight: 48 }
             }, saving ? "Speichere…" : idx < questions.length - 1 ? "Weiter →" : "Abschließen ✓")
+          )
+        ),
+        warn && React.createElement("div", {
+          style: { position: "fixed", inset: 0, background: "rgba(18,18,22,0.9)", zIndex: 220,
+                   display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }
+        },
+          React.createElement("div", { style: { background: "#fff", borderRadius: 16, width: "100%", maxWidth: 380, padding: 24, textAlign: "center" } },
+            React.createElement("div", { style: { fontSize: 38, marginBottom: 10 } }, warn.art === "hart" ? "↺" : "⚠️"),
+            React.createElement("div", { style: { fontWeight: 800, fontSize: 17, color: "#1a1a1a", marginBottom: 10 } },
+              warn.art === "hart" ? "Quiz beginnt von vorn" : warn.art === "paste" ? "Einfügen ist gesperrt" : "Fenster verlassen"),
+            React.createElement("div", { style: { fontSize: 14, color: "#555", lineHeight: 1.6, marginBottom: 18 } },
+              warn.art === "hart"
+                ? "Du hast das Quizfenster zum dritten Mal verlassen. Alle Antworten wurden gelöscht, das Quiz startet bei Frage 1."
+                : warn.art === "paste"
+                  ? "Antworten müssen selbst geschrieben werden. Nutze eigene Worte, das bleibt besser hängen."
+                  : "Bei Freitextfragen darfst du das Quizfenster nicht verlassen. Diese Antwort wurde gelöscht. Beim dritten Mal beginnt das ganze Quiz von vorn."),
+            React.createElement("button", {
+              onClick: function() { setWarn(null); },
+              style: { width: "100%", padding: "12px 0", background: RED, color: "#fff", border: "none", borderRadius: 10,
+                       fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: FONT, minHeight: 48 }
+            }, "Verstanden")
           )
         )
       )
@@ -20502,6 +20638,91 @@ function QuizTaker(props) {
   return null;
 }
 
+// ─── TEXTABGLEICH (nur fuer Bewerter sichtbar) ─────────────────────────
+var TX_CRC = null;
+function txCrc32(str) {
+  if (!TX_CRC) {
+    TX_CRC = new Int32Array(256);
+    for (var n = 0; n < 256; n++) {
+      var c = n;
+      for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      TX_CRC[n] = c;
+    }
+  }
+  var crc = -1;
+  for (var i = 0; i < str.length; i++) crc = (crc >>> 8) ^ TX_CRC[(crc ^ str.charCodeAt(i)) & 0xFF];
+  return (crc ^ -1) >>> 0;
+}
+function txTokens(text) {
+  var out = [], re = /[0-9A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF]+/g, m;
+  while ((m = re.exec(text)) !== null) {
+    var w = m[0].toLowerCase().replace(/\u00df/g, "ss");
+    if (w.normalize) w = w.normalize("NFKD");
+    w = w.replace(/[^a-z0-9]/g, "");
+    if (w) out.push({ w: w, s: m.index, e: m.index + m[0].length });
+  }
+  return out;
+}
+var TX_N = 5;
+function txPruefen(text, idx) {
+  if (!idx || !text) return null;
+  var t = txTokens(text);
+  if (t.length < TX_N) return null;
+  var ges = t.length - TX_N + 1, treffer = 0, lauf = 0, best = 0;
+  var mark = [];
+  for (var a = 0; a < t.length; a++) mark.push(false);
+  for (var i = 0; i < ges; i++) {
+    var sh = t[i].w;
+    for (var j = 1; j < TX_N; j++) sh += " " + t[i + j].w;
+    if (idx.has(txCrc32(sh))) {
+      treffer++;
+      for (var k = 0; k < TX_N; k++) mark[i + k] = true;
+      lauf++; if (lauf > best) best = lauf;
+    } else lauf = 0;
+  }
+  return { pct: Math.round(treffer / ges * 100), woerter: best ? best + TX_N - 1 : 0, mark: mark, toks: t };
+}
+function txMarkiert(text, res) {
+  if (!res || !res.woerter) return text;
+  var out = [], pos = 0, t = res.toks;
+  for (var i = 0; i < t.length; i++) {
+    if (!res.mark[i]) continue;
+    var j = i;
+    while (j + 1 < t.length && res.mark[j + 1]) j++;
+    if (t[i].s > pos) out.push(text.slice(pos, t[i].s));
+    out.push(React.createElement("mark", { key: "m" + i, style: { background: "#ffe08a", color: "#1a1a1a", padding: "0 2px", borderRadius: 3 } }, text.slice(t[i].s, t[j].e)));
+    pos = t[j].e;
+    i = j;
+  }
+  if (pos < text.length) out.push(text.slice(pos));
+  return out;
+}
+function txMesswerte(m) {
+  if (!m) return "";
+  var t = [];
+  if (m.wechsel) t.push("Fenster " + m.wechsel + "\u00d7 verlassen");
+  if (m.abwesend) t.push(m.abwesend + " s abwesend");
+  if (m.paste) t.push(m.paste + (m.paste > 1 ? " Einf\u00fcgeversuche" : " Einf\u00fcgeversuch"));
+  if (m.zeichen) t.push(m.zeichen + " Zeichen in " + (m.tippzeit || 0) + " s");
+  if (m.sprung >= 25) t.push("gr\u00f6\u00dfter Sprung " + m.sprung + " Zeichen");
+  return t.length ? "\u23f1 " + t.join(" \u00b7 ") : "";
+}
+function txIndexLaden() {
+  return QZ.get("app_config?key=eq.quiz_textindex&select=value").then(function(rows) {
+    var v = rows && rows[0] && rows[0].value;
+    if (!v) return null;
+    if (typeof v === "string") { try { v = JSON.parse(v); } catch (e) { return null; } }
+    if (!v || !v.d) return null;
+    var bin;
+    try { bin = atob(v.d); } catch (e) { return null; }
+    var set = new Set();
+    for (var i = 0; i + 3 < bin.length; i += 4) {
+      set.add(((bin.charCodeAt(i)) | (bin.charCodeAt(i + 1) << 8) | (bin.charCodeAt(i + 2) << 16) | (bin.charCodeAt(i + 3) << 24)) >>> 0);
+    }
+    return set;
+  }).catch(function() { return null; });
+}
+
 // ─── AUSWERTUNG PAGE ─────────────────────────────────────────────────────────
 function AuswertungPage(props) {
   var user = props.user;
@@ -20517,6 +20738,7 @@ function AuswertungPage(props) {
   var sSelUser = React.useState(null); var selUser = sSelUser[0]; var setSelUser = sSelUser[1];
   var sAnswers = React.useState([]); var userAnswers = sAnswers[0]; var setUserAnswers = sAnswers[1];
   var sQuestions = React.useState({}); var questionMap = sQuestions[0]; var setQuestionMap = sQuestions[1];
+  var sTxIdx = React.useState(undefined); var txIdx = sTxIdx[0]; var setTxIdx = sTxIdx[1];
   var sFilter = React.useState(""); var filterMonth = sFilter[0]; var setFilterMonth = sFilter[1];
 
   var isSA = isSuperRole(user.role);
@@ -20543,6 +20765,10 @@ function AuswertungPage(props) {
   }, []);
 
   function loadUserAnswers(userId, resultId) {
+    if (canReviewAnswers(user.role) && txIdx === undefined) {
+      setTxIdx(null);
+      txIndexLaden().then(function(set) { setTxIdx(set); });
+    }
     QZ.get("quiz_answers?result_id=eq." + resultId + "&select=*").then(function(rows) {
       setUserAnswers(Array.isArray(rows) ? rows : []);
     });
@@ -20605,6 +20831,7 @@ function AuswertungPage(props) {
               userAnswers.length > 0 && canReviewAnswers(user.role) && userAnswers[0] && userAnswers[0].result_id === r.id && React.createElement("div", { style: { marginTop: 12, borderTop: "1px solid #f0f0f0", paddingTop: 12 } },
                 userAnswers.map(function(a) {
                   var qText = questionMap[a.question_id];
+                  var txRes = (a.typ === "freitext" && txIdx) ? txPruefen(a.antwort_text || "", txIdx) : null;
                   return React.createElement("div", { key: a.id, style: { marginBottom: 10, padding: "10px 12px", background: "#f8f8f8", borderRadius: 8 } },
                     React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 6 } }, qText ? qText.frage : a.question_id),
                     a.typ === "mc" && React.createElement("div", { style: { fontSize: 12 } },
@@ -20614,7 +20841,14 @@ function AuswertungPage(props) {
                       ": ", qText && Array.isArray(qText.antworten) ? (qText.antworten[a.antwort_mc] || "—") : a.antwort_mc
                     ),
                     a.typ === "freitext" && React.createElement("div", null,
-                      React.createElement("div", { style: { fontSize: 12, color: "#555", fontStyle: "italic", lineHeight: 1.5 } }, a.antwort_text || "—"),
+                      React.createElement("div", { style: { fontSize: 12, color: "#555", fontStyle: "italic", lineHeight: 1.5 } },
+                        txRes && txRes.woerter >= 8 ? txMarkiert(a.antwort_text || "", txRes) : (a.antwort_text || "—")),
+                      txRes && txRes.woerter >= 8 && React.createElement("div", {
+                        style: { marginTop: 6, fontSize: 11, fontWeight: 700, color: txRes.woerter >= 12 ? RED : "#b45309" }
+                      }, "Textabgleich: längste wörtliche Passage " + txRes.woerter + " Wörter, " + txRes.pct + " % Übereinstimmung"),
+                      a.meta && txMesswerte(a.meta) && React.createElement("div", {
+                        style: { marginTop: 4, fontSize: 11, color: "#999" }
+                      }, txMesswerte(a.meta)),
                       canReviewAnswers(user.role) && React.createElement("div", { style: { marginTop: 6, display: "flex", gap: 6, alignItems: "center" } },
                         ["0", "1", "2"].map(function(pt) {
                           return React.createElement("button", {
