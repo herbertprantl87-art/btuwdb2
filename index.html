@@ -20227,6 +20227,32 @@ var QZ = (function() {
   return { get: get, post: post, patch: patch, del: del };
 })();
 
+// ─── FREITEXT-WERTUNG ─────────────────────────────────────────────────
+// Freitext gibt 0 bis 2 Punkte je Frage. Die Summe steht nicht in
+// new_quiz_results, sondern wird aus quiz_answers gerechnet.
+function ftBauen(rows) {
+  var map = {};
+  (rows || []).forEach(function(x) {
+    var m = map[x.result_id];
+    if (!m) { m = { punkte: 0, anzahl: 0, offen: 0 }; map[x.result_id] = m; }
+    m.anzahl += 1;
+    if (x.punkte_freitext === null || x.punkte_freitext === undefined) m.offen += 1;
+    else m.punkte += x.punkte_freitext;
+  });
+  return map;
+}
+function ftMax(ft) { return ft ? ft.anzahl * 2 : 0; }
+// Gesamtprozent, null solange noch Freitext offen ist
+function gesamtPct(r, ft) {
+  var max = (r.max_score_mc || 0) + ftMax(ft);
+  if (!max || (ft && ft.offen)) return null;
+  return Math.round((((r.score_mc || 0) + (ft ? ft.punkte : 0)) / max) * 100);
+}
+function mcPctVon(r) {
+  return r && r.max_score_mc > 0 ? Math.round((r.score_mc / r.max_score_mc) * 100) : null;
+}
+function pctFarbe(p) { return p >= 80 ? "#16a34a" : p >= 60 ? "#d97706" : "#c8102e"; }
+
 // ─── MEIN QUIZ PAGE ─────────────────────────────────────────────────────────
 function MeinQuizPage(props) {
   var user = props.user;
@@ -20238,14 +20264,24 @@ function MeinQuizPage(props) {
   var sResults = React.useState([]); var results = sResults[0]; var setResults = sResults[1];
   var sLoading = React.useState(true); var loading = sLoading[0]; var setLoading = sLoading[1];
   var sActive = React.useState(null); var activeQuiz = sActive[0]; var setActiveQuiz = sActive[1];
+  var sFt = React.useState({}); var ftMap = sFt[0]; var setFtMap = sFt[1];
+
+  function ftNachladen(rows) {
+    var ids = (rows || []).map(function(r) { return r.id; }).filter(function(x) { return x; });
+    if (!ids.length) { setFtMap({}); return; }
+    QZ.get("quiz_answers?typ=eq.freitext&result_id=in.(" + ids.join(",") + ")&select=result_id,punkte_freitext")
+      .then(function(a) { setFtMap(ftBauen(a)); });
+  }
 
   React.useEffect(function() {
     Promise.all([
       QZ.get("quizzes?status=eq.aktiv&order=monat.desc"),
-      QZ.get("new_quiz_results?user_id=eq." + encodeURIComponent(user.username) + "&select=quiz_id,score_mc,max_score_mc,freitext_bewertet,abgeschlossen_am")
+      QZ.get("new_quiz_results?user_id=eq." + encodeURIComponent(user.username) + "&select=id,quiz_id,score_mc,max_score_mc,freitext_bewertet,abgeschlossen_am")
     ]).then(function(data) {
       setQuizzes(Array.isArray(data[0]) ? data[0] : []);
-      setResults(Array.isArray(data[1]) ? data[1] : []);
+      var rows = Array.isArray(data[1]) ? data[1] : [];
+      setResults(rows);
+      ftNachladen(rows);
       setLoading(false);
     });
   }, []);
@@ -20261,8 +20297,10 @@ function MeinQuizPage(props) {
       onDone: function() {
         setActiveQuiz(null);
         setLoading(true);
-        QZ.get("new_quiz_results?user_id=eq." + encodeURIComponent(user.username) + "&select=quiz_id,score_mc,max_score_mc,freitext_bewertet,abgeschlossen_am").then(function(rows) {
-          setResults(Array.isArray(rows) ? rows : []);
+        QZ.get("new_quiz_results?user_id=eq." + encodeURIComponent(user.username) + "&select=id,quiz_id,score_mc,max_score_mc,freitext_bewertet,abgeschlossen_am").then(function(rows) {
+          var liste = Array.isArray(rows) ? rows : [];
+          setResults(liste);
+          ftNachladen(liste);
           setLoading(false);
         });
       },
@@ -20304,7 +20342,9 @@ function MeinQuizPage(props) {
           React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 } }, "Erledigt — " + erledigte.length),
           erledigte.map(function(q) {
             var r = getResult(q.id);
-            var mcPct = r && r.max_score_mc > 0 ? Math.round((r.score_mc / r.max_score_mc) * 100) : null;
+            var ft = r ? ftMap[r.id] : null;
+            var ges = r ? gesamtPct(r, ft) : null;
+            var mcPct = mcPctVon(r);
             var datum = r && r.abgeschlossen_am ? new Date(r.abgeschlossen_am).toLocaleDateString("de-DE") : "";
             return React.createElement("div", { key: q.id, style: { background: "#fff", borderRadius: 12, padding: "14px 18px", marginBottom: 8, boxShadow: "0 1px 4px rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: 12, opacity: 0.85 } },
               React.createElement("div", { style: { flex: 1 } },
@@ -20312,8 +20352,10 @@ function MeinQuizPage(props) {
                 React.createElement("div", { style: { fontSize: 12, color: "#aaa", marginTop: 2 } }, datum ? "✓ " + datum : "")
               ),
               React.createElement("div", { style: { textAlign: "right" } },
-                mcPct !== null && React.createElement("div", { style: { fontWeight: 800, fontSize: 15, color: mcPct >= 80 ? "#16a34a" : mcPct >= 60 ? "#d97706" : RED } }, mcPct + "%"),
-                r && !r.freitext_bewertet && React.createElement("div", { style: { fontSize: 10, color: "#aaa", marginTop: 2 } }, "Freitext ausstehend")
+                ges !== null
+                  ? React.createElement("div", { style: { fontWeight: 800, fontSize: 15, color: pctFarbe(ges) } }, ges + "%")
+                  : (mcPct !== null && React.createElement("div", { style: { fontWeight: 800, fontSize: 15, color: pctFarbe(mcPct) } }, mcPct + "% MC")),
+                ft && ft.offen > 0 && React.createElement("div", { style: { fontSize: 10, color: "#aaa", marginTop: 2 } }, "Freitext ausstehend")
               )
             );
           })
@@ -20741,6 +20783,10 @@ function AuswertungPage(props) {
   var sAnswers = React.useState([]); var userAnswers = sAnswers[0]; var setUserAnswers = sAnswers[1];
   var sQuestions = React.useState({}); var questionMap = sQuestions[0]; var setQuestionMap = sQuestions[1];
   var sTxIdx = React.useState(undefined); var txIdx = sTxIdx[0]; var setTxIdx = sTxIdx[1];
+  var sFt = React.useState({}); var ftMap = sFt[0]; var setFtMap = sFt[1];
+  function ftAktualisieren() {
+    QZ.get("quiz_answers?typ=eq.freitext&select=result_id,punkte_freitext").then(function(a) { setFtMap(ftBauen(a)); });
+  }
   var sFilter = React.useState(""); var filterMonth = sFilter[0]; var setFilterMonth = sFilter[1];
 
   var isSA = isSuperRole(user.role);
@@ -20753,8 +20799,10 @@ function AuswertungPage(props) {
     Promise.all([
       QZ.get(profileQuery),
       QZ.get("new_quiz_results?select=*&order=abgeschlossen_am.desc"),
-      QZ.get("quizzes?select=id,titel,monat,status&order=monat.desc")
+      QZ.get("quizzes?select=id,titel,monat,status&order=monat.desc"),
+      QZ.get("quiz_answers?typ=eq.freitext&select=result_id,punkte_freitext")
     ]).then(function(data) {
+      setFtMap(ftBauen(data[3]));
       // Filter out GL/admin roles
       var profs = Array.isArray(data[0]) ? data[0].filter(function(p) {
         return p.role === "mitarbeiter";
@@ -20856,7 +20904,24 @@ function AuswertungPage(props) {
                           return React.createElement("button", {
                             key: pt,
                             onClick: function() {
-                              QZ.patch("quiz_answers", "id=eq." + a.id, { punkte_freitext: parseInt(pt), bewertet_von: user.username, bewertet_am: new Date().toISOString() }).catch(function(){ window.alert("Bewertung konnte nicht gespeichert werden — bitte nochmal versuchen."); });
+                              var wert = parseInt(pt);
+                              var vorher = a.punkte_freitext;
+                              // Anzeige sofort umstellen, damit der Klick sichtbar ankommt
+                              setUserAnswers(function(liste) {
+                                return liste.map(function(x) {
+                                  return x.id === a.id ? Object.assign({}, x, { punkte_freitext: wert, bewertet_von: user.username, bewertet_am: new Date().toISOString() }) : x;
+                                });
+                              });
+                              QZ.patch("quiz_answers", "id=eq." + a.id, { punkte_freitext: wert, bewertet_von: user.username, bewertet_am: new Date().toISOString() })
+                                .then(function() { ftAktualisieren(); })
+                                .catch(function() {
+                                  setUserAnswers(function(liste) {
+                                    return liste.map(function(x) {
+                                      return x.id === a.id ? Object.assign({}, x, { punkte_freitext: vorher }) : x;
+                                    });
+                                  });
+                                  window.alert("Bewertung konnte nicht gespeichert werden — bitte nochmal versuchen.");
+                                });
                             },
                             style: { padding: "4px 10px", background: a.punkte_freitext === parseInt(pt) ? RED : "#e0e0e0",
                                      color: a.punkte_freitext === parseInt(pt) ? "#fff" : "#555",
