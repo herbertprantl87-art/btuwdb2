@@ -20196,6 +20196,9 @@ class ErrorBoundary extends React.Component {
 // ═══════════════════════════════════════════════════════════════════════
 //  QUIZ SYSTEM – Supabase REST helpers
 // ═══════════════════════════════════════════════════════════════════════
+// Zeit je Freitextfrage in Sekunden
+var FT_ZEIT = 180;
+
 var QZ = (function() {
   var BASE = "https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1";
   var KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE";
@@ -20385,6 +20388,7 @@ function QuizTaker(props) {
   var sAnswers = React.useState({}); var answers = sAnswers[0]; var setAnswers = sAnswers[1];
   var sSaving = React.useState(false); var saving = sSaving[0]; var setSaving = sSaving[1];
   var sWarn = React.useState(null); var warn = sWarn[0]; var setWarn = sWarn[1];
+  var sRest = React.useState(null); var restZeit = sRest[0]; var setRestZeit = sRest[1];
 
   // Messwerte je Frage, landen beim Abschliessen im Feld meta
   var metaRef = React.useRef({});
@@ -20392,9 +20396,26 @@ function QuizTaker(props) {
   var wechselRef = React.useRef(0);
   var tippRef = React.useRef({});
   function mm(qId) {
-    if (!metaRef.current[qId]) metaRef.current[qId] = { wechsel: 0, abwesend: 0, paste: 0, tippzeit: 0, zeichen: 0, sprung: 0 };
+    if (!metaRef.current[qId]) metaRef.current[qId] = { wechsel: 0, abwesend: 0, paste: 0, tippzeit: 0, zeichen: 0, sprung: 0, korrekturen: 0, geloescht: 0 };
     return metaRef.current[qId];
   }
+
+  // Zeitlimit je Freitextfrage. Laeuft die Zeit ab, bleibt der Text stehen,
+  // das Feld nimmt aber nichts mehr auf.
+  React.useEffect(function() {
+    if (phase !== "playing") { setRestZeit(null); return; }
+    var qq = questions[idx];
+    if (!qq || qq.typ !== "freitext") { setRestZeit(null); return; }
+    setRestZeit(FT_ZEIT);
+    var iv = setInterval(function() {
+      setRestZeit(function(r) {
+        if (r === null) return null;
+        if (r <= 1) { clearInterval(iv); return 0; }
+        return r - 1;
+      });
+    }, 1000);
+    return function() { clearInterval(iv); };
+  }, [phase, idx, questions]);
 
   // Fensterwechsel: erst ab 3 Sekunden, nur bei Freitext. 1. und 2. Mal loescht das
   // aktuelle Feld, beim 3. Mal beginnt das Quiz von vorn.
@@ -20469,6 +20490,8 @@ function QuizTaker(props) {
     var vorher = answers[qId] || "";
     var delta = val.length - vorher.length;
     if (delta > m.sprung) m.sprung = delta;
+    // Rueckschritte zaehlen: wer abtippt, korrigiert kaum
+    if (delta < 0) { m.korrekturen = (m.korrekturen || 0) + 1; m.geloescht = (m.geloescht || 0) + (-delta); }
     if (t.last && jetzt - t.last < 5000) t.sum += jetzt - t.last;
     t.last = jetzt;
     m.tippzeit = Math.round(t.sum / 1000);
@@ -20600,16 +20623,23 @@ function QuizTaker(props) {
                        cursor: "pointer", fontFamily: FONT, marginBottom: 10, transition: "all .15s" }
             }, opt);
           }),
+          q.typ === "freitext" && restZeit !== null && React.createElement("div", {
+            style: { fontSize: 12, fontWeight: 700, marginBottom: 8, textAlign: "right",
+                     color: restZeit === 0 ? RED : restZeit <= 30 ? "#b45309" : "#999" }
+          }, restZeit === 0
+              ? "Zeit abgelaufen"
+              : "Noch " + Math.floor(restZeit / 60) + ":" + ("0" + (restZeit % 60)).slice(-2) + " f\u00fcr diese Frage"),
           q.typ === "freitext" && React.createElement("textarea", {
             value: answers[q.id] || "",
-            onChange: function(e) { handleText(q.id, e.target.value); },
+            readOnly: restZeit === 0,
+            onChange: function(e) { if (restZeit === 0) return; handleText(q.id, e.target.value); },
             placeholder: "Antworte in vollständigen Sätzen…",
             onPaste: function(e) { e.preventDefault(); mm(q.id).paste += 1; setWarn({ art: "paste" }); },
             onDrop: function(e) { e.preventDefault(); mm(q.id).paste += 1; setWarn({ art: "paste" }); },
             onDragOver: function(e) { e.preventDefault(); },
             onContextMenu: function(e) { e.preventDefault(); },
             rows: 4,
-            style: { width: "100%", boxSizing: "border-box", padding: "12px 16px", border: "2px solid #e9d5ff", borderRadius: 12, fontSize: 16, fontFamily: FONT, resize: "vertical", outline: "none", lineHeight: 1.6, background: "#faf5ff" }
+            style: { width: "100%", boxSizing: "border-box", padding: "12px 16px", border: "2px solid " + (restZeit === 0 ? "#e5e5e5" : "#e9d5ff"), borderRadius: 12, fontSize: 16, fontFamily: FONT, resize: "vertical", outline: "none", lineHeight: 1.6, background: restZeit === 0 ? "#f5f5f5" : "#faf5ff", color: restZeit === 0 ? "#777" : "inherit" }
           }),
           React.createElement("div", { style: { display: "flex", gap: 10, marginTop: 20 } },
             idx > 0 && React.createElement("button", {
@@ -20748,6 +20778,8 @@ function txMesswerte(m) {
   if (m.abwesend) t.push(m.abwesend + " s abwesend");
   if (m.paste) t.push(m.paste + (m.paste > 1 ? " Einf\u00fcgeversuche" : " Einf\u00fcgeversuch"));
   if (m.zeichen) t.push(m.zeichen + " Zeichen in " + (m.tippzeit || 0) + " s");
+  if (m.zeichen) t.push((m.korrekturen || 0) + (m.korrekturen === 1 ? " Korrektur" : " Korrekturen")
+                        + (m.geloescht ? " (" + m.geloescht + " Zeichen)" : ""));
   if (m.sprung >= 25) t.push("gr\u00f6\u00dfter Sprung " + m.sprung + " Zeichen");
   return t.length ? "\u23f1 " + t.join(" \u00b7 ") : "";
 }
