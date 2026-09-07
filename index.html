@@ -20936,7 +20936,7 @@ function AuswertungPage(props) {
                                  fontWeight: (txRes && txRes.woerter >= 8) ? 700 : 500,
                                  color: !txRes ? "#aaa" : txRes.woerter >= 12 ? RED : txRes.woerter >= 8 ? "#b45309" : "#aaa" }
                       }, !txRes
-                          ? "Textabgleich: Antwort zu kurz für eine Prüfung"
+                          ? "Textabgleich nicht möglich, weniger als 5 Wörter"
                           : txRes.woerter >= 8
                             ? "Textabgleich: " + txRes.woerter + " Wörter am Stück wörtlich übernommen, " + txRes.pct + " % Übereinstimmung"
                             : "Textabgleich: keine wörtliche Übernahme (längste Passage " + txRes.woerter + " Wörter)"),
