@@ -20859,7 +20859,9 @@ function AuswertungPage(props) {
           userResults.length === 0 && React.createElement("div", { style: { textAlign: "center", color: "#aaa", padding: "40px 0", fontSize: 14 } }, "Noch keine Quizze abgeschlossen."),
           userResults.map(function(r) {
             var quiz = quizzes.find(function(q) { return q.id === r.quiz_id; });
-            var pct = r.max_score_mc > 0 ? Math.round((r.score_mc / r.max_score_mc) * 100) : null;
+            var ft = ftMap[r.id];
+            var ges = gesamtPct(r, ft);
+            var pct = mcPctVon(r);
             var datum = r.abgeschlossen_am ? new Date(r.abgeschlossen_am).toLocaleDateString("de-DE") : "";
             return React.createElement("div", { key: r.id, style: { background: "#fff", borderRadius: 12, padding: "16px 18px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
               React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 } },
@@ -20868,11 +20870,15 @@ function AuswertungPage(props) {
                   React.createElement("div", { style: { fontSize: 12, color: "#888", marginTop: 2 } }, datum ? "✓ " + datum : "")
                 ),
                 React.createElement("div", { style: { textAlign: "right" } },
-                  pct !== null && React.createElement("div", { style: { fontWeight: 800, fontSize: 16, color: pct >= 80 ? "#16a34a" : pct >= 60 ? "#d97706" : RED } }, pct + "%"),
-                  React.createElement("div", { style: { fontSize: 11, color: "#aaa" } }, r.score_mc + "/" + r.max_score_mc + " MC")
+                  ges !== null
+                    ? React.createElement("div", { style: { fontWeight: 800, fontSize: 16, color: pctFarbe(ges) } }, ges + "%")
+                    : (pct !== null && React.createElement("div", { style: { fontWeight: 800, fontSize: 16, color: pctFarbe(pct) } }, pct + "% MC")),
+                  React.createElement("div", { style: { fontSize: 11, color: "#aaa" } },
+                    r.score_mc + "/" + r.max_score_mc + " MC" + (ft && ft.anzahl ? " · " + ft.punkte + "/" + ftMax(ft) + " Freitext" : ""))
                 )
               ),
-              !r.freitext_bewertet && React.createElement("div", { style: { fontSize: 11, color: "#7c3aed", background: "#faf5ff", borderRadius: 6, padding: "5px 10px", display: "inline-block" } }, "Freitext-Bewertung ausstehend"),
+              ft && ft.offen > 0 && React.createElement("div", { style: { fontSize: 11, color: "#7c3aed", background: "#faf5ff", borderRadius: 6, padding: "5px 10px", display: "inline-block" } },
+                "Freitext-Bewertung ausstehend (" + ft.offen + " von " + ft.anzahl + ")"),
               canReviewAnswers(user.role) && React.createElement("button", {
                 onClick: function() { loadUserAnswers(selUser.id, r.id); },
                 style: { marginTop: 8, padding: "6px 12px", background: "#f0f0f0", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: FONT, color: "#555" }
