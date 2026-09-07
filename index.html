@@ -20367,6 +20367,8 @@ function QuizTaker(props) {
       if (!qq) return;
       var m = mm(qq.id);
       m.abwesend += weg;
+      // Beim Speichern kann ein Fehlerdialog den Fokus nehmen, das zaehlt nicht
+      if (saving) return;
       if (qq.typ !== "freitext" || weg < 3) return;
       m.wechsel += 1;
       wechselRef.current += 1;
@@ -20390,7 +20392,7 @@ function QuizTaker(props) {
       window.removeEventListener("blur", raus);
       window.removeEventListener("focus", rein);
     };
-  }, [phase, idx, questions]);
+  }, [phase, idx, questions, saving]);
 
   // Meldet anderen Tabs derselben Seite, dass gerade ein Quiz laeuft
   React.useEffect(function() {
