@@ -20899,9 +20899,15 @@ function AuswertungPage(props) {
                     a.typ === "freitext" && React.createElement("div", null,
                       React.createElement("div", { style: { fontSize: 12, color: "#555", fontStyle: "italic", lineHeight: 1.5 } },
                         txRes && txRes.woerter >= 8 ? txMarkiert(a.antwort_text || "", txRes) : (a.antwort_text || "—")),
-                      txRes && txRes.woerter >= 8 && React.createElement("div", {
-                        style: { marginTop: 6, fontSize: 11, fontWeight: 700, color: txRes.woerter >= 12 ? RED : "#b45309" }
-                      }, "Textabgleich: längste wörtliche Passage " + txRes.woerter + " Wörter, " + txRes.pct + " % Übereinstimmung"),
+                      txIdx && React.createElement("div", {
+                        style: { marginTop: 6, fontSize: 11,
+                                 fontWeight: (txRes && txRes.woerter >= 8) ? 700 : 500,
+                                 color: !txRes ? "#aaa" : txRes.woerter >= 12 ? RED : txRes.woerter >= 8 ? "#b45309" : "#aaa" }
+                      }, !txRes
+                          ? "Textabgleich: Antwort zu kurz für eine Prüfung"
+                          : txRes.woerter >= 8
+                            ? "Textabgleich: " + txRes.woerter + " Wörter am Stück wörtlich übernommen, " + txRes.pct + " % Übereinstimmung"
+                            : "Textabgleich: keine wörtliche Übernahme (längste Passage " + txRes.woerter + " Wörter)"),
                       a.meta && txMesswerte(a.meta) && React.createElement("div", {
                         style: { marginTop: 4, fontSize: 11, color: "#999" }
                       }, txMesswerte(a.meta)),
