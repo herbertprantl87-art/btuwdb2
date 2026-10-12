@@ -88,7 +88,7 @@ c.addEventListener("click",function(){hideSidebar();});
 c.addEventListener("touchstart",function(e){e.stopPropagation();e.preventDefault();hideSidebar();},{passive:false});setTimeout(function(){collectGoals(function(){if(s.classList.contains("on"))rebuild();});},1500);i.addEventListener("click",function(){rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}});i.addEventListener("touchstart",function(e){e.preventDefault();rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}},{passive:false});document.addEventListener("mousedown",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});document.addEventListener("touchstart",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});}();</script>
 <script>
 (function(){
-  window.__BTU_BUILD = "9c4f1a27";
+  window.__BTU_BUILD = "b7e31d06";
   var _iv=null,_s=false;
   function showToast(){if(_s)return;_s=true;localStorage.setItem("btu_toast_ts",Date.now());
     var t=document.createElement("div");
@@ -8653,6 +8653,10 @@ function isValidMaGebiet(g) {
   return !!g && GEBIETE.some(function(e){ return !e.glOnly && e.value === g; });
 }
 function isLeaderRole(role) { return role === 'gebietsleiter' || role === 'superadmin' || role === 'carmelo'; }
+// Rolle bei der Registrierung: GL-Anmeldung (Logo-Klick) liefert die GL-/Superadmin-Rolle,
+// die normale Anmeldung immer "mitarbeiter" (Bayern/Berlin haben in beiden Listen denselben Wert)
+function rolleBeiRegistrierung(gebiet, glMode) { return glMode ? getRoleForGebiet(gebiet, true) : "mitarbeiter"; }
+// ── ENDE ROLLENREGELN (Block wird von tests/unit geladen) ──
 
 // ═══════════════════════════════════════════════════════════════════════
 //  EINWAND-DATENBANK (pro Produkt-ID)
@@ -12514,7 +12518,7 @@ function BioTechDatabase() {
       // Rolle hängt am Login-Modus: GL-Anmeldung (Logo-Klick) liefert die GL-/Superadmin-Rolle,
       // die normale Anmeldung immer "mitarbeiter". Nötig, weil Bayern-/Berlin-Gebiete im GL- und
       // im MA-Dropdown denselben Wert haben (z. B. "Bayern-Szabolcs").
-      const finalRole = loginGLMode ? getRoleForGebiet(loginInput.gebiet, true) : "mitarbeiter";
+      const finalRole = rolleBeiRegistrierung(loginInput.gebiet, loginGLMode);
       await SB.upsert("profiles", {
         id: username,
         first_name: nameVal || username,
@@ -14160,7 +14164,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
                display: "flex", alignItems: "center", gap: 10 }
     },
       /*#__PURE__*/CE("div", {
-        onClick: handleLogoClick,
+        onClick: handleLogoClick, "data-test": "login-logo",
         style: { width: 32, height: 32, background: "#c8102e", borderRadius: 7,
                  display: "flex", alignItems: "center", justifyContent: "center",
                  fontWeight: 900, fontSize: 16, color: "#fff",
