@@ -14,7 +14,6 @@ import laden
 # Kategorien ohne Preisabgleich: Bekleidung, Zubehoer und Infoseiten
 # Bekannte, bewusst offene Abweichungen. Jeder Eintrag braucht einen Grund und ein Datum.
 BEKANNTE_GROESSEN_ABWEICHUNG = {
-    "91": "Supernova: Katalog 300 g, Shop 282 g, gleicher Preis. Frage an Herbert offen (12.10.2026)",
 }
 STUECK = {"kaps", "tbl", "st\u00fcck"}
 
