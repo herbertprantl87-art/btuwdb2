@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tests
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pakete installieren
+        run: npm ci
+      - name: Unit-Tests (Regeln zu Rollen und Gebieten)
+        run: npm run unit
+      - name: Datenbank-Tests (Rollen- und Gebietsschutz)
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run db
+      - name: Browser installieren
+        run: npx playwright install --with-deps chromium
+      - name: Browser-Tests (Registrierung und Anmeldung)
+        env:
+          CI: "1"
+        run: npm run e2e
+      - name: Bericht bei Fehler sichern
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testbericht
+          path: |
+            tests/playwright-report
+            tests/test-results
+          retention-days: 14
