@@ -1,0 +1,14 @@
+{
+  "name": "btuwdb2-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "unit": "node --test unit/*.test.mjs",
+    "db": "bash db/run.sh",
+    "e2e": "playwright test",
+    "alle": "npm run unit && npm run db && npm run e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0"
+  }
+}
