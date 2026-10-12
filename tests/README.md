@@ -9,6 +9,7 @@ wird dabei nie benutzt.
 | Unit | `unit/` | Einzelne Regeln aus der index.html: Rollenvergabe, wer wen sehen darf, gültige Gebiete |
 | Datenbank | `db/` | Der Rollen- und Gebietsschutz in einer nachgebauten PostgreSQL-Datenbank |
 | Browser | `e2e/` | Registrierung und Anmeldung komplett im Browser, mit nachgebauter Supabase |
+| Sync | `sync/` | Preis-Sync, Aktionspreise und Übersetzungs-Nachlauf: einzelne Regeln, Abbruch bei Shop-Sperre, Abgleich mit der index.html |
 
 ## Wichtig bei Änderungen
 
@@ -19,6 +20,14 @@ wird dabei nie benutzt.
 - Die Unit-Tests laden den Block zwischen `var GEBIETE = [` und
   `// ── ENDE ROLLENREGELN` aus der index.html. Diese Marke nicht entfernen.
 
+- Die Sync-Skripte liegen als Kopie im Ordner `sync/`. Sie laufen täglich auf Herberts
+  Rechner (Ordner PriesSync, `sync_start.bat`). Die Fassung im Repo ist die Vorlage:
+  Wird ein Skript geändert, kommt die neue Fassung erst hierher (Tests laufen), dann
+  in den PriesSync-Ordner.
+- Wird ein Produkt in der index.html ergänzt oder entfernt, schlagen die Sync-Tests an,
+  bis `UNSERE`, `MAPPING` und `SKIP` in `sync/preis_sync.py` nachgezogen sind. Das ist
+  gewollt: so bekommt kein Produkt still keinen Preisabgleich mehr.
+
 ## Lokal ausführen
 
 ```
@@ -28,4 +37,5 @@ npx playwright install chromium
 npm run unit
 PGHOST=localhost PGUSER=postgres PGPASSWORD=... npm run db
 npm run e2e
+cd sync && python3 -m unittest -v
 ```
