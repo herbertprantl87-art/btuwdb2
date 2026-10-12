@@ -88,7 +88,7 @@ c.addEventListener("click",function(){hideSidebar();});
 c.addEventListener("touchstart",function(e){e.stopPropagation();e.preventDefault();hideSidebar();},{passive:false});setTimeout(function(){collectGoals(function(){if(s.classList.contains("on"))rebuild();});},1500);i.addEventListener("click",function(){rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}});i.addEventListener("touchstart",function(e){e.preventDefault();rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}},{passive:false});document.addEventListener("mousedown",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});document.addEventListener("touchstart",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});}();</script>
 <script>
 (function(){
-  window.__BTU_BUILD = "d8c0383b";
+  window.__BTU_BUILD = "3a19779c";
   var _iv=null,_s=false;
   function showToast(){if(_s)return;_s=true;localStorage.setItem("btu_toast_ts",Date.now());
     var t=document.createElement("div");
