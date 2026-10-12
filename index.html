@@ -8638,6 +8638,16 @@ function isSuperRole(role) { return role === 'superadmin' || role === 'carmelo';
 function isGLRole(role) { return role === 'gebietsleiter' || isSuperRole(role); }
 function canCreateQuiz(role) { return role === 'carmelo'; }
 function canReviewAnswers(role) { return role === 'carmelo' || role === 'superadmin'; }
+// Wer darf Daten eines Nutzers im Admin-Bereich sehen?
+// Superadmin: alle. GL: nur das eigene, exakte Gebiet. Alle anderen: nur sich selbst.
+function canSeeUser(viewer, gebiet, key) {
+  if (!viewer) return false;
+  var me = viewer.username || viewer.key || "";
+  if (me && key && key === me) return true;
+  if (viewer.role === 'superadmin') return true;
+  if (viewer.role === 'gebietsleiter') return !!viewer.gebiet && gebiet === viewer.gebiet;
+  return false;
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 //  EINWAND-DATENBANK (pro Produkt-ID)
@@ -12476,10 +12486,10 @@ function BioTechDatabase() {
       // Passwort in app_config speichern
       await SB.upsert("app_config", { key: "auth_user__" + username, value: { hash } });
       // Profil in Supabase anlegen – role explizit "mitarbeiter" für MA-Gebiet, sonst aus Gebiet
-      const regRole = getRoleForGebiet(loginInput.gebiet) === "gebietsleiter" ? "gebietsleiter" : "mitarbeiter";
-      // Nur GL-Gebiet ohne -MA-Suffix bekommt gebietsleiter; MA-Dropdown hat immer glOnly:false
-      const isGLLogin = GEBIETE.find(function(g){ return g.value === loginInput.gebiet && g.glOnly; });
-      const finalRole = isGLLogin ? getRoleForGebiet(loginInput.gebiet) : "mitarbeiter";
+      // Rolle hängt am Login-Modus: GL-Anmeldung (Logo-Klick) liefert die GL-/Superadmin-Rolle,
+      // die normale Anmeldung immer "mitarbeiter". Nötig, weil Bayern-/Berlin-Gebiete im GL- und
+      // im MA-Dropdown denselben Wert haben (z. B. "Bayern-Szabolcs").
+      const finalRole = loginGLMode ? getRoleForGebiet(loginInput.gebiet, true) : "mitarbeiter";
       await SB.upsert("profiles", {
         id: username,
         first_name: nameVal || username,
@@ -17448,7 +17458,8 @@ function CartAnalyticsTab({FONT_SYS}) {
     var since = new Date(Date.now() - days*24*60*60*1000).toISOString();
     var cu = null;
     try { cu = JSON.parse(sessionStorage.getItem('btu_session')||'null'); } catch(e){}
-    var isSA = !cu || cu.role === 'superadmin';
+    var isSA = !!cu && cu.role === 'superadmin';
+    if (!cu) { setData({}); setLoading(false); return; }
     var APIKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1landwYmFoY21sa3dhamt5bW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzQ2OTAsImV4cCI6MjA5MzQxMDY5MH0.rzt-EiWxy8poy0vs00eEVvs-GYab9VOoiTAsrEScCrE';
     var SB_BASE = 'https://mejwpbahcmlkwajkymnj.supabase.co/rest/v1/';
 
@@ -17501,19 +17512,8 @@ function CartAnalyticsTab({FONT_SYS}) {
         })
         .catch(function(){ fetchEvents([]); });
       } else {
-        var region = getGebietRegion(myGebiet);
-        if (!region) { fetchEvents([]); }
-        else {
-          var rPrefix = region.indexOf('/') !== -1 ? region.split('/')[0] : region;
-          fetch(SB_BASE+'profiles?select=id&gebiet=ilike.'+encodeURIComponent(rPrefix+'%'), {headers:{'apikey':APIKEY,'Content-Type':'application/json'}})
-          .then(function(r){ return r.json(); })
-          .then(function(profiles){
-            var names = Array.isArray(profiles) ? profiles.map(function(p){ return p.id; }) : [];
-            if (cu.username && names.indexOf(cu.username) === -1) names.push(cu.username);
-            fetchEvents(names);
-          })
-          .catch(function(){ fetchEvents([]); });
-        }
+        // Ohne GL-Rolle nur die eigenen Einträge
+        fetchEvents(cu.username ? [cu.username] : []);
       }
     }
   }, [days]);
@@ -17603,7 +17603,7 @@ function AdminPanel({
   const [beratSessions, setBeratSessions] = React.useState(null);
   React.useEffect(() => {
     if (tab !== "berater") return;
-    SB.get("advisor_sessions?order=started_at.desc&limit=300&select=*").then(rows => setBeratSessions(rows || []));
+    SB.get("advisor_sessions?order=started_at.desc&limit=300&select=*").then(rows => setBeratSessions((rows || []).filter(s => canSeeUser(currentUser, s.gebiet, s.user_key))));
   }, [tab]);
   const [users, setUsers]           = React.useState([]);
   const [expandedUser, setExpanded] = React.useState(null);
@@ -17652,26 +17652,9 @@ function AdminPanel({
           const ln = p.last_name  || "";
           return { key: p.id, displayName: (fn + " " + ln).trim() || p.id, firstName: fn, lastName: ln, favs, quiz, hist, gebiet: p.gebiet || "", role: p.role || "mitarbeiter", is_online: p.is_online || false, last_seen: p.last_seen || null };
         });
-        // Gebiet-Filter: superadmin sieht alles, carmelo nur sich selbst, GL/MA nur eigene Region
-        if (currentUser) {
-          if (currentUser.role === "carmelo") {
-            list = list.filter(u => u.key === currentUser.username);
-          } else if (currentUser.role !== "superadmin") {
-            if (currentUser.role === "gebietsleiter") {
-              // GL sieht nur Mitarbeiter seines exakten Gebiets (z.B. Berlin-Chris != Berlin-Alem)
-              var myGebiet = currentUser.gebiet || "";
-              if (!myGebiet) {
-                list = []; // kein Gebiet = nichts anzeigen
-              } else {
-                list = list.filter(u => u.gebiet === myGebiet || u.key === currentUser.username);
-              }
-            } else {
-              var myReg = getGebietRegion(currentUser.gebiet || "");
-              if (myReg) list = list.filter(u => getGebietRegion(u.gebiet) === myReg);
-              else list = [];
-            }
-          }
-        }
+        // Gebiet-Filter: Superadmin sieht alles, GL nur sein exaktes Gebiet
+        // (z. B. Bayern-Szabolcs != Bayern-Roman), alle anderen nur sich selbst
+        list = list.filter(u => canSeeUser(currentUser, u.gebiet, u.key));
         setUsers(list);
         return;
       }
@@ -18581,12 +18564,13 @@ function AdminPanel({
       // Footer
       CE("div", { style:{ padding:"12px 20px", borderTop:"1px solid #1a1a1a",
           display:"flex", gap:8, justifyContent:"space-between", flexShrink:0 } },
-        CE("button", {
+        // "Alle löschen" löscht alle Profile aller Gebiete: nur für Superadmins
+        (currentUser && currentUser.role === "superadmin") ? CE("button", {
           onClick:()=>{ if(window.confirm("Alle Nutzerdaten löschen?")) onDeleteAll(); },
           style:{ fontSize:11, fontWeight:700, padding:"7px 14px", background:"transparent",
                   color:"#553333", border:"1px solid #2a1a1a", borderRadius:8,
                   cursor:"pointer", fontFamily:FONT_SYS }
-        }, "🗑 Alle löschen"),
+        }, "🗑 Alle löschen") : CE("span", null),
         CE("button", { onClick:onLeave,
           style:{ fontSize:11, fontWeight:700, padding:"7px 20px", background:"#1e1e1e",
                   color:"#888", border:"none", borderRadius:8, cursor:"pointer", fontFamily:FONT_SYS }
@@ -19309,9 +19293,10 @@ function AuswertungPage(props) {
   var region = isSA ? null : getGebietRegion(user.gebiet);
 
   React.useEffect(function() {
-    var profileQuery = region
-      ? "profiles?gebiet=ilike." + encodeURIComponent(region.split("/")[0] + "%") + "&select=id,name,store,gebiet,role&order=name.asc"
-      : "profiles?select=id,name,store,gebiet,role&order=name.asc";
+    // GL sieht nur sein exaktes Gebiet (Bayern-Szabolcs != Bayern-Roman)
+    var profileQuery = isSA
+      ? "profiles?select=id,name,store,gebiet,role&order=name.asc"
+      : "profiles?gebiet=eq." + encodeURIComponent(user.gebiet || "-") + "&select=id,name,store,gebiet,role&order=name.asc";
     Promise.all([
       QZ.get(profileQuery),
       QZ.get("new_quiz_results?select=*&order=abgeschlossen_am.desc"),
