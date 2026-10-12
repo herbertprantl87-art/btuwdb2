@@ -88,7 +88,7 @@ c.addEventListener("click",function(){hideSidebar();});
 c.addEventListener("touchstart",function(e){e.stopPropagation();e.preventDefault();hideSidebar();},{passive:false});setTimeout(function(){collectGoals(function(){if(s.classList.contains("on"))rebuild();});},1500);i.addEventListener("click",function(){rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}});i.addEventListener("touchstart",function(e){e.preventDefault();rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}},{passive:false});document.addEventListener("mousedown",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});document.addEventListener("touchstart",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});}();</script>
 <script>
 (function(){
-  window.__BTU_BUILD = "5e2b8d41";
+  window.__BTU_BUILD = "9c4f1a27";
   var _iv=null,_s=false;
   function showToast(){if(_s)return;_s=true;localStorage.setItem("btu_toast_ts",Date.now());
     var t=document.createElement("div");
@@ -8648,6 +8648,11 @@ function canSeeUser(viewer, gebiet, key) {
   if (viewer.role === 'gebietsleiter') return !!viewer.gebiet && gebiet === viewer.gebiet;
   return false;
 }
+// Gültiges Mitarbeiter-Gebiet (jedes Mitarbeiterprofil braucht eins)
+function isValidMaGebiet(g) {
+  return !!g && GEBIETE.some(function(e){ return !e.glOnly && e.value === g; });
+}
+function isLeaderRole(role) { return role === 'gebietsleiter' || role === 'superadmin' || role === 'carmelo'; }
 
 // ═══════════════════════════════════════════════════════════════════════
 //  EINWAND-DATENBANK (pro Produkt-ID)
@@ -12322,6 +12327,7 @@ function BioTechDatabase() {
     try {
       const u = JSON.parse(sessionStorage.getItem("btu_session") || "null");
       if (u && !u.role) u.role = "mitarbeiter"; // fehlende Rolle nie aus dem Gebiet ableiten
+      if (u && !u.gebiet) return null; // ohne Gebiet neu anmelden, dort wird es abgefragt
       return u;
     } catch {
       return null;
@@ -12394,6 +12400,7 @@ function BioTechDatabase() {
   const [loginLoading, setLoginLoading] = React.useState(false);
   const [loginError, setLoginError] = React.useState("");
   const [loginGLMode, setLoginGLMode] = React.useState(false);
+  const [pendingLogin, setPendingLogin] = React.useState(null); // Konto ohne Gebiet: erst vervollständigen
   
   // Polling: neue Nachrichten alle 3s im Hintergrund
   React.useEffect(() => {
@@ -12475,6 +12482,17 @@ function BioTechDatabase() {
     }
   };
 
+  // Was bei der Registrierung noch fehlt (Button bleibt gesperrt, bis alles da ist)
+  const regFehlt = (() => {
+    const f = [];
+    const g = loginInput.gebiet || "";
+    if (!g || (!loginGLMode && !isValidMaGebiet(g))) f.push("Gebiet");
+    if (getRoleForGebiet(g, loginGLMode) === "mitarbeiter" && !(loginInput.name || "").trim()) f.push("Vorname");
+    const pw = loginInput.password || "";
+    if (pw.length < 4) f.push("Passwort (mind. 4 Zeichen)");
+    else if (pw !== (loginInput.password2 || "")) f.push("Passwort-Wiederholung stimmt nicht");
+    return f;
+  })();
   const doRegister = async () => {
     const username = loginInput.username.trim().toLowerCase();
     const pw = loginInput.password;
@@ -12482,6 +12500,7 @@ function BioTechDatabase() {
     const nameVal = loginInput.name.trim();
     const role = getRoleForGebiet(loginInput.gebiet, loginGLMode);
     if (!loginInput.gebiet) { setLoginError("Bitte Gebiet auswählen"); return; }
+    if (!loginGLMode && !isValidMaGebiet(loginInput.gebiet)) { setLoginError("Bitte Gebiet auswählen"); return; }
     if (role === "mitarbeiter" && !nameVal) { setLoginError("Bitte Vorname eingeben"); return; }
     if (pw.length < 4) { setLoginError("Passwort mind. 4 Zeichen"); return; }
     if (pw !== pw2) { setLoginError("Passwörter stimmen nicht überein"); return; }
@@ -12517,7 +12536,9 @@ function BioTechDatabase() {
       finishLogin(username, loginInput.gebiet, nameVal, loginInput.store, savedRole);
     } catch(e) {
       setLoginLoading(false);
-      setLoginError("Verbindungsfehler — bitte nochmal versuchen.");
+      setLoginError(String(e && e.message || "").indexOf("Gebiet") !== -1
+        ? "Bitte ein gültiges Gebiet auswählen."
+        : "Verbindungsfehler — bitte nochmal versuchen.");
     }
   };
 
@@ -12551,6 +12572,15 @@ function BioTechDatabase() {
     const nameVal = (prof && prof.name) || loginInput.name || username;
     const storeVal = (prof && prof.store) || loginInput.store || "";
     const roleVal = (prof && prof.role) || null;
+    if (!isLeaderRole(roleVal) && !isValidMaGebiet(gebiet)) {
+      // Profil ohne gültiges Gebiet: erst Angaben vervollständigen, sonst kein Zugang
+      setPendingLogin({ username, storeVal, roleVal });
+      setLoginInput(p => ({ ...p, gebiet: "", name: (nameVal && nameVal !== username) ? nameVal : "" }));
+      setLoginLoading(false);
+      setLoginError("");
+      setLoginStep("complete");
+      return;
+    }
     finishLogin(username, gebiet, nameVal, storeVal, roleVal);
   };
 
@@ -14143,6 +14173,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
           "BioTechUSA Wissensdatenbank"),
         /*#__PURE__*/CE("div", { style: { color: "#aaa", fontSize: 11, marginTop: 1 } },
           loginStep === "register" ? "Neues Konto erstellen" :
+          loginStep === "complete" ? "Angaben vervollständigen" :
           loginStep === "password" ? "Passwort eingeben" : "Bitte anmelden")
       )
     ),
@@ -14214,6 +14245,8 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
         }),
         loginError && /*#__PURE__*/CE("div",
           { style: { color: "#c8102e", fontSize: 12, marginBottom: 10 } }, loginError),
+        regFehlt.length > 0 && /*#__PURE__*/CE("div",
+          { style: { color: "#888", fontSize: 12, marginBottom: 10 } }, "Noch offen: " + regFehlt.join(", ")),
         /*#__PURE__*/CE("div", { style: { display: "flex", gap: 8 } },
           /*#__PURE__*/CE("button", {
             onClick: () => { setLoginStep("username"); setLoginError(""); setLoginInput(p => ({ ...p, password: "", password2: "" })); },
@@ -14221,12 +14254,60 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
                      borderRadius: 10, fontSize: 14, fontWeight: 700, minHeight: 48, cursor: "pointer", fontFamily: FONT }
           }, "← Zurück"),
           /*#__PURE__*/CE("button", {
-            onClick: doRegister, disabled: loginLoading,
-            style: { flex: 1, padding: "13px 0", background: "#c8102e", color: "#fff",
+            onClick: doRegister, disabled: loginLoading || regFehlt.length > 0,
+            style: { flex: 1, padding: "13px 0", background: regFehlt.length ? "#d9d9d9" : "#c8102e", color: "#fff",
                      border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, minHeight: 48,
-                     cursor: loginLoading ? "wait" : "pointer", fontFamily: FONT }
+                     cursor: loginLoading ? "wait" : (regFehlt.length ? "not-allowed" : "pointer"), fontFamily: FONT }
           }, loginLoading ? "Erstelle…" : "Konto erstellen →")
         )
+      ),
+      loginStep === "complete" && pendingLogin && /*#__PURE__*/CE(React.Fragment, null,
+        /*#__PURE__*/CE("p", { style: { fontSize: 13, color: "#555", marginBottom: 16, lineHeight: 1.5 } },
+          "Hallo ", /*#__PURE__*/CE("strong", null, loginInput.username.trim()),
+          "! In deinem Konto fehlen noch Angaben. Bitte wähle dein Gebiet und gib deinen Vornamen ein, erst dann geht es weiter."),
+        /*#__PURE__*/CE("select", {
+          value: loginInput.gebiet,
+          onChange: e => setLoginInput(p => ({ ...p, gebiet: e.target.value })),
+          style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
+                   border: "1.5px solid " + (loginInput.gebiet ? "#e0e0e0" : "#c8102e"),
+                   borderRadius: 8, fontSize: 16, fontFamily: FONT, outline: "none",
+                   marginBottom: 10, background: "#fff", color: loginInput.gebiet ? "#1a1a1a" : "#999",
+                   appearance: "none", WebkitAppearance: "none" }
+        },
+          /*#__PURE__*/CE("option", { value: "" }, "— Gebiet auswählen —"),
+          GEBIETE.filter(function(g){ return !g.glOnly; }).map(function(g) {
+            return /*#__PURE__*/CE("option", { key: g.value, value: g.value }, g.label);
+          })
+        ),
+        /*#__PURE__*/CE("input", {
+          type: "text", placeholder: "Dein Vorname",
+          value: loginInput.name,
+          onChange: e => setLoginInput(p => ({ ...p, name: e.target.value })),
+          style: { width: "100%", boxSizing: "border-box", padding: "10px 14px",
+                   border: "1.5px solid " + (loginInput.name.trim() ? "#e0e0e0" : "#c8102e"), borderRadius: 8, fontSize: 16,
+                   fontFamily: FONT, outline: "none", marginBottom: 16 }
+        }),
+        (() => {
+          const ok = isValidMaGebiet(loginInput.gebiet) && !!loginInput.name.trim();
+          return /*#__PURE__*/CE("div", { style: { display: "flex", gap: 8 } },
+            /*#__PURE__*/CE("button", {
+              onClick: () => { setPendingLogin(null); setLoginStep("username"); setLoginError(""); setLoginInput(p => ({ ...p, password: "" })); },
+              style: { padding: "13px 16px", background: "#f0f0f0", color: "#555", border: "none",
+                       borderRadius: 10, fontSize: 14, fontWeight: 700, minHeight: 48, cursor: "pointer", fontFamily: FONT }
+            }, "← Zurück"),
+            /*#__PURE__*/CE("button", {
+              disabled: !ok,
+              onClick: () => {
+                if (!ok) return;
+                const pl = pendingLogin;
+                setPendingLogin(null);
+                finishLogin(pl.username, loginInput.gebiet, loginInput.name.trim(), pl.storeVal, pl.roleVal || "mitarbeiter");
+              },
+              style: { flex: 1, padding: "13px 0", background: ok ? "#c8102e" : "#d9d9d9", color: "#fff",
+                       border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, minHeight: 48,
+                       cursor: ok ? "pointer" : "not-allowed", fontFamily: FONT }
+            }, "Weiter →"));
+        })()
       ),
       loginStep === "password" && /*#__PURE__*/CE(React.Fragment, null,
         /*#__PURE__*/CE("p", { style: { fontSize: 13, color: "#555", marginBottom: 12, lineHeight: 1.5 } },
@@ -17628,6 +17709,10 @@ function AdminPanel({
   const [createFirst, setCreateFirst] = React.useState("");
   const [createLast,  setCreateLast]  = React.useState("");
   const [createPw,    setCreatePw]    = React.useState("");
+  // Gebiet für neue Profile: GL immer das eigene, sonst Auswahl (Herbert vorbelegt mit NRW/Hessen-MA)
+  const glFix = currentUser && currentUser.role === "gebietsleiter";
+  const [createGebiet, setCreateGebiet] = React.useState(() =>
+    glFix ? (currentUser.gebiet || "") : ((currentUser && currentUser.gebiet === "NRW/Hessen-Herbert") ? "NRW/Hessen-MA" : ""));
   const [createMsg,   setCreateMsg]   = React.useState("");
   const [edSearch,    setEdSearch]    = React.useState("");
   const [editingId,   setEditingId]   = React.useState(null);
@@ -17748,6 +17833,8 @@ function AdminPanel({
     const fn = editUserFields.first.trim().toLowerCase().replace(/\s+/g,"");
     const ln = editUserFields.last.trim().toLowerCase().replace(/\s+/g,"_");
     if (!fn) { setEditUserMsg("Vorname fehlt."); return; }
+    if (isLeaderRole(u.role)) { setEditUserMsg("Leitungskonten können hier nicht umbenannt werden."); return; }
+    if (!isValidMaGebiet(u.gebiet)) { setEditUserMsg("Profil hat kein gültiges Gebiet."); return; }
     const newKey = fn+(ln?"_"+ln:"");
     if (newKey === u.key) { setEditingUserId(null); return; }
     if (users.find(x=>x.key===newKey)) { setEditUserMsg("Name bereits vergeben."); return; }
@@ -17764,10 +17851,14 @@ function AdminPanel({
         history: u.hist || [],
         updated_at: new Date().toISOString()
       } : null;
-      SB.upsert("profiles", { id: newKey, first_name: newFirst, last_name: newLast });
-      if (favs.length) SB.upsert("favorites", { profile_id: newKey, product_ids: favs, updated_at: new Date().toISOString() });
-      if (quizRow) SB.upsert("quiz_results", quizRow);
-      SB.del("profiles", "id=eq." + encodeURIComponent(u.key)).catch(function(){});
+      // Neues Profil mit Gebiet und Rolle anlegen; das alte erst löschen, wenn das geklappt hat
+      SB.upsert("profiles", { id: newKey, first_name: newFirst, last_name: newLast, gebiet: u.gebiet, role: "mitarbeiter" })
+        .then(function() {
+          if (favs.length) SB.upsert("favorites", { profile_id: newKey, product_ids: favs, updated_at: new Date().toISOString() });
+          if (quizRow) SB.upsert("quiz_results", quizRow);
+          SB.del("profiles", "id=eq." + encodeURIComponent(u.key)).catch(function(){});
+        })
+        .catch(function() { window.alert("Umbenennen fehlgeschlagen, das alte Profil bleibt erhalten."); });
       // localStorage migration
       const migrations = [
         ["btu_favs_"+u.key, "btu_favs_"+newKey],
@@ -17864,8 +17955,9 @@ function AdminPanel({
     if (users.find(u=>u.key===key)) { setCreateMsg("Existiert bereits."); return; }
     const firstName = createFirst.trim();
     const lastName  = createLast.trim();
-    // Gebiet vom aktuellen GL-Nutzer ableiten (exaktes Gebiet, nicht Region)
-    const myGebiet = (currentUser && currentUser.gebiet) ? currentUser.gebiet : "";
+    // Gebiet: GL legt immer im eigenen Gebiet an, alle anderen müssen eins auswählen
+    const myGebiet = glFix ? (currentUser.gebiet || "") : createGebiet;
+    if (!isValidMaGebiet(myGebiet)) { setCreateMsg("Bitte Gebiet auswählen."); return; }
     // Supabase – mit await, damit Fehler sichtbar werden
     try {
       await SB.upsert("profiles", { id: key, first_name: firstName, last_name: lastName, gebiet: myGebiet, role: "mitarbeiter" });
@@ -18054,12 +18146,21 @@ function AdminPanel({
                 onChange:e=>{setCreateLast(e.target.value);setCreateMsg("");},
                 onKeyDown:e=>{if(e.key==="Enter")createProfile();}, style:{...INP,flex:1} })
             ),
+            !glFix && CE("select", { value:createGebiet,
+                onChange:e=>{setCreateGebiet(e.target.value);setCreateMsg("");},
+                style:{...INP, width:"100%", boxSizing:"border-box", marginBottom:5,
+                       border:"1px solid " + (isValidMaGebiet(createGebiet) ? "#222" : "#7f1d1d")} },
+              CE("option", { value:"" }, "— Gebiet auswählen —"),
+              GEBIETE.filter(g => !g.glOnly).map(g => CE("option", { key:g.value, value:g.value }, g.label))
+            ),
             CE("div", { style:{ display:"flex", gap:6 } },
               CE("input", { type:"password", placeholder:"Passwort (optional, mind. 4 Zeichen)", value:createPw,
                 onChange:e=>{setCreatePw(e.target.value);setCreateMsg("");},
                 onKeyDown:e=>{if(e.key==="Enter")createProfile();}, style:{...INP,flex:1} }),
               CE("button", { onClick:createProfile,
-                style:{...BTN("#2563eb"),flexShrink:0,padding:"7px 12px"} }, "✓")
+                disabled: !createFirst.trim() || !isValidMaGebiet(glFix ? (currentUser.gebiet || "") : createGebiet),
+                style:{...BTN("#2563eb"),flexShrink:0,padding:"7px 12px",
+                       opacity: (!createFirst.trim() || !isValidMaGebiet(glFix ? (currentUser.gebiet || "") : createGebiet)) ? 0.4 : 1} }, "✓")
             ),
             createMsg && CE("div", { style:{ marginTop:6, fontSize:11,
                 color:createMsg.startsWith("✓")?"#4ade80":"#f87171" } }, createMsg)
