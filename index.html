@@ -88,7 +88,7 @@ c.addEventListener("click",function(){hideSidebar();});
 c.addEventListener("touchstart",function(e){e.stopPropagation();e.preventDefault();hideSidebar();},{passive:false});setTimeout(function(){collectGoals(function(){if(s.classList.contains("on"))rebuild();});},1500);i.addEventListener("click",function(){rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}});i.addEventListener("touchstart",function(e){e.preventDefault();rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}},{passive:false});document.addEventListener("mousedown",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});document.addEventListener("touchstart",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});}();</script>
 <script>
 (function(){
-  window.__BTU_BUILD = "3a19779c";
+  window.__BTU_BUILD = "5e2b8d41";
   var _iv=null,_s=false;
   function showToast(){if(_s)return;_s=true;localStorage.setItem("btu_toast_ts",Date.now());
     var t=document.createElement("div");
@@ -12301,6 +12301,12 @@ function BioTechDatabase() {
   };
   const doAdminLogin = async () => {
     if (await (async () => { const enc = new TextEncoder(); const buf = await crypto.subtle.digest("SHA-256", enc.encode(adminPinInput)); return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join(""); })() === ADMIN_PIN_HASH) {
+      if (!user || !isGLRole(user.role)) {
+        // Admin-Bereich nur für Gebietsleiter, Schulungsleiter und Superadmins
+        setAdminPinError(true);
+        setAdminPinInput("");
+        return;
+      }
       setAdminMode(true);
       setAdminPinOpen(false);
       setAdminPinInput("");
@@ -12315,7 +12321,7 @@ function BioTechDatabase() {
   const [user, setUser] = React.useState(() => {
     try {
       const u = JSON.parse(sessionStorage.getItem("btu_session") || "null");
-      if (u && u.gebiet && !u.role) u.role = getRoleForGebiet(u.gebiet, false);
+      if (u && !u.role) u.role = "mitarbeiter"; // fehlende Rolle nie aus dem Gebiet ableiten
       return u;
     } catch {
       return null;
@@ -12498,7 +12504,17 @@ function BioTechDatabase() {
         role: finalRole,
         store: loginInput.store || ""
       });
-      finishLogin(username, loginInput.gebiet, nameVal, loginInput.store, finalRole);
+      // Rolle so übernehmen, wie die Datenbank sie gespeichert hat (die Datenbank vergibt
+      // GL-Rechte nur, wenn das Gebiet noch keinen GL hat)
+      let savedRole = "mitarbeiter";
+      try {
+        const chk = await SB.getStrict("profiles?id=eq." + encodeURIComponent(username) + "&select=role");
+        if (chk && chk[0] && chk[0].role) savedRole = chk[0].role;
+      } catch (e) {}
+      if (finalRole !== "mitarbeiter" && savedRole === "mitarbeiter") {
+        window.alert("Für dieses Gebiet ist bereits ein Gebietsleiter angemeldet. Dein Zugang wurde als Mitarbeiter angelegt.");
+      }
+      finishLogin(username, loginInput.gebiet, nameVal, loginInput.store, savedRole);
     } catch(e) {
       setLoginLoading(false);
       setLoginError("Verbindungsfehler — bitte nochmal versuchen.");
@@ -12539,7 +12555,7 @@ function BioTechDatabase() {
   };
 
   const finishLogin = (username, gebiet, nameVal, storeVal, explicitRole) => {
-    const role = explicitRole || getRoleForGebiet(gebiet || "", false);
+    const role = explicitRole || "mitarbeiter"; // ohne Rolle im Profil immer Mitarbeiter
     const displayName = (nameVal || "").trim() || username;
     const u = { username, key: username, first: displayName, last: "", gebiet: gebiet || "", role, store: storeVal || "" };
     try { sessionStorage.setItem("btu_session", JSON.stringify(u)); } catch {}
@@ -13843,7 +13859,7 @@ const FONT = "'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
       lang: lang,
       text: cat
     }));
-  }))), adminMode && /*#__PURE__*/CE(AdminPanel, {
+  }))), adminMode && user && isGLRole(user.role) && /*#__PURE__*/CE(AdminPanel, {
     t: t,
     lang: lang,
     FONT: FONT,
