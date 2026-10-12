@@ -36,6 +36,9 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: postgres
         run: npm run db
+      - name: Sync-Tests (Preis-Sync, Aktionspreise, Übersetzungen)
+        working-directory: tests/sync
+        run: python3 -W ignore::ResourceWarning -m unittest -v
       - name: Browser installieren
         run: npx playwright install --with-deps chromium
       - name: Browser-Tests (Registrierung und Anmeldung)
