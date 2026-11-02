@@ -88,7 +88,7 @@ c.addEventListener("click",function(){hideSidebar();});
 c.addEventListener("touchstart",function(e){e.stopPropagation();e.preventDefault();hideSidebar();},{passive:false});setTimeout(function(){collectGoals(function(){if(s.classList.contains("on"))rebuild();});},1500);i.addEventListener("click",function(){rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}});i.addEventListener("touchstart",function(e){e.preventDefault();rebuild();if(s.classList.contains("on")){hideSidebar();}else{showSidebar();}},{passive:false});document.addEventListener("mousedown",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});document.addEventListener("touchstart",function(e){if(s.classList.contains("on")&&!s.contains(e.target)&&!i.contains(e.target)){hideSidebar();}});}();</script>
 <script>
 (function(){
-  window.__BTU_BUILD = "d41c7e93";
+  window.__BTU_BUILD = "7c83a2f0";
   var _iv=null,_s=false;
   function showToast(){if(_s)return;_s=true;localStorage.setItem("btu_toast_ts",Date.now());
     var t=document.createElement("div");
@@ -1867,31 +1867,29 @@ var PRODUCTS = [
   },
   {
     id: 64,
-    price: 3.7, priceRange: "€",    name: "Crush Bar", packageSize: "1 Stk. (64 g)",
+    price: 2.3, priceRange: "€",    name: "Crush Bar", packageSize: "1 Stk. (45 g)",
     category: "Riegel",
     subcategory: "Proteinriegel (Premium Chocolate, Low Sugar)",
-    portionSize: "64 g (1 Riegel)",
-    kcalPortion: 238,
-    proteinPortion: "20 g",
-    proteinPercent: "31 %",
-    fatPortion: "10,9 g",
-    carbsPortion: "17,9 g (davon Zucker: 2,0 g, Polyole: 13,4 g)",
+    portionSize: "45 g (1 Riegel)",
+    kcalPortion: "~193",
+    proteinPortion: "15 g",
+    proteinPercent: "34 %",
+    fatPortion: "9,7 g",
+    carbsPortion: "16,2 g (davon Zucker: 1,6 g)",
     freeFrom: ["GVO"],
     vegan: false,
     halal: "nein",
     keyIngredients: [
-      "Milchschokoladenüberzug mit Süßungsmittel (Maltit) 31 %",
-      "Karamellschicht 18 % (Polydextrose, Kondensmilch)",
-      "Milchprotein",
-      "Kollagenhydrolysat",
-      "Sojaproteinisolat",
-      "Extrudiertes Soja oder Kokos (je nach Sorte)",
-      "Erdnuss 2,4 %, Erdnusspaste 1,5 % (Peanut-Butter-Variante)",
+      "Milch- oder weißer Schokoladenüberzug mit Süßungsmittel (Maltit) ca. 30 %",
+      "Cremige proteinhaltige Füllung ca. 18 % (je nach Sorte z. B. Pistazie oder Haselnuss-Nougat)",
+      "Milchprotein 14 %",
+      "Hydrolysiertes Rinderkollagen 14 %",
+      "Milchproteinextrudat 5 %",
     ],
     bcaa: "enthalten",
-    flavors: "Brownie-Schokolade, Cookies & Cream, Kokos-Toffee, Peanut Butter – 64 g",
+    flavors: "Dubai-Schokolade Style, Dreifache Schokolade, Haselnuss-Nougat, Pistazie-Weiße Schokolade",
     dosage: "1 Riegel als Snack oder nach dem Training. Nicht über 25°C lagern.",
-    notes: "Dekadentester Riegel im Portfolio. Dicker Schokoladenüberzug + Karamellschicht = bestes Geschmackserlebnis. Trotzdem relativ niedrig Zucker dank Maltit. Für bewusste Schokofans. Höchster Kaloriengehalt der Riegel – eher Genuss als Diätsnack. Premium-Riegel.",
+    notes: "Neue Crush-Generation mit 45 g. Knuspriger Schokoladenüberzug und cremige Füllung, mindestens 33 % Protein und höchstens 194 kcal pro Riegel. Wenig Zucker dank Maltit, mit Rinderkollagen. Genussriegel für Schokofans.",
     studies: [
       { title: "International Society of Sports Nutrition Position Stand: protein and exercise", journal: "J Int Soc Sports Nutr 2017", doi: "10.1186/s12970-017-0177-8", finding: "Positionspapier zu Proteinbedarf, Verteilung und essenziellen Aminosäuren im Sport.", url: "https://doi.org/10.1186/s12970-017-0177-8" },
       { title: "Plant-based protein sources and muscle protein synthesis: Systematic Review", journal: "Nutrients 2021", doi: "10.3390/nu13020661", finding: "Pflanzliche Proteine sind bei ausreichender Dosis für Muskelerhalt und -aufbau vergleichbar wirksam wie tierische Quellen.", url: "https://doi.org/10.3390/nu13020661" },
@@ -5948,7 +5946,7 @@ var PRODUCTS = [
   },
   {
     id: 137,
-    price: 22.9, priceRange: "€€",    name: "MultiSalt",
+    price: 16.9, priceRange: "€€",    name: "MultiSalt", packageSize: "90 Kapseln",
     category: "Vitamine & Mineralien",
     subcategory: "Elektrolyt-Komplex (Natriumchlorid + Kaliumchlorid + Magnesiumcarbonat)",
     portionSize: "1 Tablette",
