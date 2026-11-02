@@ -1,5 +1,7 @@
 """Unit-Tests fuer einzelne Regeln aus preis_sync.py (Faelle aus Juli/August 2026)."""
+import io
 import unittest
+import urllib.request
 
 import laden
 
@@ -121,6 +123,34 @@ class Beschreibung(unittest.TestCase):
         self.assertTrue(k.endswith("."))
 
 
+def basis_aus_lokaler_index():
+    """Basisdaten der index.html ohne Netz laden (plane_neuzugaenge braucht sie)."""
+    if ps._BASIS is not None:
+        return
+    html = laden.index_html().encode()
+
+    class Antwort(io.BytesIO):
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    alt = urllib.request.urlopen
+    urllib.request.urlopen = lambda req, timeout=None: Antwort(html)
+    ps.open = lambda *a, **k: io.StringIO()   # Zwischenspeicher nicht schreiben
+    try:
+        ps.load_index_products()
+    finally:
+        urllib.request.urlopen = alt
+        del ps.open
+
+
+class Groessen(unittest.TestCase):
+    def test_groessenkern(self):
+        self.assertEqual(ps.size_kern("22,5 g (Sachet)"), ps.size_kern("22,5 g"))
+        self.assertEqual(ps.size_kern("1 Stk. (64 g)"), "64g")
+        self.assertEqual(ps.size_kern("100 Tbl"), ps.size_kern("100 Tabletten"))
+        self.assertNotEqual(ps.size_kern("60 Tabletten"), ps.size_kern("120 Tabletten"))
+
+
 class NeueShopProdukte(unittest.TestCase):
     """Regeln von Herbert (03.08.2026): neuer Geschmack oder neue Groesse wird beim
     bestehenden Produkt ergaenzt, Limited Editions werden eigene Produkte."""
@@ -128,6 +158,7 @@ class NeueShopProdukte(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.unsere = {str(u["id"]): u for u in ps.UNSERE}
+        basis_aus_lokaler_index()
 
     def plane(self, titel, varianten=("Vanille",), body=""):
         p = {"id": 999000001, "title": titel, "body_html": body,
@@ -135,25 +166,43 @@ class NeueShopProdukte(unittest.TestCase):
         return ps.plane_neuzugaenge([p], self.unsere, [])
 
     def test_neuer_geschmack_geht_ans_hauptprodukt(self):
-        anlegen, geschmack, groessen, _ = self.plane("Iso Whey Zero Proteinpulver - 454 g", ["Mango-Lassi"])
+        anlegen, geschmack, groessen, _, _ = self.plane("Iso Whey Zero Proteinpulver - 454 g", ["Mango-Lassi"])
         self.assertEqual(anlegen, [])
         self.assertEqual(len(geschmack), 1)
         self.assertEqual(geschmack[0]["ziel"], "1", "nicht an das Sachet #374, sondern an #1")
         self.assertEqual(geschmack[0]["geschmack"], "Mango-Lassi")
 
-    def test_neue_groesse_wird_ergaenzt_statt_neu_angelegt(self):
-        anlegen, geschmack, groessen, _ = self.plane("Iso Whey Zero Proteinpulver - 5000 g")
+    def test_neue_groesse_wird_eigene_groesse_statt_neu_angelegt(self):
+        anlegen, geschmack, groessen, _, _ = self.plane("Iso Whey Zero Proteinpulver - 5000 g")
         self.assertEqual(anlegen, [])
         self.assertEqual([(g["ziel"], g["groesse"]) for g in groessen], [("1", "5000 g")])
 
     def test_limited_edition_wird_eigenes_produkt(self):
-        anlegen, geschmack, groessen, _ = self.plane("Iso Whey Zero - 454 g", ["Lebkuchen"], "Limited Edition")
+        anlegen, geschmack, groessen, _, _ = self.plane("Iso Whey Zero - 454 g", ["Lebkuchen"], "Limited Edition")
         self.assertEqual([n for _, n in anlegen], ["Iso Whey Zero (Limited Edition)"])
         self.assertEqual(geschmack, [])
 
     def test_unbekanntes_produkt_wird_angelegt(self):
-        anlegen, geschmack, groessen, _ = self.plane("Voellig Neues Produkt XY - 60 Kapseln")
+        anlegen, geschmack, groessen, _, _ = self.plane("Voellig Neues Produkt XY - 60 Kapseln")
         self.assertEqual([n for _, n in anlegen], ["Voellig Neues Produkt XY"])
+
+    def test_neue_groesse_haengt_am_hauptprodukt_nicht_an_einer_variante(self):
+        # Iso Whey Platinum: Hauptprodukt #60 (908 g), Varianten 454 g, 1816 g, Sachet
+        _, _, groessen, _, _ = self.plane("Iso Whey Platinum - 3000 g")
+        self.assertEqual([(g["ziel"], g["groesse"]) for g in groessen], [("60", "3000 g")])
+
+    def test_vorhandene_groesse_ohne_zuordnung_wird_verknuepft(self):
+        # #438 L-Carnitine 1000 30 Tabletten gibt es, aber ohne Shop-Zuordnung
+        anlegen, geschmack, groessen, _, zuordnen = self.plane("L-Carnitine 1000 - 30 Tabletten", ["Default Title"])
+        self.assertEqual((anlegen, groessen), ([], []))
+        self.assertEqual([z["ziel"] for z in zuordnen], ["438"])
+
+    def test_fehlende_groesse_kommt_aus_dem_shop_titel(self):
+        # Tribooster hat in der index.html keine Packungsgroesse; zugeordnet ist 60 Tabletten.
+        # Dieselbe Groesse darf deshalb keine neue Variante werden.
+        _, _, groessen, ignoriert, _ = self.plane("Tribooster - 60 Tabletten", ["Default Title"])
+        self.assertEqual(groessen, [])
+        self.assertEqual(len(ignoriert), 1)
 
 
 if __name__ == "__main__":
